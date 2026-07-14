@@ -19,6 +19,11 @@ export {
   combineGateResults,
   type GateResult,
 } from './gate-check.js';
+export {
+  composeCandidateRegressionCheck,
+  type CandidateCheckDeps,
+  type CandidateMemberRefs,
+} from './candidate-check.js';
 
 export const descriptor = {
   name: '@platform-internal/evaluation',

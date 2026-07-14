@@ -78,10 +78,20 @@ principal, binding})`, which returns the **bare, output-validated method
 
 ## Residual / deferred
 
-- **`ConfirmationStore` is per-process in-memory by default.** Multi-instance
-  agent workers need a shared store bound at `MCPBindings.CONFIRMATION_STORE`
-  (Redis) — and the round-trip maps to the platform **approval** outcome
-  (policy-contracts / ADR-019). Not built here.
+- **`ConfirmationStore` is per-process in-memory by default — and a shared (Redis) store is
+  IMPOSSIBLE against `0.7.1`'s contract (AUTH-4 investigation, 2026-07-14).** The seam IS injectable
+  (`MCPBindings.CONFIRMATION_STORE`, resolved by `MCPServer.confirmationStore()`), but the interface
+  is **synchronous** (`issue(scope, fingerprint, ttlMs?): string`, `verify(token, scope, fingerprint):
+  boolean` — `@agentback/common` `utils/safety.d.ts`) and the server consumes it unawaited:
+  `if (!store.verify(token, scope, fingerprint))` (`mcp.server.js:311`). A Promise-returning
+  implementation is ALWAYS truthy there → the invalid-token branch never fires → **fail-open** —
+  a distributed shim is actively dangerous, not merely awkward. **Upstream ask (flagged, do not
+  fork):** widen `ConfirmationStore` to `MaybePromise` and `await` both call sites; then a Redis
+  store (token fingerprint-bound, single-use via GETDEL, TTL) drops in. Until then: multi-instance
+  agent-workers must route a confirm retry to the issuing instance (sticky) or run single-instance;
+  a stateless HMAC token was considered and REJECTED here (loses single-use semantics — replayable
+  within TTL; the idempotency layer masks most but not all of that). The round-trip still maps to the
+  platform **approval** outcome (policy-contracts / ADR-019).
 - **Metering (T7)** was not exercised — agentback emits a metering stream the
   platform must _aggregate_, not double-count. Open.
 - **`build` / `test:dist`** need TS project-reference wiring so `dist/` cross-package

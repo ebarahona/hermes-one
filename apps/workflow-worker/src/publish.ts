@@ -14,7 +14,23 @@ import {compileRule} from '@platform/rule-dsl';
 import {compileWorkflow} from '@platform/workflow-dsl';
 import {compilePolicy} from '@platform/policy-dsl';
 import {DefinitionRegistry, DeploymentService, type CompileFn} from '@platform/definition-substrate';
-import type {Definition, DeploymentMember, DeploymentRef, PlanId, PrincipalId, SemVer, TenantId} from '@platform/contracts';
+import {ExpressionPolicyRuntime} from '@platform/policy-dsl';
+import {composeCandidateRegressionCheck} from '@platform-internal/evaluation';
+import type {Decider} from '@platform-internal/agent-runtime';
+import type {
+  ContentHash,
+  Definition,
+  DefinitionId,
+  DeploymentMember,
+  DeploymentRef,
+  GoldenConversationCase,
+  IsoTimestamp,
+  PlanId,
+  PrincipalId,
+  SemVer,
+  TenantId,
+  ToolCall,
+} from '@platform/contracts';
 import type {RunBundle} from './bundle.js';
 
 export const E2E_TENANT = 'tnt_e2e';
@@ -57,6 +73,45 @@ const V1 = '1.0.0' as SemVer;
 const ACTOR = 'prn_e2e' as PrincipalId;
 const AT = '2026-07-12T00:00:00.000Z';
 
+/**
+ * The golden case gating this publish (OB6): a complex booking request MUST consult the scheduler
+ * (appointment.slot.read) before replying — the behavioral contract of the triage deployment.
+ */
+const goldenBookingCase: GoldenConversationCase = {
+  caseId: 'eval_booking_slot_read',
+  tenantId: null,
+  vertical: null,
+  name: 'complex booking consults the scheduler before replying',
+  severity: 'required',
+  turns: [{text: 'I need to reschedule my appointment', attachments: []}],
+  assertions: [
+    {kind: 'tool-called', capability: 'appointment.slot.read', atStepOrLater: 0},
+    {kind: 'turn-outcome', outcome: 'replied'},
+    {kind: 'reply-matches', pattern: '9am|slot'},
+  ],
+  version: V1,
+  updatedAt: AT as IsoTimestamp,
+  updatedBy: ACTOR,
+} as GoldenConversationCase;
+
+/** The scripted mock model for the golden case: consult the scheduler, then reply from evidence. */
+const goldenBookingScript = (): Decider => ({
+  propose: step =>
+    step === 0
+      ? {
+          kind: 'tool',
+          call: {
+            toolCallId: 'tc_gate_0',
+            capability: 'appointment.slot.read',
+            input: {date: '2026-07-15'},
+            idempotencyKey: 'idem_gate_0',
+            proposedAt: AT,
+          } as unknown as ToolCall,
+          usage: {inputTokens: 10, outputTokens: 5, costUsd: 0},
+        }
+      : {kind: 'done', reply: 'You are booked for 9am.', usage: {inputTokens: 4, outputTokens: 6, costUsd: 0}},
+});
+
 const authored = (id: string, kind: Definition['kind'], name: string, body: unknown, tenantId: string): Definition =>
   ({
     definitionId: id,
@@ -95,7 +150,6 @@ export async function publishAgentDeployment(
     policy: (def, ctx) => compilePolicy(def as never, {registry: opreg, compilerVersion: ctx.compilerVersion, planId: ctx.planId, compiledAt: ctx.compiledAt as never}),
   };
   const registry = new DefinitionRegistry({store, definitions: write.definitions, compilers, compilerVersion: V1, now: () => AT});
-  const service = new DeploymentService({store, deployments: write.deployments, now: () => AT});
 
   try {
     // Permissive policy: a single preGate that never fires → all gates allow.
@@ -138,6 +192,40 @@ export async function publishAgentDeployment(
 
     const m = (kind: DeploymentMember['kind'], definitionId: string, planId: PlanId | null, contentHash: string): DeploymentMember =>
       ({kind, definitionId, planId, version: V1, contentHash}) as DeploymentMember;
+
+    // OB6: the REAL regression gate — the candidate's own engine/capabilities/policy are loaded from
+    // the substrate (already content-addressed; the deployment row doesn't exist yet) and the golden
+    // suite runs through the ONE turn loop against the mock provider plane. A required-case failure
+    // ABORTS the publish before anything is written. (Composed at this host — the admin-api owns the
+    // production composition later; the workflow-level Temporal simulation remains deferred.)
+    const regressionCheck = composeCandidateRegressionCheck({
+      members: {
+        tenantId: tenantId as TenantId,
+        agentEngine: {definitionId: 'def_e2e_engine' as DefinitionId, contentHash: eng.contentHash as ContentHash},
+        policy: {planId: pol.planId as PlanId, contentHash: pol.contentHash as ContentHash},
+        capabilities: [{definitionId: 'def_e2e_slot_read' as DefinitionId, contentHash: cap.contentHash as ContentHash}],
+      },
+      loadContract: (t, d, h) => store.resolveContractCached(t, d, h),
+      loadPlan: (t, p, h) => store.resolvePlanCached(t, p, h),
+      policyRuntime: new ExpressionPolicyRuntime(opreg),
+      suite: [goldenBookingCase],
+      script: () => goldenBookingScript(),
+      toolOutput: () => ({slots: ['9am']}),
+    });
+    const service = new DeploymentService({
+      store,
+      deployments: write.deployments,
+      now: () => AT,
+      regressionCheck: async candidate => {
+        const gate = await regressionCheck(candidate);
+        console.log(
+          gate.pass
+            ? `regression gate PASSED for ${candidate.deploymentId} (golden: ${goldenBookingCase.caseId})`
+            : `regression gate BLOCKED ${candidate.deploymentId}: ${gate.reason}`,
+        );
+        return gate;
+      },
+    });
 
     return await service.publish({
       tenantId: tenantId as TenantId,

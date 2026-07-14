@@ -196,9 +196,15 @@ importers:
       '@loopback/context':
         specifier: ^8.0.13
         version: 8.0.13
+      '@platform-internal/agent-runtime':
+        specifier: workspace:*
+        version: link:../../components/agent-runtime
       '@platform-internal/config':
         specifier: workspace:*
         version: link:../../infrastructure/config
+      '@platform-internal/evaluation':
+        specifier: workspace:*
+        version: link:../../components/evaluation
       '@platform-internal/loopback-core':
         specifier: workspace:*
         version: link:../../components/loopback-core
@@ -367,6 +373,9 @@ importers:
       '@platform-internal/agent-runtime':
         specifier: workspace:*
         version: link:../agent-runtime
+      '@platform/capability-contract':
+        specifier: workspace:*
+        version: link:../../packages/capability-contract
       '@platform/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts

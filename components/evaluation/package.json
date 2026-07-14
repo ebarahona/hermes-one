@@ -26,7 +26,8 @@
     ]
   },
   "dependencies": {
-    "@platform/contracts": "workspace:*",
-    "@platform-internal/agent-runtime": "workspace:*"
+    "@platform-internal/agent-runtime": "workspace:*",
+    "@platform/capability-contract": "workspace:*",
+    "@platform/contracts": "workspace:*"
   }
 }

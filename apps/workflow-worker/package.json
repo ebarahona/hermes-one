@@ -30,7 +30,9 @@
   },
   "dependencies": {
     "@loopback/context": "^8.0.13",
+    "@platform-internal/agent-runtime": "workspace:*",
     "@platform-internal/config": "workspace:*",
+    "@platform-internal/evaluation": "workspace:*",
     "@platform-internal/loopback-core": "workspace:*",
     "@platform-internal/temporal-client": "workspace:*",
     "@platform/contracts": "workspace:*",

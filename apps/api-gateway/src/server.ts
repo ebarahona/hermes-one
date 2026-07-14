@@ -5,6 +5,7 @@
 // LoopBack REST per api/*.md — a separate, later build.
 import {createServer, type IncomingMessage, type Server, type ServerResponse} from 'node:http';
 import type {SmsChannelTransport} from '@platform-internal/channels';
+import type {Tracer} from '@platform-internal/telemetry';
 import {startFromInbound, type IngestDeps} from './ingestor.js';
 
 function readBody(req: IncomingMessage): Promise<string> {
@@ -25,6 +26,8 @@ const lowerHeaders = (req: IncomingMessage): Record<string, string> => {
 export interface GatewayDeps {
   transport: SmsChannelTransport;
   ingest: IngestDeps;
+  /** Opens the `edge.request` root span (OB5) — the top of the span tree edge→workflow→activity→turn→tool. */
+  tracer: Tracer;
 }
 
 /** Build the inbound webhook HTTP server. POST /webhooks/sms → verify → ingest → start workflow. */
@@ -34,18 +37,25 @@ export function createGatewayServer(deps: GatewayDeps): Server {
       res.writeHead(404).end();
       return;
     }
+    // edge.request: the trace root. Its traceparent is threaded onto the workflow start ref so the whole
+    // downstream (workflow → activity → turn → tool) joins one trace (tracing-metrics-logging.md).
+    const span = deps.tracer.startSpan('edge.request', {attributes: {'http.route': '/webhooks/sms'}});
     try {
       const rawBody = await readBody(req);
       const parsed = JSON.parse(rawBody || '{}');
       const msg = await deps.transport.ingest({rawBody, parsed}, lowerHeaders(req));
       if (!msg) {
-        res.writeHead(204).end(); // verified but dropped (not our tenant / malformed)
+        span.end(); // verified but dropped (not our tenant / malformed)
+        res.writeHead(204).end();
         return;
       }
-      const started = await startFromInbound(msg, deps.ingest);
+      const started = await startFromInbound(msg, deps.ingest, span.traceparent);
+      span.setAttributes({'tenant.id': msg.tenantId, 'workflow.id': started.workflowId});
+      span.end();
       res.writeHead(202, {'content-type': 'application/json'}).end(JSON.stringify(started));
     } catch (err) {
       // Signature failure or malformed request — reject without starting anything.
+      span.end({ok: false, error: err as Error});
       res.writeHead(401, {'content-type': 'application/json'}).end(
         JSON.stringify({error: (err as Error).message}),
       );

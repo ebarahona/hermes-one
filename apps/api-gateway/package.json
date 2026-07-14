@@ -29,6 +29,7 @@
     "@platform-internal/channels": "workspace:*",
     "@platform-internal/config": "workspace:*",
     "@platform-internal/drizzle": "workspace:*",
+    "@platform-internal/telemetry": "workspace:*",
     "@platform-internal/workflow-worker": "workspace:*",
     "@platform/contracts": "workspace:*",
     "@temporalio/client": "^1.20.2"

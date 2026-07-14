@@ -56,13 +56,20 @@ async function main() {
   const activityWorker = await createActivityWorker();
   const agentWorker = await createAgentWorker();
 
+  // OB5 trace-continuity check: simulate the edge trace so the turn spans (emitted on the agent plane,
+  // across the real Temporal boundary) parent off this exact traceId — the spec's #1 acceptance test.
+  const EDGE_TRACEPARENT = '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01';
+  const EDGE_TRACE_ID = '4bf92f3577b34da6a3ce929d0e0e4736';
+
   const clientWork = (async () => {
     const out: {name: string; path: string[]; expect: string[]}[] = [];
     for (const c of CASES) {
+      const ref = bundleToRef(bundle, c.input, E2E_TENANT, {deploymentId: deployed.deploymentId, version: deployed.version});
+      ref.trace = {traceparent: EDGE_TRACEPARENT};
       const handle = await client.workflow.start('runTriage', {
         taskQueue: WORKFLOW_QUEUE,
         workflowId: `triage-${c.name}-${Date.now()}`,
-        args: [bundleToRef(bundle, c.input, E2E_TENANT, {deploymentId: deployed.deploymentId, version: deployed.version})],
+        args: [ref],
       });
       const r = (await handle.result()) as {path: string[]};
       out.push({name: c.name, path: r.path, expect: c.expectPath});
@@ -85,6 +92,7 @@ async function main() {
     );
     if (!pass) ok = false;
   }
+  console.log(`(OB5) with HERMES_OTEL_TRACES=console, the agent.turn/agent.tool spans above carry traceId=${EDGE_TRACE_ID} (propagated from the edge across the Temporal boundary).`);
   await connection.close();
   if (!ok) {
     console.error('E2E FAILED');

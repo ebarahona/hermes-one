@@ -11,6 +11,7 @@ import type {
   PlanId,
   RuleDefinition,
   SemVer,
+  TraceHeader,
   WorkflowDefinition,
 } from '@platform/contracts';
 import {builtinRegistry} from '@platform/expression-core';
@@ -57,6 +58,10 @@ export interface WorkflowRunRef {
   deployment?: DeploymentPin;
   parameters: Record<string, unknown>;
   input: Record<string, unknown>;
+  /** W3C trace context from the edge (observability/tracing-metrics-logging.md, OB5). Carried as an
+   *  explicit workflow-input field (the spec's "trace on WorkflowExecutionInput") so the turn activity
+   *  parents its spans off the edge trace — never ambient across the Temporal boundary. */
+  trace?: TraceHeader;
 }
 
 /** Derive the start ref from a compiled bundle (after its plans are published). */

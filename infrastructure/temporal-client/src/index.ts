@@ -7,9 +7,10 @@ export const descriptor = {
   role: 'infrastructure',
   plane: 'none',
   published: false,
-  sourceDocs: ['03-workflow-runtime/043', 'temporal/retry-policy-registry'],
+  sourceDocs: ['03-workflow-runtime/043', 'temporal/retry-policy-registry', 'observability/tracing-metrics-logging'],
   governedBy: [],
 } as const;
 
 export * from './retry-policy.js';
 export * from './activity-options.js';
+export * from './trace-propagation.js';

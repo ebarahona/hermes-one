@@ -16,10 +16,12 @@ import type {
   IsoTimestamp,
   PinnedRef,
   RuleFacts,
+  TraceHeader,
   TurnRequest,
   TurnResult,
 } from '@platform/contracts';
 import {
+  PassThroughWorkflowTrace,
   RETRY_POLICY_REGISTRY,
   retryPolicyClassForCapability,
   toTemporalActivityOptions,
@@ -53,9 +55,10 @@ interface EdgeActivities {
   }): Promise<void>;
 }
 
-/** Agent activity (agent-worker) — the bounded turn, on its own plane/queue. Serializable TurnRequest→TurnResult. */
+/** Agent activity (agent-worker) — the bounded turn, on its own plane/queue. Serializable TurnRequest→TurnResult.
+ *  `trace` carries the W3C traceparent to parent the turn/tool spans off the edge trace (OB5). */
 interface AgentActivities {
-  agentTurn(a: TurnRequest): Promise<TurnResult>;
+  agentTurn(a: TurnRequest, trace?: TraceHeader): Promise<TurnResult>;
 }
 
 // Retry classes per temporal/retry-policy-registry.md — every activity resolves to exactly one of
@@ -142,8 +145,12 @@ export async function runTriage(ref: WorkflowRunRef) {
     // the agent turn crosses to agent-worker (agent plane) as its own activity, carrying a serializable
     // TurnRequest and returning a TurnResult (ADR-017); the workflow maps it to the interpreter's shape.
     runAgentTurn: async (engine, objective, input) => {
+      // Trace propagation (OB5): extract the child trace via the WorkflowTraceInterceptor seam and carry
+      // it as an explicit sidecar arg to the turn activity (the spec's "traceparent on ActivityOptions").
+      const {childTrace} = new PassThroughWorkflowTrace().onWorkflowExecute({trace: ref.trace});
       const result = await agentTurn(
         buildAgentTurnRequest(ref.tenantId, pin, engine, objective, input, correlationId),
+        childTrace,
       );
       return {outcome: result.outcome, reply: result.reply};
     },

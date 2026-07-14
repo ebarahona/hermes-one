@@ -1,0 +1,25 @@
+# OpenTelemetry Collector config for the hermes-one local stack (OB5). Receives platform trace spans over
+# OTLP (the workers export here when HERMES_OTEL_TRACES=otlp) and logs them (debug exporter). In a real
+# deployment, swap the `debug` exporter for an OTLP/Jaeger/Tempo exporter — the backend is pluggable and
+# the platform's export contract does not change.
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch: {}
+
+exporters:
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]

@@ -57,6 +57,14 @@ export const HermesConfig = z.object({
     channelPattern: z.string().min(1),
     tenants: z.array(z.string().min(1)),
   }),
+  // OpenTelemetry distributed tracing (observability/tracing-metrics-logging.md, OB5). `mode` selects the
+  // span exporter: off → NoopTracer (unit/dev quiet); console → stdout (dev); otlp → ship to a collector
+  // (prod). `endpoint` is the OTLP/HTTP traces URL used when mode==='otlp'. Structured logs + metrics
+  // already emit regardless; this drives the trace pillar only.
+  otel: z.object({
+    mode: z.enum(['off', 'console', 'otlp']),
+    endpoint: z.string().url(),
+  }),
 });
 export type HermesConfig = z.infer<typeof HermesConfig>;
 
@@ -74,6 +82,8 @@ const DEFAULTS = {
   HERMES_OUTBOX_MAX_ATTEMPTS: '10', // EventEnvelopeConfig.outboxMaxAttempts default
   HERMES_OUTBOX_CHANNEL_PATTERN: 'events:{tenantId}:{aggregateType}',
   HERMES_OUTBOX_TENANTS: '', // csv; empty → publisher loop disabled
+  HERMES_OTEL_TRACES: 'off', // off | console | otlp
+  HERMES_OTEL_ENDPOINT: 'http://127.0.0.1:4318/v1/traces', // OTLP/HTTP traces (matches infra collector)
 } as const;
 
 /**
@@ -116,6 +126,10 @@ export function loadConfig(
       maxAttempts: g('HERMES_OUTBOX_MAX_ATTEMPTS'),
       channelPattern: g('HERMES_OUTBOX_CHANNEL_PATTERN'),
       tenants: g('HERMES_OUTBOX_TENANTS').split(',').map(t => t.trim()).filter(Boolean),
+    },
+    otel: {
+      mode: g('HERMES_OTEL_TRACES'),
+      endpoint: g('HERMES_OTEL_ENDPOINT'),
     },
   });
 }

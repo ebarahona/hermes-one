@@ -5,6 +5,7 @@ import {Client, Connection} from '@temporalio/client';
 import {loadConfig} from '@platform-internal/config';
 import {assertRlsPostureAtBoot, createCompiledPlanStore, createMessageRepository} from '@platform-internal/drizzle';
 import {SmsChannelTransport, type TenantByNumber} from '@platform-internal/channels';
+import {initTracing, tracingConfigFor} from '@platform-internal/telemetry';
 import type {TenantId} from '@platform/contracts';
 import {createGatewayServer} from './server.js';
 
@@ -41,9 +42,13 @@ export async function createInboundGateway(gw: GatewayConfig): Promise<GatewayHa
     tenantByNumber: gw.tenantByNumber,
   });
 
+  // OTel tracing (OB5): the gateway opens the `edge.request` root span for each webhook.
+  const tracing = initTracing(tracingConfigFor(cfg.otel, 'hermes-api-gateway'));
+
   const server = createGatewayServer({
     transport,
     ingest: {store, messages, client, parametersFor: gw.parametersFor},
+    tracer: tracing.tracer,
   });
 
   return {
@@ -52,6 +57,7 @@ export async function createInboundGateway(gw: GatewayConfig): Promise<GatewayHa
       await connection.close();
       await closeStore();
       await closeMessages();
+      await tracing.shutdown();
     },
   };
 }

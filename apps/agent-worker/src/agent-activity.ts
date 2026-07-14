@@ -21,6 +21,9 @@ import {
   type PlanId,
   type Scope,
   type TenantId,
+  type ToolCall,
+  type TraceHeader,
+  type TurnContext,
   type TurnRequest,
   type TurnResult,
 } from '@platform/contracts';
@@ -34,6 +37,7 @@ import {
   PlatformToolExecutor,
   createEnvelopeHook,
   metaSourceFrom,
+  type DispatchResult,
 } from '@platform-internal/tool-executor';
 import {createModelDecider, runTurn, type DeciderTool, type TurnLedger} from '@platform-internal/agent-runtime';
 import {
@@ -46,7 +50,17 @@ import {
   type HandoffTaskRow,
 } from '@platform-internal/drizzle';
 import {correlationFromWorkspace, type IsoTimestamp, type Logger, type Meter, type PrincipalId} from '@platform/contracts';
-import {JsonLogger, RedactingLogger, FieldRedactor, LoggingMeter} from '@platform-internal/telemetry';
+import {
+  JsonLogger,
+  RedactingLogger,
+  FieldRedactor,
+  LoggingMeter,
+  initTracing,
+  tracingConfigFor,
+  type Tracer,
+  type TracingHandle,
+} from '@platform-internal/telemetry';
+import {parentTraceparentFromArg} from '@platform-internal/temporal-client';
 import {deriveAuditEvents} from './audit-events.js';
 import {deriveUsageEvents} from './usage-events.js';
 import {emitTurnMetrics} from './turn-metrics.js';
@@ -61,6 +75,43 @@ const turnLogger: Logger = new RedactingLogger(
 const meter: Meter = new LoggingMeter(new JsonLogger('info'));
 
 const toolNameOf = (cap: string) => cap.replace(/\./g, '_');
+
+/**
+ * The tool executor with an `agent.tool.<capability>` span per dispatch — a child of the turn span,
+ * carrying the spec's attributes (tenant.id, turn.id, tool.capability, tool.side_effect, tool.ok). It
+ * subclasses `PlatformToolExecutor` (the turn loop dispatches via that concrete type) and wraps its
+ * `dispatch`, so both `dispatch` and the inherited `execute` are traced. (tracing-metrics-logging.md —
+ * the `agent.tool.*` leaves of the span tree.)
+ */
+class TracingToolExecutor extends PlatformToolExecutor {
+  constructor(
+    server: MCPServer,
+    parent: Context,
+    metaSource: ReturnType<typeof metaSourceFrom>,
+    private readonly tracer: Tracer,
+    private readonly turnTraceparent: string,
+    private readonly tenantId: string,
+    private readonly turnId: string,
+  ) {
+    super(server, parent, metaSource);
+  }
+
+  override async dispatch(call: ToolCall, ctx: TurnContext): Promise<DispatchResult> {
+    const span = this.tracer.startSpan(`agent.tool.${call.capability}`, {
+      parentTraceparent: this.turnTraceparent,
+      attributes: {'tenant.id': this.tenantId, 'turn.id': this.turnId, 'tool.capability': call.capability},
+    });
+    try {
+      const d = await super.dispatch(call, ctx);
+      span.setAttributes({'tool.side_effect': d.result.sideEffect, 'tool.ok': d.result.ok});
+      span.end({ok: d.result.ok});
+      return d;
+    } catch (err) {
+      span.end({ok: false, error: err as Error});
+      throw err;
+    }
+  }
+}
 
 // The `model-call` retry class sets heartbeatTimeout:'20s' (retry-policy-registry.md) — a turn that
 // runs long (slow model, several tool steps) must emit liveness or Temporal kills the attempt. No-op
@@ -82,6 +133,8 @@ interface Booted {
   model: SingleStepModel;
   store: CompiledPlanStore;
   persistence: DrizzleTurnPersistence;
+  tracer: Tracer;
+  tracing: TracingHandle;
 }
 let booted: Promise<Booted> | undefined;
 
@@ -97,8 +150,15 @@ function boot(): Promise<Booted> {
     const model = createOpenAICompatibleModel(cfg.llm);
     const {store} = createCompiledPlanStore(cfg.stores.authoritative.url, cfg.stores.ephemeral.url);
     const {repo: persistence} = createTurnPersistence(cfg.stores.authoritative.url);
-    return {app, server, model, store, persistence};
+    // OTel tracing (OB5): one provider per worker process; spans export to the configured exporter.
+    const tracing = initTracing(tracingConfigFor(cfg.otel, 'hermes-agent-worker'));
+    return {app, server, model, store, persistence, tracer: tracing.tracer, tracing};
   })());
+}
+
+/** Flush + shut the tracing provider down on worker stop so batched spans are not lost. */
+export async function shutdownAgentWorker(): Promise<void> {
+  if (booted) await (await booted).tracing.shutdown();
 }
 
 // HandoffConfig routing defaults are not wired yet (no tenant config store) — 'general'/'normal', no
@@ -166,17 +226,17 @@ function toLedgerRows(l: TurnLedger): TurnLedgerRows {
   };
 }
 
-export async function agentTurn(request: TurnRequest): Promise<TurnResult> {
+export async function agentTurn(request: TurnRequest, trace?: TraceHeader): Promise<TurnResult> {
   const stopHeartbeat = startHeartbeat();
   try {
-    return await runAgentTurn(request);
+    return await runAgentTurn(request, trace);
   } finally {
     stopHeartbeat();
   }
 }
 
-async function runAgentTurn(request: TurnRequest): Promise<TurnResult> {
-  const {app, server, model, store, persistence} = await boot();
+async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<TurnResult> {
+  const {app, server, model, store, persistence, tracer} = await boot();
   const tenantId = request.workspace.tenantRuntime.tenantId as TenantId;
   const scopes = request.workspace.principal.scopes as Scope[];
   const principalId = request.workspace.principal.id as PrincipalId;
@@ -207,7 +267,7 @@ async function runAgentTurn(request: TurnRequest): Promise<TurnResult> {
     parameters: c.inputJsonSchema,
   }));
   const byName = new Map(capContracts.map(c => [c.name, c]));
-  const executor = new PlatformToolExecutor(server, app as unknown as Context, metaSourceFrom(n => byName.get(n)));
+  const metaSource = metaSourceFrom(n => byName.get(n));
 
   const decider = createModelDecider({
     model,
@@ -215,35 +275,63 @@ async function runAgentTurn(request: TurnRequest): Promise<TurnResult> {
     tools,
   });
 
+  // Span tree (OB5): temporal.activity.agentTurn (child of the edge trace via the explicit sidecar) →
+  // agent.turn → agent.tool.<capability> (per dispatch, opened by the tracing executor). Every terminal
+  // path (success, failed outcome, or a thrown error) ends both spans so nothing leaks.
+  const activitySpan = tracer.startSpan('temporal.activity.agentTurn', {
+    parentTraceparent: parentTraceparentFromArg(trace),
+    attributes: {'tenant.id': tenantId, 'turn.id': request.turnId},
+  });
+  const turnSpan = tracer.startSpan('agent.turn', {
+    parentTraceparent: activitySpan.traceparent,
+    attributes: {'tenant.id': tenantId, 'turn.id': request.turnId},
+  });
+  const tracingExecutor = new TracingToolExecutor(
+    server,
+    app as unknown as Context,
+    metaSource,
+    tracer,
+    turnSpan.traceparent,
+    tenantId,
+    request.turnId,
+  );
+
   let capturedLedger: TurnLedger | undefined;
   const startedMs = Date.now();
-  const result = await runTurn(request, {
-    executor,
-    decider,
-    policy: {plan: policyPlan, runtime: new ExpressionPolicyRuntime(builtinRegistry())},
-    // Durable turn persistence (Tier 2, made ATOMIC in F3): ONE tenant-scoped transaction commits the
-    // ledger, the initial handoff_tasks request, the append-only audit trail, the usage records, and an
-    // event_outbox row per audit event (commit-and-publish) — a crash mid-persist leaves nothing, never
-    // a ledger without its audit trail or billing record. Idempotent; a Temporal retry collapses.
-    onPersist: async turnLedger => {
-      capturedLedger = turnLedger;
-      const now = new Date();
-      const occurredAt = now.toISOString() as IsoTimestamp;
-      await persistence.persistTurnAtomic(
-        {
-          ledger: toLedgerRows(turnLedger),
-          handoff:
-            turnLedger.handoff && turnLedger.handoff.conversationId
-              ? toHandoffRow(turnLedger.handoff, now)
-              : undefined,
-          auditEvents: deriveAuditEvents(turnLedger, {principalId, conversationId, occurredAt}),
-          // Usage metering (exactly-once on dedupeKey) — model tokens/cost + tool-invocation count.
-          usageEvents: deriveUsageEvents(turnLedger, {principalId, occurredAt}),
-        },
-        {tenantId},
-      );
-    },
-  });
+  let result: TurnResult;
+  try {
+    result = await runTurn(request, {
+      executor: tracingExecutor,
+      decider,
+      policy: {plan: policyPlan, runtime: new ExpressionPolicyRuntime(builtinRegistry())},
+      // Durable turn persistence (Tier 2, made ATOMIC in F3): ONE tenant-scoped transaction commits the
+      // ledger, the initial handoff_tasks request, the append-only audit trail, the usage records, and an
+      // event_outbox row per audit event (commit-and-publish) — a crash mid-persist leaves nothing, never
+      // a ledger without its audit trail or billing record. Idempotent; a Temporal retry collapses.
+      onPersist: async turnLedger => {
+        capturedLedger = turnLedger;
+        const now = new Date();
+        const occurredAt = now.toISOString() as IsoTimestamp;
+        await persistence.persistTurnAtomic(
+          {
+            ledger: toLedgerRows(turnLedger),
+            handoff:
+              turnLedger.handoff && turnLedger.handoff.conversationId
+                ? toHandoffRow(turnLedger.handoff, now)
+                : undefined,
+            auditEvents: deriveAuditEvents(turnLedger, {principalId, conversationId, occurredAt}),
+            // Usage metering (exactly-once on dedupeKey) — model tokens/cost + tool-invocation count.
+            usageEvents: deriveUsageEvents(turnLedger, {principalId, occurredAt}),
+          },
+          {tenantId},
+        );
+      },
+    });
+  } catch (err) {
+    turnSpan.end({ok: false, error: err as Error});
+    activitySpan.end({ok: false, error: err as Error});
+    throw err;
+  }
 
   // Metrics catalogue (Tier 3.7): turn count/latency, per-tool invocation count/latency, per-gate decision
   // count — the SLO signals. Derived from the captured ledger + wall latency.
@@ -257,5 +345,10 @@ async function runAgentTurn(request: TurnRequest): Promise<TurnResult> {
     correlation: correlationFromWorkspace(request.workspace, request.turnId),
     fields: {outcome: result.outcome, reply: result.reply, toolCount: result.metrics.toolCount, steps: result.steps},
   });
+
+  const ok = result.outcome !== 'failed';
+  turnSpan.setAttributes({'turn.outcome': result.outcome});
+  turnSpan.end({ok});
+  activitySpan.end({ok});
   return result;
 }

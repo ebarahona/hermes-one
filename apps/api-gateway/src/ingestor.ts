@@ -28,7 +28,11 @@ export interface StartedWorkflow {
 
 const short = (s: string) => s.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40);
 
-export async function startFromInbound(inbound: InboundMessage, deps: IngestDeps): Promise<StartedWorkflow> {
+export async function startFromInbound(
+  inbound: InboundMessage,
+  deps: IngestDeps,
+  edgeTraceparent?: string,
+): Promise<StartedWorkflow> {
   const tenantId = inbound.tenantId;
   const at = (deps.clock ?? (() => new Date()))();
   const conversationId = `cnv_${short(inbound.from)}`;
@@ -62,6 +66,8 @@ export async function startFromInbound(inbound: InboundMessage, deps: IngestDeps
     // Resolve-active-and-PIN (D1): the run — including any agent turn — replays against this exact
     // deployment version even if a new one is published mid-conversation.
     deployment: {deploymentId: deployment.deploymentId, version: deployment.version},
+    // Carry the edge trace context onto the workflow input (OB5) so the run joins the edge trace.
+    trace: edgeTraceparent ? {traceparent: edgeTraceparent} : undefined,
     parameters: deps.parametersFor(tenantId),
     input: {
       channel: 'voice',

@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {NativeConnection, Worker} from '@temporalio/worker';
 import {loadConfig} from '@platform-internal/config';
 import {withPlatformFailures} from '@platform-internal/temporal-client';
-import {agentTurn} from './agent-activity.js';
+import {agentTurn, shutdownAgentWorker} from './agent-activity.js';
 
 export const AGENT_QUEUE = 'hermes-agent';
 
@@ -27,5 +27,10 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   console.log(
     `agent-worker: polling '${AGENT_QUEUE}' on ${loadConfig().temporal.address}`,
   );
-  await worker.run();
+  try {
+    await worker.run();
+  } finally {
+    // Flush batched spans on stop so nothing is lost (no-op for the console/none exporters).
+    await shutdownAgentWorker();
+  }
 }

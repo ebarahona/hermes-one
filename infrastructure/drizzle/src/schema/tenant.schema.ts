@@ -1,16 +1,19 @@
 // The `tenant` schema: tenants (reused from loopback/repository-patterns.md), workspaces, users, roles,
 // and vertical_pack_installations. Every row is tenant-owned and RLS-protected (roles + message_templates
-// allow a NULL tenant_id = platform-shared). Verbatim from database/table-catalog.md.
-import {pgSchema, uuid, text, timestamp, jsonb, integer, index, uniqueIndex} from 'drizzle-orm/pg-core';
+// allow a NULL tenant_id = platform-shared). Verbatim from database/table-catalog.md — EXCEPT
+// tenant.tenants ids: TEXT brands per the CT1 decision (2026-07-14, migration 0028), a deliberate
+// deviation from repository-patterns.md's uuid columns.
+import {pgSchema, text, timestamp, jsonb, integer, index, uniqueIndex} from 'drizzle-orm/pg-core';
 
 export const tenant = pgSchema('tenant');
 
 /* ------------------------------------------------------------------ *
- * tenant.tenants — reused verbatim from loopback/repository-patterns.md (+ a unique index on slug).
+ * tenant.tenants — reused from loopback/repository-patterns.md (+ a unique index on slug);
+ * ids are the text `tnt_…` brand (CT1 decision, migration 0028).
  * ------------------------------------------------------------------ */
 export const tenants = tenant.table('tenants', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  tenantId: uuid('tenant_id').notNull(),                          // self-referencing (tenant_id = id)
+  id: text('id').primaryKey(),                                    // TenantId 'tnt_...'
+  tenantId: text('tenant_id').notNull(),                          // self-referencing (tenant_id = id)
   slug: text('slug').notNull(),
   displayName: text('display_name').notNull(),
   status: text('status').notNull().$type<'active'|'suspended'|'trial'|'archived'>(),

@@ -24,6 +24,7 @@
     "governedBy": []
   },
   "dependencies": {
+    "@platform/contracts": "workspace:*",
     "zod": "^4.4.3"
   }
 }

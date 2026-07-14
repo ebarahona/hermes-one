@@ -18,6 +18,8 @@ export interface RedisClient {
   del(key: string): Promise<void>;
   /** PUBLISH one message to a channel (pub/sub lane). */
   publish(channel: string, message: string): Promise<void>;
+  /** SET key value EX ttl NX — true if freshly set, false if the key already exists (idempotency lane). */
+  setnx(key: string, ttlSeconds: number, value: string): Promise<boolean>;
   /**
    * SUBSCRIBE on a DEDICATED duplicated connection (ioredis requires a subscriber connection to do
    * nothing else). Returns an unsubscribe that closes that dedicated connection.
@@ -42,6 +44,10 @@ export function createRedisClient(url: string): RedisClient {
     publish: async (channel, message) => {
       await redis.publish(channel, message);
     },
+    setnx: async (key, ttlSeconds, value) => {
+      const res = await redis.set(key, value, 'EX', Math.max(1, ttlSeconds), 'NX');
+      return res === 'OK';
+    },
     subscribe: async (channel, onMessage) => {
       const sub = redis.duplicate();
       subscribers.add(sub);
@@ -60,6 +66,26 @@ export function createRedisClient(url: string): RedisClient {
       await redis.quit();
     },
   };
+}
+
+/* ---------------- Replay guard (authentication-strategies.md NonceStore) ---------------- */
+
+/**
+ * Redis-backed single-use nonce guard for stateless credentials (signed webhooks, workload tokens).
+ * Canonical port shape from `loopback/authentication-strategies.md` — hosted here until the auth
+ * component (`components/auth`, AUTH-3) lands and re-exports it (flagged,
+ * docs/design/001-edge-authn-design.md).
+ */
+export interface NonceStore {
+  /** true if freshly reserved; false if already seen (replay). */
+  reserve(key: string, ttlSeconds: number): Promise<boolean>;
+}
+
+export class RedisNonceStore implements NonceStore {
+  constructor(private readonly client: RedisClient) {}
+  reserve(key: string, ttlSeconds: number): Promise<boolean> {
+    return this.client.setnx(`auth:nonce:${key}`, ttlSeconds, '1');
+  }
 }
 
 /* ------------------- Event fan-out (events/event-envelope.md) ------------------- */

@@ -11,6 +11,7 @@ export {
 } from './messaging.js';
 export {
   SmsChannelTransport,
+  smsSignedMaterial,
   type SmsTransportConfig,
   type TenantByNumber,
   type FetchLike,

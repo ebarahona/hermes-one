@@ -28,5 +28,8 @@
   "dependencies": {
     "@platform/contracts": "workspace:*",
     "ioredis": "^5.11.1"
+  },
+  "devDependencies": {
+    "@platform-internal/config": "workspace:*"
   }
 }

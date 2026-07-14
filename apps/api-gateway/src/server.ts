@@ -54,10 +54,12 @@ export function createGatewayServer(deps: GatewayDeps): Server {
       span.end();
       res.writeHead(202, {'content-type': 'application/json'}).end(JSON.stringify(started));
     } catch (err) {
-      // Signature failure or malformed request — reject without starting anything.
+      // Verification failure or malformed request — reject without starting anything. The body is
+      // GENERIC (authentication-strategies.md: no claim/schema/reason leakage on 401); the real
+      // reason goes to the span/log only.
       span.end({ok: false, error: err as Error});
       res.writeHead(401, {'content-type': 'application/json'}).end(
-        JSON.stringify({error: (err as Error).message}),
+        JSON.stringify({error: 'Authentication failed.'}),
       );
     }
   });

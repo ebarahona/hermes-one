@@ -1,24 +1,39 @@
 import {describe, expect, it} from 'vitest';
 import {createHmac} from 'node:crypto';
-import {PlatformErrorException, type ConversationId, type OutboundMessage, type ProviderExecutionContext, type TenantId} from '@platform/contracts';
-import {SmsChannelTransport, type FetchLike} from './sms-transport.js';
+import {
+  PlatformErrorException,
+  SecretRef,
+  type ConversationId,
+  type OutboundMessage,
+  type ProviderExecutionContext,
+  type SecretProvider,
+  type TenantId,
+} from '@platform/contracts';
+import type {NonceStore} from '@platform-internal/redis';
+import {SmsChannelTransport, smsSignedMaterial, type FetchLike, type SmsTransportConfig} from './sms-transport.js';
 
 const SECRET = 'shh';
-const sign = (body: string) => createHmac('sha256', SECRET).update(body).digest('hex');
+const NOW = '2026-07-12T00:00:00.000Z';
+const NOW_S = Math.floor(Date.parse(NOW) / 1000);
+const sign = (body: string, ts: string) =>
+  createHmac('sha256', SECRET).update(smsSignedMaterial(body, ts)).digest('hex');
 
-const transport = new SmsChannelTransport({
-  signingSecret: SECRET,
-  signatureHeader: 'x-signature',
-  tenantByNumber: to => (to === '+15125550100' ? ('tnt_acme' as TenantId) : null),
-  clock: () => '2026-07-12T00:00:00.000Z',
-});
+const makeTransport = (over: Partial<SmsTransportConfig> = {}) =>
+  new SmsChannelTransport({
+    signingSecret: SECRET,
+    signatureHeader: 'x-signature',
+    tenantByNumber: to => (to === '+15125550100' ? ('tnt_acme' as TenantId) : null),
+    clock: () => NOW,
+    ...over,
+  });
+const transport = makeTransport();
 
-const raw = (parsed: Record<string, string>) => {
+const raw = (parsed: Record<string, string>, ts: string = String(NOW_S)) => {
   const rawBody = JSON.stringify(parsed);
-  return {rawWebhook: {rawBody, parsed}, headers: {'x-signature': sign(rawBody)}};
+  return {rawWebhook: {rawBody, parsed}, headers: {'x-signature': sign(rawBody, ts), 'x-timestamp': ts}};
 };
 
-describe('SmsChannelTransport.ingest', () => {
+describe('SmsChannelTransport.ingest (AUTH-1 verification ladder)', () => {
   it('verifies the signature and normalizes to an InboundMessage', async () => {
     const {rawWebhook, headers} = raw({From: '+15125559999', To: '+15125550100', Body: 'help', MessageSid: 'SM1'});
     const msg = await transport.ingest(rawWebhook, headers);
@@ -31,8 +46,64 @@ describe('SmsChannelTransport.ingest', () => {
   });
 
   it('rejects a forged request (bad signature)', async () => {
-    const {rawWebhook} = raw({From: '+1', To: '+15125550100', Body: 'x', MessageSid: 'SM2'});
-    await expect(transport.ingest(rawWebhook, {'x-signature': 'deadbeef'})).rejects.toThrow(/signature/);
+    const {rawWebhook, headers} = raw({From: '+1', To: '+15125550100', Body: 'x', MessageSid: 'SM2'});
+    await expect(
+      transport.ingest(rawWebhook, {...headers, 'x-signature': 'deadbeef'}),
+    ).rejects.toThrow(/signature/);
+  });
+
+  it('rejects a missing timestamp (timestamp is part of the contract, not optional)', async () => {
+    const {rawWebhook, headers} = raw({From: '+1', To: '+15125550100', Body: 'x', MessageSid: 'SM2a'});
+    const {['x-timestamp']: _ts, ...withoutTs} = headers;
+    await expect(transport.ingest(rawWebhook, withoutTs)).rejects.toThrow(/signature/);
+  });
+
+  it('rejects a stale timestamp BEFORE any HMAC work (skew window, default 300s)', async () => {
+    const stale = String(NOW_S - 301);
+    const {rawWebhook, headers} = raw({From: '+1', To: '+15125550100', Body: 'x', MessageSid: 'SM2b'}, stale);
+    await expect(transport.ingest(rawWebhook, headers)).rejects.toThrow(/timestamp/);
+  });
+
+  it('the timestamp is INSIDE the signed material — resigning the body alone fails', async () => {
+    const parsed = {From: '+1', To: '+15125550100', Body: 'x', MessageSid: 'SM2c'};
+    const rawBody = JSON.stringify(parsed);
+    const bodyOnlySig = createHmac('sha256', SECRET).update(rawBody).digest('hex'); // pre-AUTH-1 material
+    await expect(
+      transport.ingest({rawBody, parsed}, {'x-signature': bodyOnlySig, 'x-timestamp': String(NOW_S)}),
+    ).rejects.toThrow(/signature/);
+  });
+
+  it('rejects a REPLAY: the same signature is single-use within the skew window', async () => {
+    const seen = new Set<string>();
+    const nonces: NonceStore = {
+      reserve: async key => (seen.has(key) ? false : (seen.add(key), true)),
+    };
+    const guarded = makeTransport({nonces});
+    const {rawWebhook, headers} = raw({From: '+15125559999', To: '+15125550100', Body: 'hi', MessageSid: 'SM2d'});
+    expect(await guarded.ingest(rawWebhook, headers)).not.toBeNull();
+    await expect(guarded.ingest(rawWebhook, headers)).rejects.toThrow(/replay/);
+  });
+
+  it('resolves the signing secret through the SecretRef seam (rotation-ready)', async () => {
+    let resolved = 0;
+    const secrets: SecretProvider = {
+      resolve: async () => (resolved++, {value: SECRET, version: 'v1', resolvedAt: NOW}),
+      invalidate: () => {},
+    };
+    const viaRef = makeTransport({
+      signingSecret: undefined,
+      signingSecretRef: SecretRef.parse('secret://webhooks/acme/signing'),
+      secrets,
+    });
+    const {rawWebhook, headers} = raw({From: '+1', To: '+15125550100', Body: 'x', MessageSid: 'SM2e'});
+    expect(await viaRef.ingest(rawWebhook, headers)).not.toBeNull();
+    expect(resolved).toBe(1);
+  });
+
+  it('fails closed when no signing secret is configured at all', async () => {
+    const none = makeTransport({signingSecret: undefined});
+    const {rawWebhook, headers} = raw({From: '+1', To: '+15125550100', Body: 'x', MessageSid: 'SM2f'});
+    await expect(none.ingest(rawWebhook, headers)).rejects.toThrow(/no webhook signing secret/);
   });
 
   it('drops a message to a number no tenant owns', async () => {

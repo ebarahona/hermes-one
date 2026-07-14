@@ -16,6 +16,7 @@ import {
   E2E_TENANT,
 } from '@platform-internal/workflow-worker';
 import {createActivityWorker} from '@platform-internal/activity-worker';
+import {smsSignedMaterial} from '@platform-internal/channels';
 import {createInboundGateway} from './index.js';
 import type {TenantId} from '@platform/contracts';
 
@@ -45,17 +46,21 @@ async function main() {
 
   const clientWork = (async () => {
     // A real inbound missed call from a customer in-area (eligible → the platform texts them back).
+    // AUTH-1 posture: the timestamp is INSIDE the signed material (rawBody + '.' + ts) and the
+    // signature is single-use (Redis replay guard) — a replayed identical request must 401.
     const payload = {From: '+15125559999', To: TO, Body: 'missed you', MessageSid: `SM_${Date.now()}`, Zip: '75001', Answered: false};
     const rawBody = JSON.stringify(payload);
-    const signature = createHmac('sha256', SECRET).update(rawBody).digest('hex');
+    const timestamp = String(Math.floor(Date.now() / 1000));
+    const signature = createHmac('sha256', SECRET).update(smsSignedMaterial(rawBody, timestamp)).digest('hex');
+    const headers = {'content-type': 'application/json', 'x-signature': signature, 'x-timestamp': timestamp};
 
-    const res = await fetch(`http://127.0.0.1:${PORT}/webhooks/sms`, {
-      method: 'POST',
-      headers: {'content-type': 'application/json', 'x-signature': signature},
-      body: rawBody,
-    });
+    const res = await fetch(`http://127.0.0.1:${PORT}/webhooks/sms`, {method: 'POST', headers, body: rawBody});
     if (res.status !== 202) throw new Error(`gateway returned ${res.status}: ${await res.text()}`);
     const {workflowId} = (await res.json()) as {workflowId: string};
+
+    // Replay the byte-identical request: the nonce guard must reject it (401), never a second start.
+    const replay = await fetch(`http://127.0.0.1:${PORT}/webhooks/sms`, {method: 'POST', headers, body: rawBody});
+    if (replay.status !== 401) throw new Error(`replayed webhook returned ${replay.status}, expected 401`);
 
     const result = (await client.workflow.getHandle(workflowId).result()) as {path: string[]};
     return {workflowId, path: result.path};

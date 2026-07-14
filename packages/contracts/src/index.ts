@@ -20,6 +20,7 @@ export * from './telemetry.js';
 export * from './workflow.js';
 export * from './event.js';
 export * from './composition-root.js';
+export * from './secret.js';
 
 export const descriptor = {
   name: '@platform/contracts',

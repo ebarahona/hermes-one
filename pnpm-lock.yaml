@@ -166,6 +166,9 @@ importers:
       '@platform-internal/drizzle':
         specifier: workspace:*
         version: link:../../infrastructure/drizzle
+      '@platform-internal/redis':
+        specifier: workspace:*
+        version: link:../../infrastructure/redis
       '@platform-internal/telemetry':
         specifier: workspace:*
         version: link:../../infrastructure/telemetry
@@ -312,6 +315,9 @@ importers:
       '@platform-internal/drizzle':
         specifier: workspace:*
         version: link:../../infrastructure/drizzle
+      '@platform-internal/redis':
+        specifier: workspace:*
+        version: link:../../infrastructure/redis
       '@platform/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
@@ -407,6 +413,9 @@ importers:
 
   infrastructure/config:
     dependencies:
+      '@platform/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       zod:
         specifier: ^4.4.3
         version: 4.4.3
@@ -455,6 +464,10 @@ importers:
       ioredis:
         specifier: ^5.11.1
         version: 5.11.1
+    devDependencies:
+      '@platform-internal/config':
+        specifier: workspace:*
+        version: link:../config
 
   infrastructure/telemetry:
     dependencies:

@@ -2,19 +2,21 @@
 // The inbound channel webhook ingress: verify → normalize → persist → start workflow. Composition root
 // wires the SMS transport, the substrate store, the message repository, and the Temporal client.
 import {Client, Connection} from '@temporalio/client';
-import {loadConfig} from '@platform-internal/config';
+import {EnvSecretProvider, loadConfig} from '@platform-internal/config';
 import {assertRlsPostureAtBoot, createCompiledPlanStore, createMessageRepository} from '@platform-internal/drizzle';
+import {createRedisClient, RedisNonceStore} from '@platform-internal/redis';
 import {SmsChannelTransport, type TenantByNumber} from '@platform-internal/channels';
 import {initTracing, tracingConfigFor} from '@platform-internal/telemetry';
-import type {TenantId} from '@platform/contracts';
+import {SecretRef, type TenantId} from '@platform/contracts';
 import {createGatewayServer} from './server.js';
 
 export {createGatewayServer, type GatewayDeps} from './server.js';
 export {startFromInbound, type IngestDeps, type StartedWorkflow} from './ingestor.js';
 
 export interface GatewayConfig {
-  /** HMAC secret the vendor signs webhook bodies with. */
-  signingSecret: string;
+  /** Inline HMAC secret (dev/e2e). When absent, the signing secret resolves via SecretRef —
+   *  `secret://env/sms-webhook-signing` through EnvSecretProvider (AUTH-1; cloud provider in prod). */
+  signingSecret?: string;
   /** Destination-number → tenant map (a signed webhook only reaches the tenant that owns the number). */
   tenantByNumber: TenantByNumber;
   /** Rule parameters per tenant (demo stand-in for tenant configuration). */
@@ -36,9 +38,16 @@ export async function createInboundGateway(gw: GatewayConfig): Promise<GatewayHa
   const connection = await Connection.connect({address: cfg.temporal.address});
   const client = new Client({connection, namespace: cfg.temporal.namespace});
 
+  // AUTH-1 webhook posture (docs/design/001-edge-authn-design.md): timestamp-in-signed-material +
+  // skew window (transport defaults) + Redis replay guard; the signing secret arrives inline (dev/e2e)
+  // or via the SecretRef seam (prod path — env-backed provider today, cloud secret manager later).
+  const nonceRedis = createRedisClient(cfg.stores.ephemeral.url);
   const transport = new SmsChannelTransport({
-    signingSecret: gw.signingSecret,
+    ...(gw.signingSecret
+      ? {signingSecret: gw.signingSecret}
+      : {signingSecretRef: SecretRef.parse('secret://env/sms-webhook-signing'), secrets: new EnvSecretProvider()}),
     signatureHeader: 'x-signature',
+    nonces: new RedisNonceStore(nonceRedis),
     tenantByNumber: gw.tenantByNumber,
   });
 
@@ -57,6 +66,7 @@ export async function createInboundGateway(gw: GatewayConfig): Promise<GatewayHa
       await connection.close();
       await closeStore();
       await closeMessages();
+      await nonceRedis.close();
       await tracing.shutdown();
     },
   };

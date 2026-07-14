@@ -18,8 +18,11 @@ import {
   type InboundMessage,
   type OutboundMessage,
   type ProviderExecutionContext,
+  type SecretProvider,
+  type SecretRef,
   type TenantId,
 } from '@platform/contracts';
+import type {NonceStore} from '@platform-internal/redis';
 
 /** Minimal fetch seam (Node 22 global fetch by default; injected in tests). */
 export type FetchLike = (
@@ -39,10 +42,21 @@ interface RawSmsWebhook {
 }
 
 export interface SmsTransportConfig {
-  /** Shared secret the vendor signs the raw body with (HMAC-SHA256). */
-  signingSecret: string;
+  /** Inline shared secret (dev/tests). Production resolves `signingSecretRef` instead (AUTH-1). */
+  signingSecret?: string;
+  /** `secret://` pointer to the signing secret — wins over `signingSecret` when both are set. */
+  signingSecretRef?: SecretRef;
+  /** Resolves `signingSecretRef` (EnvSecretProvider in dev; cloud secret manager in prod). */
+  secrets?: SecretProvider;
   /** Header carrying the hex signature (e.g. 'x-signature'). */
   signatureHeader: string;
+  /** Header carrying the unix-seconds timestamp signed into the material (default 'x-timestamp'). */
+  timestampHeader?: string;
+  /** Max |now - timestamp| accepted, seconds (authentication-strategies.md skewWindowSeconds, default 300). */
+  skewWindowSeconds?: number;
+  /** Replay guard (Redis setNX). When present, an already-seen signature is rejected (AUTH-1).
+   *  Absence = guard off (dev/tests) — flagged; production wires RedisNonceStore. */
+  nonces?: NonceStore;
   tenantByNumber: TenantByNumber;
   clock?: () => string;
   /** Vendor API base (non-secret). Default Twilio; overridable for a self-hosted proxy/fake. */
@@ -55,6 +69,11 @@ export interface SmsTransportConfig {
 
 const DEFAULT_VENDOR_BASE_URL = 'https://api.twilio.com';
 const DEFAULT_TIMEOUT_MS = 10_000;
+const DEFAULT_TIMESTAMP_HEADER = 'x-timestamp';
+const DEFAULT_SKEW_WINDOW_SECONDS = 300;
+
+/** Signed material (AUTH-1): the timestamp is INSIDE the HMAC so it cannot be replayed-with-edit. */
+export const smsSignedMaterial = (rawBody: string, timestamp: string): string => `${rawBody}.${timestamp}`;
 
 export class SmsChannelTransport implements ChannelTransport {
   readonly channel = 'sms' as const;
@@ -62,27 +81,61 @@ export class SmsChannelTransport implements ChannelTransport {
 
   constructor(private readonly cfg: SmsTransportConfig) {}
 
-  private verify(rawBody: string, headers: Record<string, string>): boolean {
-    const provided = headers[this.cfg.signatureHeader] ?? headers[this.cfg.signatureHeader.toLowerCase()];
-    if (!provided) return false;
-    const expected = createHmac('sha256', this.cfg.signingSecret).update(rawBody).digest('hex');
+  private async signingSecretValue(): Promise<string> {
+    if (this.cfg.signingSecretRef) {
+      if (!this.cfg.secrets) throw new Error('signingSecretRef configured without a SecretProvider');
+      return (await this.cfg.secrets.resolve(this.cfg.signingSecretRef)).value;
+    }
+    if (this.cfg.signingSecret) return this.cfg.signingSecret;
+    throw new Error('no webhook signing secret configured'); // fail-closed, never verify against ''
+  }
+
+  private header(headers: Record<string, string>, name: string): string | undefined {
+    return headers[name] ?? headers[name.toLowerCase()];
+  }
+
+  /**
+   * AUTH-1 verification ladder (authentication-strategies.md signed-webhook, cheap-first):
+   * 1. timestamp present and within the skew window (no HMAC work on stale requests);
+   * 2. constant-time HMAC over `rawBody + '.' + timestamp` (timestamp inside the signed material);
+   * 3. replay guard — the signature is single-use within the skew window (Redis setNX).
+   */
+  private async verify(rawBody: string, headers: Record<string, string>): Promise<void> {
+    const provided = this.header(headers, this.cfg.signatureHeader);
+    const timestamp = this.header(headers, this.cfg.timestampHeader ?? DEFAULT_TIMESTAMP_HEADER);
+    if (!provided || !timestamp) throw new Error('SMS webhook signature verification failed');
+
+    const skewSeconds = this.cfg.skewWindowSeconds ?? DEFAULT_SKEW_WINDOW_SECONDS;
+    const nowMs = Date.parse((this.cfg.clock ?? (() => new Date().toISOString()))());
+    const tsMs = Number(timestamp) * 1000;
+    if (!Number.isFinite(tsMs) || Math.abs(nowMs - tsMs) > skewSeconds * 1000) {
+      throw new Error('SMS webhook timestamp outside the accepted window');
+    }
+
+    const secret = await this.signingSecretValue();
+    const expected = createHmac('sha256', secret).update(smsSignedMaterial(rawBody, timestamp)).digest('hex');
     const a = Buffer.from(provided);
     const b = Buffer.from(expected);
-    return a.length === b.length && timingSafeEqual(a, b);
+    if (a.length !== b.length || !timingSafeEqual(a, b)) {
+      throw new Error('SMS webhook signature verification failed');
+    }
+
+    if (this.cfg.nonces) {
+      const fresh = await this.cfg.nonces.reserve(`sms:${provided}`, skewSeconds);
+      if (!fresh) throw new Error('SMS webhook replay detected');
+    }
   }
 
   /**
    * Verify + normalize. `rawWebhook` is `{rawBody, parsed}` — the raw string is what the signature covers;
    * the parsed object is the vendor JSON/form. Returns null to DROP (unknown destination / not our tenant);
-   * throws on a signature mismatch (a forged request must never reach the workflow).
+   * throws on a failed verification ladder (a forged/stale/replayed request must never reach the workflow).
    */
   async ingest(
     rawWebhook: {rawBody: string; parsed: RawSmsWebhook},
     headers: Record<string, string>,
   ): Promise<InboundMessage | null> {
-    if (!this.verify(rawWebhook.rawBody, headers)) {
-      throw new Error('SMS webhook signature verification failed');
-    }
+    await this.verify(rawWebhook.rawBody, headers);
     const p = rawWebhook.parsed;
     if (!p.To || !p.From || !p.MessageSid) return null; // malformed → drop
     const tenantId = this.cfg.tenantByNumber(p.To);

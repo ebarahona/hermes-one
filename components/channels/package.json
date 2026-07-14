@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@platform-internal/drizzle": "workspace:*",
+    "@platform-internal/redis": "workspace:*",
     "@platform/contracts": "workspace:*"
   },
   "devDependencies": {

@@ -17,7 +17,7 @@ export {
   type PlatformDb,
   type PlatformTx,
 } from './tenant-aware.repository.js';
-export {assertNonBypassingRole, type RlsRolePosture} from './rls-self-check.js';
+export {assertNonBypassingRole, tenantGucPreflight, type RlsRolePosture} from './rls-self-check.js';
 
 // Compiled-plan store (content-hash addressed + Redis cache-through).
 export {

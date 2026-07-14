@@ -1,10 +1,38 @@
-// @platform-internal/loopback-core — component (edge plane). Skeleton stub.
+// @platform-internal/loopback-core — the edge-plane LB4 composition layer (F6/T1, decided
+// 2026-07-14: build to the loopback pack specs; the hand-rolled composition roots migrate onto
+// this). Phase 1: PlatformBindings + the boundary contract + PlatformApplication + bootstrap() +
+// the first five edge components (Persistence, Observability, CapabilityRegistry, RuleRuntime,
+// PolicyRuntime). Phase 2 (pending): TenantCore (CT1/CT2), WorkflowCore/Temporal components,
+// Channel/Memory/Bridge, the REST surface (RestApplication + sequence), interceptors, tags.
 
 export const descriptor = {
   name: '@platform-internal/loopback-core',
   role: 'component',
   plane: 'edge',
   published: false,
-  sourceDocs: ['05-loopback/050', '053'],
-  governedBy: [],
+  sourceDocs: [
+    '05-loopback/050',
+    '053',
+    'loopback/application-bootstrap',
+    'loopback/binding-key-registry',
+    'loopback/component-registry',
+  ],
+  governedBy: ['ADR-017', 'ADR-022'],
 } as const;
+
+export {PlatformBindings, PlatformExtensionPoints, tenantKey} from './bindings.js';
+export type {PlatformComponentBoundary} from './boundary.js';
+export {PlatformApplication} from './application.js';
+export {bootstrap} from './bootstrap.js';
+export {
+  PersistenceComponent,
+  PostgresLifecycleObserver,
+  RedisLifecycleObserver,
+} from './components/persistence.component.js';
+export {ObservabilityComponent} from './components/observability.component.js';
+export {
+  CapabilityRegistryComponent,
+  IndexedCapabilityRegistry,
+} from './components/capability-registry.component.js';
+export {RuleRuntimeComponent} from './components/rule-runtime.component.js';
+export {PolicyRuntimeComponent} from './components/policy-runtime.component.js';

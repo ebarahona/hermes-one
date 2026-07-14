@@ -26,9 +26,12 @@
     "governedBy": []
   },
   "dependencies": {
+    "@loopback/context": "^8.0.13",
+    "@loopback/core": "^7.0.13",
     "@platform-internal/channels": "workspace:*",
     "@platform-internal/config": "workspace:*",
     "@platform-internal/drizzle": "workspace:*",
+    "@platform-internal/loopback-core": "workspace:*",
     "@platform-internal/redis": "workspace:*",
     "@platform-internal/temporal-client": "workspace:*",
     "@platform/capability-contract": "workspace:*",
@@ -36,6 +39,7 @@
     "@platform/expression-core": "workspace:*",
     "@platform/rule-dsl": "workspace:*",
     "@temporalio/activity": "^1.20.2",
-    "@temporalio/worker": "^1.20.2"
+    "@temporalio/worker": "^1.20.2",
+    "reflect-metadata": "^0.2.2"
   }
 }

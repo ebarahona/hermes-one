@@ -30,3 +30,19 @@ export async function assertNonBypassingRole(db: PlatformDb): Promise<RlsRolePos
   }
   return row;
 }
+
+/**
+ * ADR-022 fail-closed boot preflight (application-bootstrap.md `PostgresLifecycleObserver`): prove the
+ * transaction-local tenant GUC actually works — `set_config('app.tenant_id', …, true)` inside a
+ * transaction round-trips — else reject boot. Complements `assertNonBypassingRole` (role posture).
+ */
+export async function tenantGucPreflight(db: PlatformDb): Promise<void> {
+  await db.transaction(async tx => {
+    await tx.execute(sql`select set_config('app.tenant_id', '__preflight__', true)`);
+    const res = await tx.execute(sql`select current_setting('app.tenant_id', true) as guc`);
+    const guc = (res.rows[0] as {guc?: string} | undefined)?.guc;
+    if (guc !== '__preflight__') {
+      throw new Error(`tenant GUC preflight failed: expected '__preflight__', got '${guc}'`);
+    }
+  });
+}

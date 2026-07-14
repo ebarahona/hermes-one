@@ -100,6 +100,27 @@ complete; wiring is a per-feature follow-up (mostly Tier 3+: admin console, even
 | I2 | **pgbouncer not wired** | 🟡 | Direct pool for now (`SET LOCAL` is pooling-safe) | `infrastructure/drizzle` pool setup | Add pgbouncer transaction pooling in front of the app pool |
 | I3 | **dev `platform_app` has no LOGIN/PASSWORD** | ⚪ | Local convenience | pool adopts role via `options=-c role=…` startup param; prod logs in as `platform_app` directly | Prod path already correct; dev note only |
 
+## LoopBack composition layer (F6 / tension T1 — DECIDED 2026-07-14: build to spec)
+
+The user ratified building `docs/implementation/loopback/` rather than ADR-ratifying the hand-rolled
+DI. **Phase 1 is DONE** (`components/loopback-core` is real): `CompositionRoot` contract (verbatim →
+`@platform/contracts`), `PlatformBindings` + `tenantKey` + `PlatformExtensionPoints`,
+`PlatformComponentBoundary`, `PlatformApplication`, `bootstrap()`, and five edge components —
+Persistence (one shared pool + lifecycle observers owning the fail-closed RLS boot gate),
+Observability, CapabilityRegistry (provider adapters discovered via `extensionFor`-tagged bindings —
+the real LB4 extension-point idiom, no hardcoded lists), RuleRuntime, PolicyRuntime. The
+**activity-worker composition root is migrated** (config→bind→components→observers→resolve-activities).
+
+| # | Item | Sev | Why deferred | Where | Faithful target |
+|---|------|-----|--------------|-------|-----------------|
+| L1 | **Phase 2 components unbuilt** | 🟡 | Phase 1 scoped to what has running consumers | TenantCore (blocked CT1/CT2), WorkflowCore/Temporal components, Channel, Memory (vector layer unbuilt), AgentBackBridge component | `loopback/component-registry.md` full set |
+| L2 | **api-gateway + agent-worker + workflow-worker roots not migrated** | 🟡 | One root per slice, keeping green | `apps/api-gateway/src/index.ts`, `apps/agent-worker`, `apps/workflow-worker` (spec: minimal Context root) | `loopback/application-bootstrap.md` per-app matrix |
+| L3 | **PlatformApplication extends Application, not RestApplication** | 🟡 | No process serves LB4 REST yet | `components/loopback-core/src/application.ts` | Swap base + `sequence-implementation.md` when the REST surface (api/*.md) lands |
+| L4 | **Binding keys with unbuilt port types not declared** | ⚪ | Declaring `unknown`-typed keys invites untyped resolution | `bindings.ts` header lists them (TEMPORAL_*, QDRANT, TRACER, TENANT_RESOLVER, MEMORY_PROVIDER, AGENTBACK_BRIDGE, …) | Declare each as its pack lands |
+| L5 | **Spec self-inconsistency: constructor auto-registration vs per-app matrix** | ⚪ | component-registry.md's PlatformApplication registers all 12; application-bootstrap.md's matrix loads per-app subsets | `application.ts` follows the matrix (roots register their subset) | Reconcile upstream in the loopback pack |
+| L6 | **Agent-plane components (AgentToolRegistry/PolicyVoter/DispatchHook/MeteringBridge) not restructured** | 🟡 | The agent plane already works via agentback-runtime; re-shaping into agentback `Component`s is Phase 2 | `components/agentback-runtime` | `component-registry.md` agent set |
+| L7 | **interceptors / tags registry / context factories / sequence not implemented** | 🟡 | Phase 2+ docs | `loopback/{interceptor-registry,binding-tag-registry,context-factories,sequence-implementation}.md` | per doc |
+
 ## Temporal / retry policies
 
 | # | Item | Sev | Why deferred | Where stubbed | Faithful target |

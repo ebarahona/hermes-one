@@ -19,6 +19,7 @@ export * from './evaluation.js';
 export * from './telemetry.js';
 export * from './workflow.js';
 export * from './event.js';
+export * from './composition-root.js';
 
 export const descriptor = {
   name: '@platform/contracts',

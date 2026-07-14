@@ -1,15 +1,22 @@
 // @platform-internal/api-gateway — app (edge plane).
-// The inbound channel webhook ingress: verify → normalize → persist → start workflow. Composition root
-// wires the SMS transport, the substrate store, the message repository, and the Temporal client.
+// The inbound channel webhook ingress: verify → normalize → persist → start workflow.
+//
+// MIGRATED onto the LB4 composition layer (F6/T1 Phase 2a, loopback/application-bootstrap.md): the
+// composition root builds a PlatformApplication (Observability + Persistence over ONE shared pool),
+// resolves the store/messages/roles/redis from the container, and `app.start()` runs the lifecycle
+// observers — including the fail-closed RLS boot gate. The HTTP ingress itself stays a thin
+// `node:http` handler (flagged L3/E1): the LB4 REST surface (RestApplication + sequence, api/*.md)
+// is the admin-api build.
+import 'reflect-metadata';
 import {Client, Connection} from '@temporalio/client';
 import {EnvSecretProvider, loadConfig} from '@platform-internal/config';
 import {
-  assertRlsPostureAtBoot,
-  createCompiledPlanStore,
-  createMessageRepository,
-  createRoleRegistry,
-} from '@platform-internal/drizzle';
-import {createRedisClient, RedisNonceStore} from '@platform-internal/redis';
+  ObservabilityComponent,
+  PersistenceComponent,
+  PlatformApplication,
+  PlatformBindings,
+} from '@platform-internal/loopback-core';
+import {RedisNonceStore} from '@platform-internal/redis';
 import {SmsChannelTransport, type TenantByNumber} from '@platform-internal/channels';
 import {initTracing, tracingConfigFor} from '@platform-internal/telemetry';
 import {SecretRef, type TenantId} from '@platform/contracts';
@@ -36,24 +43,32 @@ export interface GatewayHandle {
 /** Wire the inbound gateway from config. Callers `listen()` on the returned server. */
 export async function createInboundGateway(gw: GatewayConfig): Promise<GatewayHandle> {
   const cfg = loadConfig();
-  // RLS boot self-check (row-level-security.md): a bypass-capable login fails startup, not silently.
-  await assertRlsPostureAtBoot(cfg.stores.authoritative.url);
-  const {store, close: closeStore} = createCompiledPlanStore(cfg.stores.authoritative.url, cfg.stores.ephemeral.url);
-  const {repo: messages, close: closeMessages} = createMessageRepository(cfg.stores.authoritative.url);
-  const {repo: roleRegistry, close: closeRoles} = createRoleRegistry(cfg.stores.authoritative.url);
+  const app = new PlatformApplication();
+  app.bind(PlatformBindings.CONFIG.key).to(cfg);
+  app.component(ObservabilityComponent);
+  app.component(PersistenceComponent);
+
+  // Lifecycle observers: the fail-closed RLS boot gate (role posture + tenant-GUC preflight) runs
+  // here — a bypass-capable login fails startup before the server ever listens.
+  await app.start();
+
+  const store = await app.get(PlatformBindings.COMPILED_PLAN_STORE);
+  const messages = await app.get(PlatformBindings.MESSAGE_REPOSITORY);
+  const roles = await app.get(PlatformBindings.ROLE_REGISTRY);
+  const redis = await app.get(PlatformBindings.REDIS);
+
   const connection = await Connection.connect({address: cfg.temporal.address});
   const client = new Client({connection, namespace: cfg.temporal.namespace});
 
   // AUTH-1 webhook posture (docs/design/001-edge-authn-design.md): timestamp-in-signed-material +
   // skew window (transport defaults) + Redis replay guard; the signing secret arrives inline (dev/e2e)
   // or via the SecretRef seam (prod path — env-backed provider today, cloud secret manager later).
-  const nonceRedis = createRedisClient(cfg.stores.ephemeral.url);
   const transport = new SmsChannelTransport({
     ...(gw.signingSecret
       ? {signingSecret: gw.signingSecret}
       : {signingSecretRef: SecretRef.parse('secret://env/sms-webhook-signing'), secrets: new EnvSecretProvider()}),
     signatureHeader: 'x-signature',
-    nonces: new RedisNonceStore(nonceRedis),
+    nonces: new RedisNonceStore(redis),
     tenantByNumber: gw.tenantByNumber,
   });
 
@@ -62,7 +77,7 @@ export async function createInboundGateway(gw: GatewayConfig): Promise<GatewayHa
 
   const server = createGatewayServer({
     transport,
-    ingest: {store, messages, roles: roleRegistry, client, parametersFor: gw.parametersFor},
+    ingest: {store, messages, roles, client, parametersFor: gw.parametersFor},
     tracer: tracing.tracer,
   });
 
@@ -70,10 +85,7 @@ export async function createInboundGateway(gw: GatewayConfig): Promise<GatewayHa
     server,
     close: async () => {
       await connection.close();
-      await closeStore();
-      await closeMessages();
-      await closeRoles();
-      await nonceRedis.close();
+      await app.stop(); // observers close the shared pool + redis in reverse order
       await tracing.shutdown();
     },
   };
@@ -84,6 +96,6 @@ export const descriptor = {
   role: 'app',
   plane: 'edge',
   published: false,
-  sourceDocs: ['api/workflow-and-conversation-api', 'contracts/provider-contracts'],
-  governedBy: ['ADR-014'],
+  sourceDocs: ['api/workflow-and-conversation-api', 'contracts/provider-contracts', 'loopback/application-bootstrap'],
+  governedBy: ['ADR-014', 'ADR-017', 'ADR-022'],
 } as const;

@@ -21,6 +21,7 @@ import type {
   CapabilityRegistry,
   PolicyRuntime,
   Principal,
+  RoleRegistry,
   RuleRuntime,
   ToolExecutor,
   UsageMeter,
@@ -106,6 +107,8 @@ export namespace PlatformBindings {
 
   // ── tenant context (tenant scope) ───────────────────────────────────────
   export const TENANT_ID = BindingKey.create<string>('platform.tenant.id');
+  /** Canonical key from security/role-matrix.md — role NAMES → scopes at runtime, never cached. */
+  export const ROLE_REGISTRY = BindingKey.create<RoleRegistry>('platform.tenant.roleRegistry');
 
   // ── request context (request scope) ─────────────────────────────────────
   export const REQUEST_PRINCIPAL = BindingKey.create<Principal>('platform.request.principal');

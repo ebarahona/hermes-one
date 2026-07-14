@@ -24,7 +24,11 @@
     "governedBy": []
   },
   "dependencies": {
+    "@loopback/context": "^8.0.13",
+    "@loopback/core": "^7.0.13",
+    "@platform-internal/config": "workspace:*",
     "@platform-internal/drizzle": "workspace:*",
+    "@platform-internal/loopback-core": "workspace:*",
     "@platform-internal/redis": "workspace:*",
     "@platform/contracts": "workspace:*"
   },

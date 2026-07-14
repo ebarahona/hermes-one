@@ -25,14 +25,17 @@
     "governedBy": []
   },
   "dependencies": {
+    "@loopback/context": "^8.0.13",
     "@platform-internal/activity-worker": "workspace:*",
     "@platform-internal/channels": "workspace:*",
     "@platform-internal/config": "workspace:*",
     "@platform-internal/drizzle": "workspace:*",
+    "@platform-internal/loopback-core": "workspace:*",
     "@platform-internal/redis": "workspace:*",
     "@platform-internal/telemetry": "workspace:*",
     "@platform-internal/workflow-worker": "workspace:*",
     "@platform/contracts": "workspace:*",
-    "@temporalio/client": "^1.20.2"
+    "@temporalio/client": "^1.20.2",
+    "reflect-metadata": "^0.2.2"
   }
 }

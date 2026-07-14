@@ -154,6 +154,9 @@ importers:
 
   apps/api-gateway:
     dependencies:
+      '@loopback/context':
+        specifier: ^8.0.13
+        version: 8.0.13
       '@platform-internal/activity-worker':
         specifier: workspace:*
         version: link:../activity-worker
@@ -166,6 +169,9 @@ importers:
       '@platform-internal/drizzle':
         specifier: workspace:*
         version: link:../../infrastructure/drizzle
+      '@platform-internal/loopback-core':
+        specifier: workspace:*
+        version: link:../../components/loopback-core
       '@platform-internal/redis':
         specifier: workspace:*
         version: link:../../infrastructure/redis
@@ -181,12 +187,21 @@ importers:
       '@temporalio/client':
         specifier: ^1.20.2
         version: 1.20.2
+      reflect-metadata:
+        specifier: ^0.2.2
+        version: 0.2.2
 
   apps/workflow-worker:
     dependencies:
+      '@loopback/context':
+        specifier: ^8.0.13
+        version: 8.0.13
       '@platform-internal/config':
         specifier: workspace:*
         version: link:../../infrastructure/config
+      '@platform-internal/loopback-core':
+        specifier: workspace:*
+        version: link:../../components/loopback-core
       '@platform-internal/temporal-client':
         specifier: workspace:*
         version: link:../../infrastructure/temporal-client
@@ -220,6 +235,9 @@ importers:
       '@temporalio/workflow':
         specifier: ^1.20.2
         version: 1.20.2
+      reflect-metadata:
+        specifier: ^0.2.2
+        version: 0.2.2
     devDependencies:
       '@platform-internal/activity-worker':
         specifier: workspace:*
@@ -312,9 +330,21 @@ importers:
 
   components/channels:
     dependencies:
+      '@loopback/context':
+        specifier: ^8.0.13
+        version: 8.0.13
+      '@loopback/core':
+        specifier: ^7.0.13
+        version: 7.0.13
+      '@platform-internal/config':
+        specifier: workspace:*
+        version: link:../../infrastructure/config
       '@platform-internal/drizzle':
         specifier: workspace:*
         version: link:../../infrastructure/drizzle
+      '@platform-internal/loopback-core':
+        specifier: workspace:*
+        version: link:../loopback-core
       '@platform-internal/redis':
         specifier: workspace:*
         version: link:../../infrastructure/redis
@@ -322,9 +352,6 @@ importers:
         specifier: workspace:*
         version: link:../../packages/contracts
     devDependencies:
-      '@platform-internal/config':
-        specifier: workspace:*
-        version: link:../../infrastructure/config
       '@platform/capability-contract':
         specifier: workspace:*
         version: link:../../packages/capability-contract

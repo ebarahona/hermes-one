@@ -16,6 +16,7 @@ export {
   type TenantByNumber,
   type FetchLike,
 } from './sms-transport.js';
+export {ChannelComponent} from './channel.component.js';
 export {
   VendorSmsProvider,
   TWILIO_SMS_PROVIDER_ID,

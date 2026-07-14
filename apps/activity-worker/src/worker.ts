@@ -11,8 +11,6 @@
 // boot gate (role posture + tenant-GUC preflight) that used to be a manual call here.
 import 'reflect-metadata';
 import {fileURLToPath} from 'node:url';
-import {Binding, CoreTags} from '@loopback/core';
-import {BindingScope} from '@loopback/context';
 import {NativeConnection, Worker} from '@temporalio/worker';
 import {loadConfig, type HermesConfig} from '@platform-internal/config';
 import {
@@ -21,7 +19,6 @@ import {
   PersistenceComponent,
   PlatformApplication,
   PlatformBindings,
-  PlatformExtensionPoints,
   RuleRuntimeComponent,
   type IndexedCapabilityRegistry,
 } from '@platform-internal/loopback-core';
@@ -32,14 +29,7 @@ import {
 } from '@platform-internal/drizzle';
 import {RedisPubSubEventPublisher} from '@platform-internal/redis';
 import type {TenantId} from '@platform/contracts';
-import {
-  PersistingMessageProvider,
-  SmsChannelTransport,
-  StaticProviderCredentialStore,
-  VendorSmsProvider,
-  TWILIO_SMS_PROVIDER_ID,
-  messagingReplySendContract,
-} from '@platform-internal/channels';
+import {ChannelComponent, messagingReplySendContract} from '@platform-internal/channels';
 import {withPlatformFailures} from '@platform-internal/temporal-client';
 import {createRuleActivities} from './activities.js';
 import {createPlanActivities} from './plan-activities.js';
@@ -54,45 +44,16 @@ export const ACTIVITY_QUEUE = 'hermes-activity';
  */
 export function createActivityWorkerApp(cfg: HermesConfig): PlatformApplication {
   const app = new PlatformApplication();
-  app.bind(PlatformBindings.CONFIG.key).to(cfg).inScope(BindingScope.SINGLETON);
+  app.bind(PlatformBindings.CONFIG.key).to(cfg); // constant value — scope-independent
 
+  // Per the bootstrap matrix (application-bootstrap.md): Observability, Persistence,
+  // CapabilityRegistry, RuleRuntime, Channel. The ChannelComponent contributes the provider adapters
+  // to the capability extension point (internal message-log always; the SMS vendor when configured).
   app.component(ObservabilityComponent);
   app.component(PersistenceComponent);
   app.component(CapabilityRegistryComponent);
   app.component(RuleRuntimeComponent);
-
-  // Channel providers (ChannelComponent is Phase 2 — for now the root contributes them): the
-  // persist-only internal message-log provider is always present; the real SMS vendor is registered
-  // ahead of it only when configured (the contract's providerMapping ranks twilio-sms > internal,
-  // and the resolver fails over when the vendor circuit is open). Contributed as extension-point
-  // bindings — the CapabilityRegistryComponent discovers them by tag, no hardcoded list.
-  app.add(
-    Binding.bind('platform.providers.internal-message-log')
-      .toDynamicValue(
-        ({context}) => new PersistingMessageProvider(context.getSync(PlatformBindings.MESSAGE_REPOSITORY)),
-      )
-      .inScope(BindingScope.SINGLETON)
-      .tag({[CoreTags.EXTENSION_FOR]: PlatformExtensionPoints.PROVIDER_ADAPTERS}),
-  );
-  if (cfg.sms) {
-    const sms = cfg.sms;
-    app.add(
-      Binding.bind('platform.providers.twilio-sms')
-        .toDynamicValue(({context}) => {
-          // Outbound-only transport instance; deliver() reads creds from ctx.config.
-          const transport = new SmsChannelTransport({
-            signingSecret: 'unused-outbound', signatureHeader: 'x-signature', tenantByNumber: () => null,
-            vendorBaseUrl: sms.baseUrl, timeoutMs: sms.timeoutMs,
-          });
-          const creds = new StaticProviderCredentialStore({
-            [TWILIO_SMS_PROVIDER_ID]: {accountSid: sms.accountSid, authToken: sms.authToken, from: sms.from},
-          });
-          return new VendorSmsProvider(transport, context.getSync(PlatformBindings.MESSAGE_REPOSITORY), creds);
-        })
-        .inScope(BindingScope.SINGLETON)
-        .tag({[CoreTags.EXTENSION_FOR]: PlatformExtensionPoints.PROVIDER_ADAPTERS}),
-    );
-  }
+  app.component(ChannelComponent);
   return app;
 }
 

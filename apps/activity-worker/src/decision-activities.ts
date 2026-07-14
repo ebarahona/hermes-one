@@ -1,0 +1,43 @@
+// The deterministic-rail audit signal: when a workflow rule node resolves a decision with ZERO LLM call,
+// emit a `decision.rule` AuditEvent. This is the numerator of the deterministic-hit-rate KPI
+// (observability/evaluation-and-cost-analytics.md) — the platform's headline scalability metric. The id +
+// integrityHash are deterministic over the decision so a Temporal workflow replay re-emits an identical
+// event that collapses via the append's ON CONFLICT DO NOTHING.
+import {createHash} from 'node:crypto';
+import type {AuditEvent, IsoTimestamp, PrincipalId, TenantId} from '@platform/contracts';
+import type {DrizzleAuditSink} from '@platform-internal/drizzle';
+
+const sha256hex = (s: string) => createHash('sha256').update(s).digest('hex');
+
+export interface EmitDecisionRuleArgs {
+  tenantId: string;
+  correlationId: string;
+  outcome: string;      // the rule's routing outcome
+  rulePlanId: string;
+  occurredAt: string;   // workflow clock (deterministic across replay)
+}
+
+export function createDecisionActivities(audit: DrizzleAuditSink) {
+  return {
+    async emitDecisionRule(a: EmitDecisionRuleArgs): Promise<void> {
+      const row = {
+        tenantId: a.tenantId as TenantId,
+        principalId: 'prn_system' as PrincipalId,
+        action: 'decision.rule' as const,
+        correlationId: a.correlationId,
+        turnId: null,           // a deterministic decision is not an agent turn
+        conversationId: null,
+        subject: a.rulePlanId,
+        detail: {outcome: a.outcome},
+        outcome: 'success' as const,
+        occurredAt: a.occurredAt as IsoTimestamp,
+      };
+      const canonical = JSON.stringify([
+        row.tenantId, row.principalId, row.action, row.correlationId, row.turnId, row.conversationId,
+        row.subject, row.detail, row.outcome, row.occurredAt,
+      ]);
+      const id = `aud_${sha256hex(`${a.correlationId}:decision.rule:${a.rulePlanId}:${a.outcome}`).slice(0, 24)}` as AuditEvent['id'];
+      await audit.append({...row, id, integrityHash: `sha256:${sha256hex(canonical)}`});
+    },
+  };
+}

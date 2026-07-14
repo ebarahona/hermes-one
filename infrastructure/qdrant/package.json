@@ -1,0 +1,28 @@
+{
+  "name": "@platform-internal/qdrant",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "hermes": {
+    "name": "@platform-internal/qdrant",
+    "role": "infrastructure",
+    "plane": "none",
+    "published": false,
+    "sourceDocs": [
+      "08-data/083"
+    ],
+    "governedBy": [
+      "ADR-007"
+    ]
+  }
+}

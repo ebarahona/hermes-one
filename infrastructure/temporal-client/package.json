@@ -1,0 +1,32 @@
+{
+  "name": "@platform-internal/temporal-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@platform/contracts": "workspace:*",
+    "@temporalio/common": "^1.20.2",
+    "zod": "^4.4.3"
+  },
+  "hermes": {
+    "name": "@platform-internal/temporal-client",
+    "role": "infrastructure",
+    "plane": "none",
+    "published": false,
+    "sourceDocs": [
+      "03-workflow-runtime/043",
+      "temporal/retry-policy-registry"
+    ],
+    "governedBy": []
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "name": "@platform-internal/agent-worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo",
+    "worker": "node dist/worker.js",
+    "e2e": "node dist/e2e.js"
+  },
+  "hermes": {
+    "name": "@platform-internal/agent-worker",
+    "role": "app",
+    "plane": "agent",
+    "published": false,
+    "sourceDocs": [
+      "04-agent-runtime/059",
+      "17-deployment/170"
+    ],
+    "governedBy": [
+      "ADR-021"
+    ]
+  },
+  "dependencies": {
+    "@agentback/context": "0.7.1",
+    "@agentback/core": "0.7.1",
+    "@agentback/mcp": "0.7.1",
+    "@platform-internal/agent-runtime": "workspace:*",
+    "@platform-internal/agentback-runtime": "workspace:*",
+    "@platform-internal/config": "workspace:*",
+    "@platform-internal/model-client": "workspace:*",
+    "@platform-internal/telemetry": "workspace:*",
+    "@platform-internal/temporal-client": "workspace:*",
+    "@platform-internal/tool-executor": "workspace:*",
+    "@platform/capability-contract": "workspace:*",
+    "@platform/contracts": "workspace:*",
+    "@platform/expression-core": "workspace:*",
+    "@platform/policy-dsl": "workspace:*",
+    "@temporalio/activity": "^1.20.2",
+    "@temporalio/worker": "^1.20.2"
+  },
+  "devDependencies": {
+    "@platform-internal/activity-worker": "workspace:*",
+    "@platform-internal/drizzle": "workspace:*",
+    "@platform-internal/workflow-worker": "workspace:*",
+    "@temporalio/client": "^1.20.2"
+  }
+}

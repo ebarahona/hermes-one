@@ -1,0 +1,36 @@
+{
+  "name": "@platform-internal/channels",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "hermes": {
+    "name": "@platform-internal/channels",
+    "role": "component",
+    "plane": "edge",
+    "published": false,
+    "sourceDocs": [
+      "12-provider-adapters/120"
+    ],
+    "governedBy": []
+  },
+  "dependencies": {
+    "@platform-internal/drizzle": "workspace:*",
+    "@platform/contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "@platform-internal/config": "workspace:*",
+    "@platform/capability-contract": "workspace:*",
+    "@types/pg": "^8.20.0",
+    "pg": "^8.22.0"
+  }
+}

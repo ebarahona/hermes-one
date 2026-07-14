@@ -1,0 +1,35 @@
+{
+  "name": "@platform-internal/analytics",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "hermes": {
+    "name": "@platform-internal/analytics",
+    "role": "component",
+    "plane": "edge",
+    "published": false,
+    "sourceDocs": [
+      "observability/evaluation-and-cost-analytics"
+    ],
+    "governedBy": []
+  },
+  "dependencies": {
+    "@platform/contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "@platform-internal/config": "workspace:*",
+    "@platform-internal/drizzle": "workspace:*",
+    "@types/pg": "^8.20.0",
+    "pg": "^8.22.0"
+  }
+}

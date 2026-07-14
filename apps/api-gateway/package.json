@@ -1,0 +1,36 @@
+{
+  "name": "@platform-internal/api-gateway",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "hermes": {
+    "name": "@platform-internal/api-gateway",
+    "role": "app",
+    "plane": "edge",
+    "published": false,
+    "sourceDocs": [
+      "02-core-architecture/010",
+      "12-provider-adapters/120"
+    ],
+    "governedBy": []
+  },
+  "dependencies": {
+    "@platform-internal/activity-worker": "workspace:*",
+    "@platform-internal/channels": "workspace:*",
+    "@platform-internal/config": "workspace:*",
+    "@platform-internal/drizzle": "workspace:*",
+    "@platform-internal/workflow-worker": "workspace:*",
+    "@platform/contracts": "workspace:*",
+    "@temporalio/client": "^1.20.2"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "@platform-internal/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "hermes": {
+    "name": "@platform-internal/config",
+    "role": "infrastructure",
+    "plane": "none",
+    "published": false,
+    "sourceDocs": [
+      "17-deployment/179"
+    ],
+    "governedBy": []
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  }
+}

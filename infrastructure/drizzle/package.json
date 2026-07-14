@@ -1,0 +1,45 @@
+{
+  "name": "@platform-internal/drizzle",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "hermes": {
+    "name": "@platform-internal/drizzle",
+    "role": "infrastructure",
+    "plane": "none",
+    "published": false,
+    "sourceDocs": [
+      "08-data/081",
+      "substrate/compiled-plan-store",
+      "database/row-level-security",
+      "database/table-catalog",
+      "loopback/repository-patterns"
+    ],
+    "governedBy": [
+      "ADR-014",
+      "ADR-016",
+      "ADR-022"
+    ]
+  },
+  "dependencies": {
+    "@platform-internal/redis": "workspace:*",
+    "@platform/contracts": "workspace:*",
+    "drizzle-orm": "^0.45.2",
+    "drizzle-zod": "^0.8.3",
+    "pg": "^8.22.0"
+  },
+  "devDependencies": {
+    "@platform-internal/config": "workspace:*",
+    "@types/pg": "^8.20.0"
+  }
+}

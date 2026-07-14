@@ -1,0 +1,32 @@
+{
+  "name": "@platform-internal/evaluation",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "hermes": {
+    "name": "@platform-internal/evaluation",
+    "role": "component",
+    "plane": "agent",
+    "published": false,
+    "sourceDocs": [
+      "observability/evaluation-and-cost-analytics"
+    ],
+    "governedBy": [
+      "ADR-021"
+    ]
+  },
+  "dependencies": {
+    "@platform/contracts": "workspace:*",
+    "@platform-internal/agent-runtime": "workspace:*"
+  }
+}

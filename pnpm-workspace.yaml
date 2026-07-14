@@ -1,0 +1,10 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+  - 'components/*'
+  - 'infrastructure/*'
+  # verticals/* are DATA bundles (ADR-013), not workspace packages — deliberately excluded.
+allowBuilds:
+  '@swc/core': true
+  esbuild: true
+  protobufjs: true

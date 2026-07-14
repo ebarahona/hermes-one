@@ -1,0 +1,44 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "lib": ["es2022", "esnext.disposable"],
+    "types": ["node"],
+
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "noFallthroughCasesInSwitch": true,
+
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false,
+
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+
+    // Dev-on-src cross-package resolution: map workspace names to their TS
+    // source so `tsc` and Vitest (via vite-tsconfig-paths) typecheck/run without
+    // a build. baseUrl anchors these globs to this file's dir (the repo root),
+    // so they resolve correctly from any package's own tsconfig. The published
+    // `exports` still point at dist/ — these paths only affect in-repo tooling.
+    "baseUrl": ".",
+    "paths": {
+      "@platform/workflow-dsl/interpreter": [
+        "packages/workflow-dsl/src/interpreter.ts"
+      ],
+      "@platform/*": ["packages/*/src/index.ts"],
+      "@platform-internal/*": [
+        "apps/*/src/index.ts",
+        "components/*/src/index.ts",
+        "infrastructure/*/src/index.ts"
+      ]
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "name": "@platform/workflow-dsl",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./interpreter": {
+      "types": "./dist/interpreter.d.ts",
+      "import": "./dist/interpreter.js"
+    }
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "hermes": {
+    "name": "@platform/workflow-dsl",
+    "role": "package",
+    "plane": "none",
+    "published": true,
+    "sourceDocs": [
+      "03-workflow-runtime/041",
+      "042"
+    ],
+    "governedBy": [
+      "ADR-014"
+    ]
+  },
+  "dependencies": {
+    "@platform/contracts": "workspace:*",
+    "@platform/definition-substrate": "workspace:*"
+  },
+  "devDependencies": {
+    "@platform/rule-dsl": "workspace:*",
+    "@platform/expression-core": "workspace:*"
+  }
+}

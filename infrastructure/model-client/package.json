@@ -1,0 +1,33 @@
+{
+  "name": "@platform-internal/model-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "hermes": {
+    "name": "@platform-internal/model-client",
+    "role": "infrastructure",
+    "plane": "none",
+    "published": false,
+    "sourceDocs": [
+      "04-agent-runtime/054",
+      "061"
+    ],
+    "governedBy": [
+      "ADR-021"
+    ]
+  },
+  "dependencies": {
+    "@platform/contracts": "workspace:*",
+    "openai": "^4.77.0"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "@platform-internal/admin-api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "hermes": {
+    "name": "@platform-internal/admin-api",
+    "role": "app",
+    "plane": "edge",
+    "published": false,
+    "sourceDocs": [
+      "16-admin-ui"
+    ],
+    "governedBy": []
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "@platform/sdk",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "hermes": {
+    "name": "@platform/sdk",
+    "role": "package",
+    "plane": "none",
+    "published": true,
+    "sourceDocs": [
+      "15-sdk-cli/159"
+    ],
+    "governedBy": []
+  }
+}

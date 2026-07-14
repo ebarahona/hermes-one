@@ -1,0 +1,29 @@
+{
+  "name": "@platform-internal/policy-runtime",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "hermes": {
+    "name": "@platform-internal/policy-runtime",
+    "role": "component",
+    "plane": "agent",
+    "published": false,
+    "sourceDocs": [
+      "06-agentback/066",
+      "13-security/132"
+    ],
+    "governedBy": [
+      "ADR-019"
+    ]
+  }
+}

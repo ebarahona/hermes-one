@@ -1,0 +1,40 @@
+{
+  "name": "@platform-internal/activity-worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo",
+    "worker": "node dist/worker.js"
+  },
+  "hermes": {
+    "name": "@platform-internal/activity-worker",
+    "role": "app",
+    "plane": "edge",
+    "published": false,
+    "sourceDocs": [
+      "03-workflow-runtime/045",
+      "17-deployment/170"
+    ],
+    "governedBy": []
+  },
+  "dependencies": {
+    "@platform-internal/channels": "workspace:*",
+    "@platform-internal/config": "workspace:*",
+    "@platform-internal/drizzle": "workspace:*",
+    "@platform-internal/temporal-client": "workspace:*",
+    "@platform/capability-contract": "workspace:*",
+    "@platform/contracts": "workspace:*",
+    "@platform/expression-core": "workspace:*",
+    "@platform/rule-dsl": "workspace:*",
+    "@temporalio/activity": "^1.20.2",
+    "@temporalio/worker": "^1.20.2"
+  }
+}

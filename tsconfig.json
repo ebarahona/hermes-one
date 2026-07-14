@@ -1,0 +1,20 @@
+{
+  // Whole-repo dev typecheck: one program, cross-package types resolved from
+  // `src` via tsconfig.base paths, no emit. `rootDir` is intentionally unset
+  // (per-package tsconfigs own emit layout for build). This is the authoritative
+  // `pnpm typecheck`.
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false
+  },
+  "include": [
+    "apps/*/src/**/*",
+    "packages/*/src/**/*",
+    "components/*/src/**/*",
+    "infrastructure/*/src/**/*",
+    "tools/**/*"
+  ]
+}

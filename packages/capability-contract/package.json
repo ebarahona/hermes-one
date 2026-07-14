@@ -1,0 +1,39 @@
+{
+  "name": "@platform/capability-contract",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "hermes": {
+    "name": "@platform/capability-contract",
+    "role": "package",
+    "plane": "none",
+    "published": true,
+    "sourceDocs": [
+      "07-capabilities/072"
+    ],
+    "governedBy": [
+      "ADR-016",
+      "ADR-020"
+    ]
+  },
+  "dependencies": {
+    "@platform/contracts": "workspace:*",
+    "@platform/expression-core": "workspace:*"
+  }
+}

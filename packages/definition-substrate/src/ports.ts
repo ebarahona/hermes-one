@@ -1,0 +1,76 @@
+// Structural ports the lifecycle depends on (implemented by @platform-internal/drizzle at the
+// composition root). Declared here so the published @platform/definition-substrate package stays free
+// of any infrastructure dependency — the concrete Drizzle repositories match these shapes structurally.
+import type {
+  CompiledPlanBase,
+  ContentHash,
+  Deployment,
+  PlanId,
+  TenantId,
+  TenantScope,
+  ValidatedContractBase,
+} from '@platform/contracts';
+
+export interface PlanStorePort {
+  putCompiledPlan(plan: CompiledPlanBase, byteSize: number): Promise<{planId: PlanId; deduped: boolean}>;
+  putValidatedContract(contract: ValidatedContractBase): Promise<{deduped: boolean}>;
+  getCompiledPlanByHash(contentHash: ContentHash): Promise<CompiledPlanBase | null>;
+  getValidatedContractByHash(contentHash: ContentHash): Promise<ValidatedContractBase | null>;
+  resolvePlanCached(tenantId: TenantId, planId: PlanId, contentHash: ContentHash): Promise<CompiledPlanBase>;
+  resolveActiveDeploymentCached(tenantId: TenantId): Promise<Deployment>;
+  /** Resolve-by-pinned-ref (deployment-manifest.md `resolveVersion`) — superseded rows resolve fine. */
+  resolveDeployment(tenantId: TenantId, deploymentId: string): Promise<Deployment>;
+  resolveDeploymentByVersion(tenantId: TenantId, version: string): Promise<Deployment>;
+  invalidateActiveDeployment(tenantId: TenantId): Promise<void>;
+}
+
+export interface DefinitionRowLike {
+  definitionId: string;
+  kind: 'workflow' | 'rule' | 'policy' | 'capability' | 'agent-engine';
+  name: string;
+  schemaRef: string;
+  currentVersion: string;
+  status: 'draft' | 'validated' | 'compiled' | 'published' | 'deployed' | 'retired';
+  labels?: Record<string, string>;
+  createdBy: string;
+}
+
+export interface DefinitionVersionRowLike {
+  definitionId: string;
+  version: string;
+  contentHash: string;
+  family: 'logic-dsl' | 'contract-schema';
+  status: 'validated' | 'compiled' | 'published' | 'deployed' | 'retired';
+  body: unknown;
+  compilerVersion?: string | null;
+  diagnostics?: unknown[];
+  createdBy: string;
+}
+
+export interface DefinitionWritePort {
+  putDefinition(def: DefinitionRowLike, version: DefinitionVersionRowLike, scope: TenantScope): Promise<void>;
+  getDefinition(definitionId: string, scope: TenantScope): Promise<DefinitionRowLike | null>;
+}
+
+export interface DeploymentRowInputLike {
+  deploymentId: string;
+  version: string;
+  operatorRegistryVersion: string;
+  notes?: string;
+  createdBy: string;
+}
+
+export interface DeploymentMemberInputLike {
+  kind: 'workflow' | 'agent-engine' | 'policy' | 'rule' | 'capability';
+  seq: number;
+  definitionId: string;
+  planId: string | null;
+  version: string;
+  contentHash: string;
+}
+
+export interface DeploymentWritePort {
+  latestVersion(scope: TenantScope): Promise<string | null>;
+  publish(dep: DeploymentRowInputLike, members: DeploymentMemberInputLike[], scope: TenantScope): Promise<void>;
+  repointActive(newDep: DeploymentRowInputLike, fromVersion: string, scope: TenantScope): Promise<void>;
+}

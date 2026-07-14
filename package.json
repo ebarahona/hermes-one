@@ -1,0 +1,34 @@
+{
+  "name": "hermes-one",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Hermes Orchestration Node Engine — agentic workflow platform monorepo",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "packageManager": "pnpm@11.10.0",
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:dist": "pnpm -r build && vitest run --config vitest.dist.config.ts",
+    "test:itest": "vitest run --config vitest.itest.config.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "plane-lint": "tsx tools/plane-lint.ts",
+    "lint": "eslint . && prettier --check \"**/*.{ts,json,md}\"",
+    "lint:fix": "eslint . --fix && prettier --write \"**/*.{ts,json,md}\"",
+    "verify": "pnpm typecheck && pnpm plane-lint && pnpm test"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@typescript-eslint/eslint-plugin": "~8.63.0",
+    "@typescript-eslint/parser": "~8.63.0",
+    "eslint": "~9.18.0",
+    "eslint-config-prettier": "^10.0.0",
+    "prettier": "^3.9.5",
+    "tsx": "^4.19.2",
+    "typescript": "~5.7.3",
+    "vitest": "^4.1.10"
+  }
+}

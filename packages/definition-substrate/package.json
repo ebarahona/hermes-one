@@ -1,0 +1,37 @@
+{
+  "name": "@platform/definition-substrate",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "hermes": {
+    "name": "@platform/definition-substrate",
+    "role": "package",
+    "plane": "none",
+    "published": true,
+    "sourceDocs": [
+      "03-workflow-runtime/040"
+    ],
+    "governedBy": [
+      "ADR-016"
+    ]
+  },
+  "dependencies": {
+    "@platform/contracts": "workspace:*"
+  }
+}

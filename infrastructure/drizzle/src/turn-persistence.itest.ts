@@ -142,7 +142,7 @@ describe('DrizzleTurnPersistence.persistTurnAtomic (live, F3)', () => {
     // Commit-and-publish: one pending outbox row per audit event, deterministic id, payload = the event.
     const obx = await owner.query(
       `SELECT outbox_id, aggregate_type, aggregate_id, event_type, status, payload->>'action' AS action
-         FROM event.event_outbox WHERE tenant_id = $1 ORDER BY outbox_id`,
+         FROM event.event_outbox WHERE tenant_id = $1 AND aggregate_type = 'audit_event' ORDER BY outbox_id`,
       [TENANT],
     );
     expect(obx.rows).toHaveLength(2);
@@ -150,13 +150,24 @@ describe('DrizzleTurnPersistence.persistTurnAtomic (live, F3)', () => {
       outbox_id: 'obx_atomic_1', aggregate_type: 'audit_event', aggregate_id: 'aud_atomic_1',
       event_type: 'tool.invoked', status: 'pending', action: 'tool.invoked',
     });
+
+    // Billing fan-out (billing-events.md): the inserted UsageRecord rides the SAME txn as
+    // `usage.record.recorded`, keyed by its dedupeKey.
+    const billing = await owner.query(
+      `SELECT aggregate_id, event_type, status, payload->>'meterKind' AS meter
+         FROM event.event_outbox WHERE tenant_id = $1 AND aggregate_type = 'usage_record'`,
+      [TENANT],
+    );
+    expect(billing.rows).toEqual([
+      {aggregate_id: usageEvent.dedupeKey, event_type: 'usage.record.recorded', status: 'pending', meter: 'tool.invocation'},
+    ]);
   });
 
   it('is idempotent — a replayed activity collapses everywhere (including the outbox)', async () => {
     await sut.repo.persistTurnAtomic(bundle(), {tenantId: TENANT});
     expect(await count('audit.audit_events')).toBe(2);
     expect(await count('audit.usage_records')).toBe(1);
-    expect(await count('event.event_outbox')).toBe(2);
+    expect(await count('event.event_outbox')).toBe(3); // 2 audit + 1 usage — the replay added NOTHING
   });
 
   it('is ATOMIC — a poisoned batch rolls back EVERY table, not just the failing one', async () => {
@@ -178,7 +189,7 @@ describe('DrizzleTurnPersistence.persistTurnAtomic (live, F3)', () => {
     expect(await count('runtime.policy_decisions')).toBe(1);
     expect(await count('runtime.handoff_tasks')).toBe(1);
     expect(await count('audit.audit_events')).toBe(2);
-    expect(await count('event.event_outbox')).toBe(2);
+    expect(await count('event.event_outbox')).toBe(3);
     expect(await count('audit.usage_records')).toBe(1);
   });
 

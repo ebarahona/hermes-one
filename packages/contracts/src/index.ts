@@ -22,6 +22,7 @@ export * from './event.js';
 export * from './composition-root.js';
 export * from './secret.js';
 export * from './role.js';
+export * from './billing-event.js';
 
 export const descriptor = {
   name: '@platform/contracts',

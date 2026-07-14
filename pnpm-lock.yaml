@@ -47,6 +47,9 @@ importers:
       '@platform-internal/drizzle':
         specifier: workspace:*
         version: link:../../infrastructure/drizzle
+      '@platform-internal/redis':
+        specifier: workspace:*
+        version: link:../../infrastructure/redis
       '@platform-internal/temporal-client':
         specifier: workspace:*
         version: link:../../infrastructure/temporal-client
@@ -394,6 +397,9 @@ importers:
 
   infrastructure/redis:
     dependencies:
+      '@platform/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       ioredis:
         specifier: ^5.11.1
         version: 5.11.1

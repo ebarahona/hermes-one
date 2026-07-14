@@ -29,6 +29,7 @@
     "@platform-internal/channels": "workspace:*",
     "@platform-internal/config": "workspace:*",
     "@platform-internal/drizzle": "workspace:*",
+    "@platform-internal/redis": "workspace:*",
     "@platform-internal/temporal-client": "workspace:*",
     "@platform/capability-contract": "workspace:*",
     "@platform/contracts": "workspace:*",

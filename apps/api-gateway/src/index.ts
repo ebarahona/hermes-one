@@ -3,7 +3,7 @@
 // wires the SMS transport, the substrate store, the message repository, and the Temporal client.
 import {Client, Connection} from '@temporalio/client';
 import {loadConfig} from '@platform-internal/config';
-import {createCompiledPlanStore, createMessageRepository} from '@platform-internal/drizzle';
+import {assertRlsPostureAtBoot, createCompiledPlanStore, createMessageRepository} from '@platform-internal/drizzle';
 import {SmsChannelTransport, type TenantByNumber} from '@platform-internal/channels';
 import type {TenantId} from '@platform/contracts';
 import {createGatewayServer} from './server.js';
@@ -28,6 +28,8 @@ export interface GatewayHandle {
 /** Wire the inbound gateway from config. Callers `listen()` on the returned server. */
 export async function createInboundGateway(gw: GatewayConfig): Promise<GatewayHandle> {
   const cfg = loadConfig();
+  // RLS boot self-check (row-level-security.md): a bypass-capable login fails startup, not silently.
+  await assertRlsPostureAtBoot(cfg.stores.authoritative.url);
   const {store, close: closeStore} = createCompiledPlanStore(cfg.stores.authoritative.url, cfg.stores.ephemeral.url);
   const {repo: messages, close: closeMessages} = createMessageRepository(cfg.stores.authoritative.url);
   const connection = await Connection.connect({address: cfg.temporal.address});

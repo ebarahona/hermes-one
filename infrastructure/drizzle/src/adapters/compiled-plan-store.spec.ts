@@ -23,6 +23,8 @@ function fakeRedis(seed: Record<string, string> = {}): RedisClient {
     get: async k => map.get(k) ?? null,
     setex: async (k, _ttl, v) => void map.set(k, v),
     del: async k => void map.delete(k),
+    publish: async () => {},
+    subscribe: async () => async () => {},
     close: async () => {},
   };
 }

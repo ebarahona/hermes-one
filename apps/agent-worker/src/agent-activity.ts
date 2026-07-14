@@ -37,6 +37,7 @@ import {
 } from '@platform-internal/tool-executor';
 import {createModelDecider, runTurn, type DeciderTool, type TurnLedger} from '@platform-internal/agent-runtime';
 import {
+  assertRlsPostureAtBoot,
   createCompiledPlanStore,
   createTurnPersistence,
   type CompiledPlanStore,
@@ -87,6 +88,8 @@ let booted: Promise<Booted> | undefined;
 function boot(): Promise<Booted> {
   return (booted ??= (async () => {
     const cfg = loadConfig();
+    // RLS boot self-check (row-level-security.md): a bypass-capable login fails startup, not silently.
+    await assertRlsPostureAtBoot(cfg.stores.authoritative.url);
     const app = createAgentPlaneApp();
     app.bind('platform.hook.envelope').to(createEnvelopeHook()).tag(MCP_DISPATCH_HOOK_TAG);
     await app.start();

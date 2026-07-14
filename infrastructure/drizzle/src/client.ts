@@ -13,6 +13,7 @@ import {DrizzleUsageMeter} from './usage-repository.js';
 import {DrizzleAuditQueryService} from './audit-query.js';
 import {DrizzleTurnPersistence} from './turn-persistence.js';
 import {DrizzleEventOutboxRepository} from './event-outbox-repository.js';
+import {assertNonBypassingRole} from './rls-self-check.js';
 import {
   DrizzleDefinitionRepository,
   DrizzleDeploymentRepository,
@@ -49,6 +50,21 @@ export function createPlatformDb(url: string, opts: {appRole?: string} = {}): Pl
 export function createMigratorDb(url: string): PlatformDbHandle {
   const pool = new Pool({connectionString: url});
   return {db: drizzle(pool), pool, close: () => pool.end()};
+}
+
+/**
+ * The persistence-boot RLS self-check (row-level-security.md: "run once at persistence boot; boot
+ * aborts otherwise"). Call from EVERY composition root that opens a request-time pool — a
+ * misconfigured production login (superuser / BYPASSRLS) fails startup instead of silently running
+ * with RLS as a no-op.
+ */
+export async function assertRlsPostureAtBoot(pgUrl: string, opts: {appRole?: string} = {}): Promise<void> {
+  const handle = createPlatformDb(pgUrl, opts);
+  try {
+    await assertNonBypassingRole(handle.db);
+  } finally {
+    await handle.close();
+  }
 }
 
 export interface CompiledPlanStoreHandle {
@@ -137,9 +153,12 @@ export interface EventOutboxRepositoryHandle {
 }
 
 /** Convenience composition: pg (as platform_app) → the transactional-outbox repository. */
-export function createEventOutboxRepository(pgUrl: string, opts: {appRole?: string} = {}): EventOutboxRepositoryHandle {
+export function createEventOutboxRepository(
+  pgUrl: string,
+  opts: {appRole?: string; maxAttempts?: number} = {},
+): EventOutboxRepositoryHandle {
   const {db, pool} = createPlatformDb(pgUrl, {appRole: opts.appRole});
-  return {repo: new DrizzleEventOutboxRepository(db), close: () => pool.end()};
+  return {repo: new DrizzleEventOutboxRepository(db, opts.maxAttempts), close: () => pool.end()};
 }
 
 export interface AuditQueryServiceHandle {

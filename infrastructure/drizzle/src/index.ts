@@ -56,7 +56,13 @@ export {
   DrizzleEventOutboxRepository,
   deriveOutboxId,
   type OutboxEnqueueRow,
+  type OutboxDrainResult,
 } from './event-outbox-repository.js';
+export {
+  EventOutboxPublisherLoop,
+  DEFAULT_OUTBOX_PUBLISHER_CONFIG,
+  type OutboxPublisherConfig,
+} from './event-outbox-publisher.js';
 
 // Tenant-scoped substrate write repositories (authoring + deployment).
 export {
@@ -82,6 +88,7 @@ export {
   createTurnPersistence,
   createEventOutboxRepository,
   createSubstrateWrite,
+  assertRlsPostureAtBoot,
   type PlatformDbHandle,
   type CompiledPlanStoreHandle,
   type MessageRepositoryHandle,

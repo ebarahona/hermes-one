@@ -48,6 +48,15 @@ export const HermesConfig = z.object({
       timeoutMs: z.coerce.number().int().min(100).optional(),
     })
     .optional(),
+  // Transactional-outbox publisher (events/event-envelope.md EventEnvelopeConfig). The loop drains
+  // per tenant under RLS — the tenant list is a config stand-in until the tenant registry exists
+  // (CT1/CT2; the cross-tenant relay role is an unresolved spec question). Empty tenants → loop off.
+  outbox: z.object({
+    pollIntervalMs: z.coerce.number().int().min(100),
+    maxAttempts: z.coerce.number().int().min(1),
+    channelPattern: z.string().min(1),
+    tenants: z.array(z.string().min(1)),
+  }),
 });
 export type HermesConfig = z.infer<typeof HermesConfig>;
 
@@ -61,6 +70,10 @@ const DEFAULTS = {
   LLM_BASE_URL: 'http://127.0.0.1:8080/v1',
   LLM_MODEL: 'qwen3-coder-next-80b', // local llama-server model; override via LLM_MODEL
   LLM_API_KEY: 'local',
+  HERMES_OUTBOX_POLL_MS: '1000', // EventEnvelopeConfig.outboxPollIntervalMs default
+  HERMES_OUTBOX_MAX_ATTEMPTS: '10', // EventEnvelopeConfig.outboxMaxAttempts default
+  HERMES_OUTBOX_CHANNEL_PATTERN: 'events:{tenantId}:{aggregateType}',
+  HERMES_OUTBOX_TENANTS: '', // csv; empty → publisher loop disabled
 } as const;
 
 /**
@@ -98,5 +111,11 @@ export function loadConfig(
       apiKey: g('LLM_API_KEY'),
     },
     sms,
+    outbox: {
+      pollIntervalMs: g('HERMES_OUTBOX_POLL_MS'),
+      maxAttempts: g('HERMES_OUTBOX_MAX_ATTEMPTS'),
+      channelPattern: g('HERMES_OUTBOX_CHANNEL_PATTERN'),
+      tenants: g('HERMES_OUTBOX_TENANTS').split(',').map(t => t.trim()).filter(Boolean),
+    },
   });
 }

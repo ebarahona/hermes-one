@@ -95,6 +95,7 @@ complete; wiring is a per-feature follow-up (mostly Tier 3+: admin console, even
 
 | # | Item | Sev | Why deferred | Where stubbed | Faithful target |
 |---|------|-----|--------------|---------------|-----------------|
+| I0 | **No CI (triage F7) — git repo now EXISTS but every gate is still manual** | 🔴 | Repo created 2026-07-13: private `github.com/ebarahona/hermes-one`, `main`, `.env*` gitignored (part of F10) | no `.github/workflows` | Minimal CI: `pnpm verify` + dockerized `pnpm test:itest` + the 3 e2e scripts on every push ("the cheapest single risk-reduction action" — triage §5) |
 | I1 | **drizzle-kit generate + drift-check CI gate** | 🟡 | Hand-authored numbered migrations this phase | `infrastructure/drizzle/migrations/000*.sql` | `drizzle-kit generate` from schema + a CI drift check |
 | I2 | **pgbouncer not wired** | 🟡 | Direct pool for now (`SET LOCAL` is pooling-safe) | `infrastructure/drizzle` pool setup | Add pgbouncer transaction pooling in front of the app pool |
 | I3 | **dev `platform_app` has no LOGIN/PASSWORD** | ⚪ | Local convenience | pool adopts role via `options=-c role=…` startup param; prod logs in as `platform_app` directly | Prod path already correct; dev note only |

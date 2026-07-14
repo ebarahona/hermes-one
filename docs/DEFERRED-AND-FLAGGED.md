@@ -21,8 +21,14 @@ Severity: 🔴 correctness/security risk if it ships as-is · 🟡 real but scop
 
 ## Security / secrets
 
+**Edge-authn DESIGN done (F1, 2026-07-14): `docs/design/001-edge-authn-design.md`** — webhook
+hardening (timestamp+skew+nonce+SecretRef), admin-api strategies (oidc/api-key on the LB4 sequence),
+principal/scope assembly at the ingest edge (kills `prn_demo`), Redis confirm-store. Build phases
+AUTH-1..4 (AUTH-1 buildable now; AUTH-2 gated on CT1 🔴; AUTH-3 on LB4 Phase 2/L3).
+
 | # | Item | Sev | Why deferred | Where stubbed | Faithful target |
 |---|------|-----|--------------|---------------|-----------------|
+| S0 | **Edge authn unbuilt (triage F1)** | 🔴 | Design-first (user-decided); phases in the design doc | webhook = HMAC-only (no ts/replay guard); no admin authn; `turn-request.ts` demo principal/scopes | `docs/design/001-edge-authn-design.md` AUTH-1..4 |
 | S1 | **Per-tenant KMS credential store** | 🔴 | No cloud secret manager wired in this build | `components/channels/src/credential-store.ts` (`StaticProviderCredentialStore`, env-backed, **tenant-agnostic** — one bundle per provider); creds enter via `infrastructure/config` from env | `security/secrets-and-key-management.md` — KMS-backed `ProviderCredentialStore` scoped to `(tenantId, providerId, capability)`, rotation, audit; DEK/`RetentionKeyStore` |
 | S2 | **Secrets in central config** | 🟡 | Expedient for local/dev | `infrastructure/config/src/config.ts` — `llm.apiKey`, `sms.*` creds read from env into `HermesConfig` | Resolve through the `SecretRef` grammar + `SecretProvider` port (`secrets-and-key-management.md`), never materialized in the config object |
 

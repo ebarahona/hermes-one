@@ -30,8 +30,10 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm verify # typecheck + plane-lint + unit tests
+      # Build FIRST: vitest resolves cross-package @platform-internal/* imports to each package's dist
+      # (verification-discipline), so unit tests on a fresh clone need dist to exist.
       - run: pnpm -r build
+      - run: pnpm verify # typecheck + plane-lint + unit tests
 
   integration:
     runs-on: ubuntu-latest

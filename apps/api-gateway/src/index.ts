@@ -3,7 +3,12 @@
 // wires the SMS transport, the substrate store, the message repository, and the Temporal client.
 import {Client, Connection} from '@temporalio/client';
 import {EnvSecretProvider, loadConfig} from '@platform-internal/config';
-import {assertRlsPostureAtBoot, createCompiledPlanStore, createMessageRepository} from '@platform-internal/drizzle';
+import {
+  assertRlsPostureAtBoot,
+  createCompiledPlanStore,
+  createMessageRepository,
+  createRoleRegistry,
+} from '@platform-internal/drizzle';
 import {createRedisClient, RedisNonceStore} from '@platform-internal/redis';
 import {SmsChannelTransport, type TenantByNumber} from '@platform-internal/channels';
 import {initTracing, tracingConfigFor} from '@platform-internal/telemetry';
@@ -35,6 +40,7 @@ export async function createInboundGateway(gw: GatewayConfig): Promise<GatewayHa
   await assertRlsPostureAtBoot(cfg.stores.authoritative.url);
   const {store, close: closeStore} = createCompiledPlanStore(cfg.stores.authoritative.url, cfg.stores.ephemeral.url);
   const {repo: messages, close: closeMessages} = createMessageRepository(cfg.stores.authoritative.url);
+  const {repo: roleRegistry, close: closeRoles} = createRoleRegistry(cfg.stores.authoritative.url);
   const connection = await Connection.connect({address: cfg.temporal.address});
   const client = new Client({connection, namespace: cfg.temporal.namespace});
 
@@ -56,7 +62,7 @@ export async function createInboundGateway(gw: GatewayConfig): Promise<GatewayHa
 
   const server = createGatewayServer({
     transport,
-    ingest: {store, messages, client, parametersFor: gw.parametersFor},
+    ingest: {store, messages, roles: roleRegistry, client, parametersFor: gw.parametersFor},
     tracer: tracing.tracer,
   });
 
@@ -66,6 +72,7 @@ export async function createInboundGateway(gw: GatewayConfig): Promise<GatewayHa
       await connection.close();
       await closeStore();
       await closeMessages();
+      await closeRoles();
       await nonceRedis.close();
       await tracing.shutdown();
     },

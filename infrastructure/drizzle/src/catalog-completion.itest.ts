@@ -65,9 +65,10 @@ describe('remaining catalog (tenant / capability / event / views) — live', () 
   });
 
   it('tenant.roles is nullable-tenant — platform (NULL) roles visible to every tenant', async () => {
-    const forA = await asTenant<{name: string}>(A, `SELECT name FROM tenant.roles ORDER BY name`);
+    // Scoped to this test's fixtures (migration 0029 seeds additional platform roles).
+    const forA = await asTenant<{name: string}>(A, `SELECT name FROM tenant.roles WHERE name LIKE 'cat\\_%' ORDER BY name`);
     expect(forA.map(r => r.name)).toEqual(['cat_platform_role', 'cat_tenant_role']); // own + platform
-    const forB = await asTenant<{name: string}>(B, `SELECT name FROM tenant.roles ORDER BY name`);
+    const forB = await asTenant<{name: string}>(B, `SELECT name FROM tenant.roles WHERE name LIKE 'cat\\_%' ORDER BY name`);
     expect(forB.map(r => r.name)).toEqual(['cat_platform_role']); // only platform (A's role hidden)
   });
 

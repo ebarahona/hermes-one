@@ -21,6 +21,7 @@ export * from './workflow.js';
 export * from './event.js';
 export * from './composition-root.js';
 export * from './secret.js';
+export * from './role.js';
 
 export const descriptor = {
   name: '@platform/contracts',

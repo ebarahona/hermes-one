@@ -1,14 +1,16 @@
 // Builds the serializable TurnRequest the workflow hands to the agent-plane turn activity (ADR-017).
 // Pure/sandbox-safe: no I/O, no clock, no zod — the activity validates via TurnRequest.parse. The
-// deployment pin is REAL (D1): the edge resolves-active-and-pins at start; the turn resolves that
-// exact deployment on replay, never the current active. Demo scaffolding remains for tenant profile +
-// principal: a production edge assembles those from the tenant registry + authn (flagged, F1).
-import type {PinnedRef, TurnRequest} from '@platform/contracts';
+// deployment pin is REAL (D1) and the PRINCIPAL is REAL (AUTH-2): the edge mints it and resolves its
+// scopes from roles per request (RoleRegistry) — no demo identity literals remain on the live path.
+// Demo scaffolding remains ONLY for the tenant profile/quota/budgets (tenant-configuration store, not
+// auth — flagged).
+import type {PinnedRef, Principal, TurnRequest} from '@platform/contracts';
 import type {DeploymentPin} from './bundle.js';
 
 export function buildAgentTurnRequest(
   tenantId: string,
   deployment: DeploymentPin,
+  principal: Principal,
   engine: PinnedRef,
   objective: string,
   input: Record<string, unknown>,
@@ -49,14 +51,7 @@ export function buildAgentTurnRequest(
         timezone: 'UTC',
         operatorRegistryVersion: '1.0.0',
       },
-      principal: {
-        id: 'prn_demo',
-        tenantId,
-        kind: 'user',
-        roles: ['customer'],
-        scopes: ['appointment.slot.read', 'messaging.reply.send'],
-        attributes: {},
-      },
+      principal,
       conversationId: null,
       channel: 'sms',
       correlationId,

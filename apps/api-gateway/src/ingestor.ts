@@ -8,12 +8,14 @@
 import type {Client} from '@temporalio/client';
 import type {CompiledPlanStore} from '@platform-internal/drizzle';
 import type {DrizzleMessageRepository} from '@platform-internal/drizzle';
-import type {InboundMessage, PlanId, TenantId} from '@platform/contracts';
+import type {InboundMessage, PlanId, Principal, RoleRegistry, TenantId} from '@platform/contracts';
 import {WORKFLOW_QUEUE, type WorkflowRunRef} from '@platform-internal/workflow-worker';
 
 export interface IngestDeps {
   store: CompiledPlanStore;
   messages: DrizzleMessageRepository;
+  /** Role→scope resolution (AUTH-2): the acting principal's scopes come from roles PER REQUEST. */
+  roles: RoleRegistry;
   client: Client;
   /** Rule parameters per tenant (demo stand-in for tenant configuration). */
   parametersFor: (tenantId: TenantId) => Record<string, unknown>;
@@ -58,6 +60,19 @@ export async function startFromInbound(
     throw new Error(`deployment for ${tenantId} is missing a workflow or rule plan`);
   }
 
+  // Mint the ACTING principal (AUTH-2, docs/design/001-edge-authn-design.md): the customer the
+  // conversation acts FOR — distinct from the webhook-source system principal that authenticated the
+  // request. Deterministic id from the channel handle; scopes resolved from roles per request (a role
+  // edit takes effect on the next inbound). This is what gates the agent's tools downstream.
+  const principal: Principal = {
+    id: `prn_customer_${short(inbound.from)}` as Principal['id'],
+    tenantId,
+    kind: 'user',
+    roles: ['customer'],
+    scopes: await deps.roles.resolveScopes(tenantId, ['customer']),
+    attributes: {externalHandle: inbound.from, channel: inbound.channel},
+  };
+
   const meta = inbound.providerMeta as Record<string, unknown>;
   const ref: WorkflowRunRef = {
     tenantId,
@@ -66,6 +81,7 @@ export async function startFromInbound(
     // Resolve-active-and-PIN (D1): the run — including any agent turn — replays against this exact
     // deployment version even if a new one is published mid-conversation.
     deployment: {deploymentId: deployment.deploymentId, version: deployment.version},
+    principal,
     // Carry the edge trace context onto the workflow input (OB5) so the run joins the edge trace.
     trace: edgeTraceparent ? {traceparent: edgeTraceparent} : undefined,
     parameters: deps.parametersFor(tenantId),

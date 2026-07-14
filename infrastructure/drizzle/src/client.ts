@@ -13,6 +13,7 @@ import {DrizzleUsageMeter} from './usage-repository.js';
 import {DrizzleAuditQueryService} from './audit-query.js';
 import {DrizzleTurnPersistence} from './turn-persistence.js';
 import {DrizzleEventOutboxRepository} from './event-outbox-repository.js';
+import {DrizzleRoleRegistry} from './role-registry.js';
 import {assertNonBypassingRole} from './rls-self-check.js';
 import {
   DrizzleDefinitionRepository,
@@ -159,6 +160,17 @@ export function createEventOutboxRepository(
 ): EventOutboxRepositoryHandle {
   const {db, pool} = createPlatformDb(pgUrl, {appRole: opts.appRole});
   return {repo: new DrizzleEventOutboxRepository(db, opts.maxAttempts), close: () => pool.end()};
+}
+
+export interface RoleRegistryHandle {
+  repo: DrizzleRoleRegistry;
+  close(): Promise<void>;
+}
+
+/** Convenience composition: pg (as platform_app) → the role→scope registry (role-matrix.md). */
+export function createRoleRegistry(pgUrl: string, opts: {appRole?: string} = {}): RoleRegistryHandle {
+  const {db, pool} = createPlatformDb(pgUrl, {appRole: opts.appRole});
+  return {repo: new DrizzleRoleRegistry(db), close: () => pool.end()};
 }
 
 export interface AuditQueryServiceHandle {

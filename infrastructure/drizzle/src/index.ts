@@ -58,6 +58,7 @@ export {
   type OutboxEnqueueRow,
   type OutboxDrainResult,
 } from './event-outbox-repository.js';
+export {DrizzleRoleRegistry} from './role-registry.js';
 export {
   EventOutboxPublisherLoop,
   DEFAULT_OUTBOX_PUBLISHER_CONFIG,
@@ -87,6 +88,7 @@ export {
   createAuditQueryService,
   createTurnPersistence,
   createEventOutboxRepository,
+  createRoleRegistry,
   createSubstrateWrite,
   assertRlsPostureAtBoot,
   type PlatformDbHandle,
@@ -99,6 +101,7 @@ export {
   type AuditQueryServiceHandle,
   type TurnPersistenceHandle,
   type EventOutboxRepositoryHandle,
+  type RoleRegistryHandle,
   type SubstrateWriteHandle,
 } from './client.js';
 

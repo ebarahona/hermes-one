@@ -133,10 +133,13 @@ export async function runMissedCall(ref: WorkflowRunRef) {
 
 /** Triage workflow: rule routes to a bounded agent turn OR a deterministic reply. */
 export async function runTriage(ref: WorkflowRunRef) {
-  // The agent plane replays against the deployment PINNED at start (D1) — an agent workflow started
-  // without a pin is a configuration error, failed before any side effect runs.
+  // The agent plane replays against the deployment PINNED at start (D1), acting AS the principal
+  // minted at the edge (AUTH-2) — an agent workflow started without either is a configuration error,
+  // failed before any side effect runs.
   const pin = ref.deployment;
   if (!pin) throw new Error('runTriage requires ref.deployment — the agent turn resolves the PINNED deployment (D1)');
+  const principal = ref.principal;
+  if (!principal) throw new Error('runTriage requires ref.principal — the acting identity is minted at the edge (AUTH-2)');
   const workflowPlan = await loadWorkflowPlan({tenantId: ref.tenantId, ...ref.workflow});
   const rulePlan = await loadRulePlan({tenantId: ref.tenantId, ...ref.rule});
   const correlationId = workflowInfo().workflowId;
@@ -149,7 +152,7 @@ export async function runTriage(ref: WorkflowRunRef) {
       // it as an explicit sidecar arg to the turn activity (the spec's "traceparent on ActivityOptions").
       const {childTrace} = new PassThroughWorkflowTrace().onWorkflowExecute({trace: ref.trace});
       const result = await agentTurn(
-        buildAgentTurnRequest(ref.tenantId, pin, engine, objective, input, correlationId),
+        buildAgentTurnRequest(ref.tenantId, pin, principal, engine, objective, input, correlationId),
         childTrace,
       );
       return {outcome: result.outcome, reply: result.reply};

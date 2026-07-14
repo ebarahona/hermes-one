@@ -11,6 +11,7 @@ import type {
   PlanId,
   RuleDefinition,
   SemVer,
+  Principal,
   TraceHeader,
   WorkflowDefinition,
 } from '@platform/contracts';
@@ -56,6 +57,9 @@ export interface WorkflowRunRef {
   workflow: PlanLoadRef;
   rule: PlanLoadRef;
   deployment?: DeploymentPin;
+  /** The ACTING principal, minted + scope-resolved at the ingest edge (AUTH-2 — never demo literals;
+   *  scopes come from RoleRegistry.resolveScopes per request). Required by agent workflows. */
+  principal?: Principal;
   parameters: Record<string, unknown>;
   input: Record<string, unknown>;
   /** W3C trace context from the edge (observability/tracing-metrics-logging.md, OB5). Carried as an
@@ -70,12 +74,14 @@ export function bundleToRef(
   input: Record<string, unknown>,
   tenantId: string,
   deployment?: DeploymentPin,
+  principal?: Principal,
 ): WorkflowRunRef {
   return {
     tenantId,
     workflow: {planId: bundle.workflowPlan.planId, contentHash: bundle.workflowPlan.contentHash},
     rule: {planId: bundle.rulePlan.planId, contentHash: bundle.rulePlan.contentHash},
     deployment,
+    principal,
     parameters: bundle.parameters,
     input,
   };

@@ -1,0 +1,93 @@
+# Minimal CI (deferral-ledger I0 / triage F7): the safety-critical verifications that previously ran
+# only when a human remembered to run them.
+#   verify      — hermetic: typecheck + plane-lint + unit tests + full build (pnpm verify && pnpm -r build)
+#   integration — live PG (RLS itests) + Redis + a Temporal dev server; runs `pnpm test:itest` TWICE
+#                 (idempotency/replay bugs hide behind clean state — verification discipline) and the two
+#                 non-LLM e2es (missed-call workflow, signed webhook → workflow).
+# NOT run here (stays a manual local gate): apps/agent-worker e2e — it drives a REAL local LLM
+# (llama-server at :8080), which GitHub-hosted runners don't have.
+# Service ports mirror infra/docker-compose.yml (PG 5433, Redis 6380) so the config dev defaults just work.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4 # version comes from package.json "packageManager"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm verify # typecheck + plane-lint + unit tests
+      - run: pnpm -r build
+
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: hermes
+          POSTGRES_PASSWORD: hermes
+          POSTGRES_DB: hermes
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U hermes"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Start Temporal dev server
+        uses: temporalio/setup-temporal@v0
+      - run: temporal server start-dev --headless --port 7233 &
+      - name: Wait for Temporal
+        run: |
+          for i in $(seq 1 30); do
+            temporal operator cluster health --address 127.0.0.1:7233 >/dev/null 2>&1 && exit 0
+            sleep 1
+          done
+          echo "Temporal dev server did not become healthy" >&2
+          exit 1
+
+      - run: pnpm -r build
+
+      - name: Integration tests (live PG/Redis, run 1)
+        run: pnpm test:itest
+      - name: Integration tests (re-run — replay/idempotency discipline)
+        run: pnpm test:itest
+
+      - name: E2E missed-call workflow (real Temporal, no LLM)
+        run: node apps/workflow-worker/dist/e2e.js
+      - name: E2E signed webhook → workflow (real Temporal, no LLM)
+        run: node apps/api-gateway/dist/e2e.js

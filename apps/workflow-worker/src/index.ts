@@ -13,6 +13,7 @@ export {
   type PlanLoadRef,
 } from './bundle.js';
 export {publishBundle, publishAgentDeployment, E2E_TENANT} from './publish.js';
+export {installElectricianPack, type ElectricianInstall} from './pack-e-install.js';
 
 export const descriptor = {
   name: '@platform-internal/workflow-worker',

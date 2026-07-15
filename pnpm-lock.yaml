@@ -368,6 +368,9 @@ importers:
       '@platform-internal/loopback-core':
         specifier: workspace:*
         version: link:../loopback-core
+      '@platform/capability-contract':
+        specifier: workspace:*
+        version: link:../../packages/capability-contract
       '@platform/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts

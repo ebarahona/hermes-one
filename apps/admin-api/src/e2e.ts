@@ -42,7 +42,7 @@ async function main(): Promise<void> {
   // Ephemeral port (0) for the test — override the loaded config (the schema floors real config at 1).
   const loaded = loadConfig();
   const cfg = {...loaded, api: {...loaded.api, port: 0}};
-  const root = new AdminApiRoot(cfg, SEEDS);
+  const root = new AdminApiRoot(cfg, {apiKeySeeds: SEEDS}); // Persistence ON → needs the PG stack
   const app = root.createApp();
   root.bindPorts(app);
   root.registerComponents(app);
@@ -101,6 +101,19 @@ async function main(): Promise<void> {
         (me.scopes as string[]).includes('tenant.role.read'),
       me,
     );
+
+    // 6. datasource-backed, scope-gated, tenant-scoped read: roles for the principal's own tenant
+    //    (the seeded key carries tenant.role.read). Returns ≥ the platform roles (0029 seed).
+    const rolesRes = await fetch(`${base}/v1/tenants/tnt_admin_e2e/roles`, {headers: {'x-api-key': API_KEY}});
+    const rolesBody = (await rolesRes.json()) as Array<{name?: string}>;
+    check('roles read → 200', rolesRes.status === 200, rolesRes.status);
+    check('roles read → array incl. platform roles', Array.isArray(rolesBody) && rolesBody.length > 0, rolesBody);
+
+    // 7. tenant boundary: reading ANOTHER tenant's roles → 403 (never the path's tenant)
+    const crossTenant = await fetch(`${base}/v1/tenants/tnt_someone_else/roles`, {headers: {'x-api-key': API_KEY}});
+    const crossBody = (await crossTenant.json()) as {error?: {code?: string}};
+    check('cross-tenant roles read → 403', crossTenant.status === 403, crossTenant.status);
+    check('cross-tenant → forbidden_scope', crossBody.error?.code === 'forbidden_scope', crossBody);
   } finally {
     await app.stop();
   }

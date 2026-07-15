@@ -22,3 +22,4 @@ export {DefaultPrincipalMapper} from './principal-mapper.js';
 export {ApiKeyStrategy} from './api-key.strategy.js';
 export {StaticApiKeyStore, type ApiKeySeed, type ApiKeyHashAlgo} from './static-api-key-store.js';
 export {type AuthStrategy, AuthConfig, unauthorizedError} from './contracts.js';
+export {assertScope, forbiddenScopeError} from './authorize.js';

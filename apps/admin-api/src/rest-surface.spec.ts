@@ -1,6 +1,7 @@
 // Hermetic proof of the Slice 1+2 REST surface — boots the real LB4 RestApplication on an ephemeral
-// port (no backing stack: no datasource bound) and drives the sequence + AUTH-3 api-key path over
-// HTTP. Runs in `pnpm test` and the CI `verify` job. The `node dist/e2e.js` smoke asserts the same.
+// port with Persistence OFF (no backing stack) and drives the sequence + AUTH-3 api-key path over
+// HTTP. Runs in `pnpm test` and the CI `verify` job. The datasource-backed roles route (Slice 3) is
+// covered by roles-route.itest.ts (live PG); the `node dist/e2e.js` smoke asserts both.
 import 'reflect-metadata';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {loadConfig} from '@platform-internal/config';
@@ -30,7 +31,7 @@ let base: string;
 beforeAll(async () => {
   const loaded = loadConfig();
   const cfg = {...loaded, api: {...loaded.api, port: 0}}; // ephemeral (schema floors real config at 1)
-  const root = new AdminApiRoot(cfg, SEEDS);
+  const root = new AdminApiRoot(cfg, {apiKeySeeds: SEEDS, withPersistence: false});
   app = root.createApp();
   root.bindPorts(app);
   root.registerComponents(app);

@@ -12,6 +12,7 @@
 // config/seed-backed ApiKeyStore) — the same split as the ChannelComponent + credential store.
 import type {HermesConfig} from '@platform-internal/config';
 import {
+  PersistenceComponent,
   PlatformBindings,
   PlatformRestApplication,
   registerPlatformRestSequence,
@@ -26,13 +27,24 @@ import {
 import type {CompositionRoot} from '@platform/contracts';
 import {PingController} from './ping.controller.js';
 import {WhoamiController} from './whoami.controller.js';
+import {RoleController} from './role.controller.js';
+
+export interface AdminApiRootOptions {
+  /** Dev/seed api keys for the StaticApiKeyStore. Empty in prod until the DB-backed store lands. */
+  readonly apiKeySeeds?: readonly ApiKeySeed[];
+  /** Register the Persistence component (shared PG pool + RLS boot gate + ROLE_REGISTRY). Default true.
+   *  The hermetic sequence/auth spec sets false so it boots with no backing stack. */
+  readonly withPersistence?: boolean;
+}
 
 export class AdminApiRoot implements CompositionRoot<PlatformRestApplication> {
-  constructor(
-    private readonly config: HermesConfig,
-    /** Dev/seed api keys for the StaticApiKeyStore. Empty in prod until the DB-backed store lands. */
-    private readonly apiKeySeeds: readonly ApiKeySeed[] = [],
-  ) {}
+  private readonly apiKeySeeds: readonly ApiKeySeed[];
+  private readonly withPersistence: boolean;
+
+  constructor(private readonly config: HermesConfig, opts: AdminApiRootOptions = {}) {
+    this.apiKeySeeds = opts.apiKeySeeds ?? [];
+    this.withPersistence = opts.withPersistence ?? true;
+  }
 
   createApp(): PlatformRestApplication {
     return new PlatformRestApplication({
@@ -50,16 +62,21 @@ export class AdminApiRoot implements CompositionRoot<PlatformRestApplication> {
   registerComponents(app: PlatformRestApplication): void {
     registerPlatformRestSequence(app);
     app.component(AuthComponent);
+    // Persistence: the shared PG pool, ROLE_REGISTRY, and the fail-closed RLS boot gate (observers run
+    // at app.start(), datasource-before-server, so the gate fires before the REST server listens).
+    if (this.withPersistence) app.component(PersistenceComponent);
     app.controller(PingController);
     app.controller(WhoamiController);
+    app.controller(RoleController);
   }
 
   async start(_app: PlatformRestApplication): Promise<void> {
-    // No pools/datasources in Slice 1 — nothing to open before serving.
+    // Pools/datasources open via the Persistence lifecycle observers in app.start() (serve), which runs
+    // the fail-closed RLS gate before the REST server accepts traffic.
   }
 
   async serve(app: PlatformRestApplication, stop: AbortSignal): Promise<void> {
-    await app.start(); // LB4 lifecycle: the RestServer begins listening.
+    await app.start(); // LB4 lifecycle: RLS boot gate (datasource observers) → RestServer listens.
     if (stop.aborted) return;
     await new Promise<void>(resolve => {
       stop.addEventListener('abort', () => resolve(), {once: true});

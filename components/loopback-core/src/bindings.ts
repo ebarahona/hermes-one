@@ -42,7 +42,7 @@ import type {
 } from '@platform-internal/drizzle';
 import type {RedisClient} from '@platform-internal/redis';
 import type {HermesConfig} from '@platform-internal/config';
-import type {DeploymentService} from '@platform/definition-substrate';
+import type {DefinitionRegistry, DeploymentService} from '@platform/definition-substrate';
 
 /**
  * PlatformBindings — every edge/data-plane (`@loopback/context`) binding key.
@@ -90,6 +90,9 @@ export namespace PlatformBindings {
   // ── definition-substrate services (substrate-lifecycle.md) ──
   export const DEPLOYMENT_SERVICE = BindingKey.create<DeploymentService>(
     'platform.definition.deploymentService',
+  );
+  export const DEFINITION_REGISTRY = BindingKey.create<DefinitionRegistry>(
+    'platform.definition.registry',
   );
   export const MESSAGE_REPOSITORY = BindingKey.create<DrizzleMessageRepository>(
     'platform.data.message-repository',

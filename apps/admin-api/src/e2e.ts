@@ -21,7 +21,7 @@ const SEEDS: ApiKeySeed[] = [
       keyId: 'apk_e2e',
       tenantId: 'tnt_admin_e2e' as TenantId,
       principalId: 'prn_svc_e2e' as PrincipalId,
-      scopes: ['tenant.role.read', 'tenant.role.create', 'deployment.read', 'platform.tenant.read'] as Scope[],
+      scopes: ['tenant.role.read', 'tenant.role.create', 'deployment.read', 'platform.tenant.read', 'definition.write'] as Scope[],
       status: 'active',
       expiresAt: null,
     },
@@ -146,6 +146,33 @@ async function main(): Promise<void> {
     check('own tenant (no row) → 404', ownTenant.status === 404, ownTenant.status);
     const crossTenantGet = await fetch(`${base}/v1/tenants/tnt_other_ten`, {headers: {'x-api-key': API_KEY}});
     check('cross-tenant tenant read → 403', crossTenantGet.status === 403, crossTenantGet.status);
+
+    // 12. definition authoring (SubstrateComponent + DefinitionRegistry w/ compilers): PUT a capability
+    //     definition → 200 with a content hash (idempotent, re-run-safe); another tenant → 403.
+    const defBody = {
+      tenantId: 'tnt_admin_e2e', kind: 'capability', name: 'e2e-slot-read',
+      schemaRef: 'e2e-slot-read.capability/v1', version: '1.0.0',
+      body: {
+        name: 'e2e.slot.read', title: 'Read slots', description: 'List slots.',
+        inputJsonSchema: {type: 'object', required: ['date'], properties: {date: {type: 'string'}}},
+        outputJsonSchema: {type: 'object', properties: {slots: {type: 'array'}}},
+        sideEffect: 'read', changedDomains: ['none'],
+        idempotency: {required: false, keyFields: [], ttlSeconds: 86400}, confirm: false,
+        requiredScope: 'e2e.slot.read',
+        providerMapping: {providers: [{providerId: 'internal-scheduler', priority: 100}], eligibility: [], onNoProvider: 'fail'},
+      },
+    };
+    const putDef = await fetch(`${base}/v1/definitions/def_e2e_admin_cap`, {
+      method: 'PUT', headers: {'x-api-key': API_KEY, 'content-type': 'application/json'}, body: JSON.stringify(defBody),
+    });
+    const putDefBody = (await putDef.json()) as {contentHash?: string};
+    check('author definition → 200', putDef.status === 200, putDef.status);
+    check('definition → content hash', typeof putDefBody.contentHash === 'string' && putDefBody.contentHash.startsWith('sha256:'), putDefBody);
+    const crossDef = await fetch(`${base}/v1/definitions/def_e2e_admin_cap`, {
+      method: 'PUT', headers: {'x-api-key': API_KEY, 'content-type': 'application/json'},
+      body: JSON.stringify({...defBody, tenantId: 'tnt_other_def'}),
+    });
+    check('cross-tenant definition → 403', crossDef.status === 403, crossDef.status);
   } finally {
     await app.stop();
   }

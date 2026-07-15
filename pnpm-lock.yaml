@@ -489,6 +489,9 @@ importers:
       '@platform/rule-dsl':
         specifier: workspace:*
         version: link:../../packages/rule-dsl
+      '@platform/workflow-dsl':
+        specifier: workspace:*
+        version: link:../../packages/workflow-dsl
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2

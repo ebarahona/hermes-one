@@ -1,0 +1,111 @@
+{
+  "manifest": {
+    "packId": "electrician",
+    "packVersion": "1.0.0",
+    "displayName": "Residential Electrician",
+    "description": "Inbound customer intake for a residential electrician: triage the urgency of an electrical issue, answer basic safety questions, and offer to schedule a service visit. Authored entirely as data (ADR-013) — no industry code.",
+    "operatorRegistryVersion": "1.0.0"
+  },
+  "definitions": {
+    "workflow": {
+      "definitionId": "def_elec_intake",
+      "kind": "workflow",
+      "name": "electrician-intake",
+      "schemaRef": "electrician-intake.workflow/v1",
+      "version": "1.0.0",
+      "body": {
+        "entry": "triage",
+        "nodes": {
+          "triage": {
+            "id": "triage",
+            "kind": "rule",
+            "rule": {"definitionId": "def_elec_triage", "version": "1.0.0"},
+            "facts": {"intent": {"$input": "intent"}},
+            "routes": {"emergency": "assist", "schedule": "assist", "default": "end"}
+          },
+          "assist": {
+            "id": "assist",
+            "kind": "agent",
+            "agentEngine": {"definitionId": "def_elec_engine", "version": "1.0.0"},
+            "objective": "Help the caller with their electrical issue — triage urgency, answer basic safety questions, and offer to schedule a service visit.",
+            "next": "end"
+          },
+          "end": {"id": "end", "kind": "terminal", "outcome": "completed"}
+        }
+      }
+    },
+    "agentEngine": {
+      "definitionId": "def_elec_engine",
+      "kind": "agent-engine",
+      "name": "electrician-dispatcher",
+      "schemaRef": "electrician-dispatcher.agent-engine/v1",
+      "version": "1.0.0",
+      "body": {
+        "persona": "A friendly, safety-first dispatcher for a residential electrician.",
+        "objectives": [
+          "Triage the urgency of the caller's electrical issue (emergency vs routine).",
+          "Answer basic electrical-safety questions plainly.",
+          "Offer to schedule a service visit and read available slots."
+        ],
+        "allowedCapabilities": ["electrical.slot.read"],
+        "referencedRules": [],
+        "model": {"provider": "local", "model": "qwen3-coder-next-80b", "temperature": 0.2},
+        "promptTemplateIds": []
+      }
+    },
+    "policy": {
+      "definitionId": "def_elec_policy",
+      "kind": "policy",
+      "name": "electrician-safety",
+      "schemaRef": "electrician-safety.policy/v1",
+      "version": "1.0.0",
+      "body": {
+        "rules": [
+          {"id": "noop", "site": "preGate", "appliesTo": [], "when": {"type": "literal", "value": false}, "effect": "deny", "reason": "no pre-gate fires — permissive baseline"}
+        ],
+        "defaultVoterVerdict": "deny",
+        "parameters": []
+      }
+    },
+    "rules": [
+      {
+        "definitionId": "def_elec_triage",
+        "kind": "rule",
+        "name": "electrician-triage",
+        "schemaRef": "electrician-triage.rule/v1",
+        "version": "1.0.0",
+        "body": {
+          "branches": [
+            {"outcome": "emergency", "when": {"type": "literal", "value": false}},
+            {"outcome": "schedule", "when": {"type": "literal", "value": true}}
+          ],
+          "defaultOutcome": "schedule",
+          "parameters": [],
+          "requiredFacts": []
+        }
+      }
+    ],
+    "capabilities": [
+      {
+        "definitionId": "def_elec_slot_read",
+        "kind": "capability",
+        "name": "electrical-slot-read",
+        "schemaRef": "electrical-slot-read.capability/v1",
+        "version": "1.0.0",
+        "body": {
+          "name": "electrical.slot.read",
+          "title": "Read electrician appointment slots",
+          "description": "List open service-visit slots for a given date and service type.",
+          "inputJsonSchema": {"type": "object", "required": ["date"], "properties": {"date": {"type": "string"}, "serviceType": {"type": "string"}}},
+          "outputJsonSchema": {"type": "object", "properties": {"slots": {"type": "array"}}},
+          "sideEffect": "read",
+          "changedDomains": ["none"],
+          "idempotency": {"required": false, "keyFields": [], "ttlSeconds": 86400},
+          "confirm": false,
+          "requiredScope": "electrical.slot.read",
+          "providerMapping": {"providers": [{"providerId": "internal-scheduler", "priority": 100}], "eligibility": [], "onNoProvider": "fail"}
+        }
+      }
+    ]
+  }
+}

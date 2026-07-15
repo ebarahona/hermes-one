@@ -21,7 +21,7 @@ const SEEDS: ApiKeySeed[] = [
       keyId: 'apk_e2e',
       tenantId: 'tnt_admin_e2e' as TenantId,
       principalId: 'prn_svc_e2e' as PrincipalId,
-      scopes: ['tenant.role.read', 'tenant.role.create', 'deployment.read', 'platform.tenant.read', 'definition.write', 'deployment.publish'] as Scope[],
+      scopes: ['tenant.role.read', 'tenant.role.create', 'deployment.read', 'platform.tenant.read', 'definition.write', 'deployment.publish', 'tenant.user.create', 'tenant.user.read'] as Scope[],
       status: 'active',
       expiresAt: null,
     },
@@ -187,6 +187,20 @@ async function main(): Promise<void> {
       method: 'POST', headers: {'x-api-key': API_KEY, 'content-type': 'application/json'}, body: JSON.stringify({...manifest, tenantId: 'tnt_other_dep'}),
     });
     check('cross-tenant preview → 403', crossPreview.status === 403, crossPreview.status);
+
+    // 14. user provisioning: create a service user → 201, it lists; another tenant → 403.
+    const createUser = await fetch(`${base}/v1/tenants/tnt_admin_e2e/users`, {
+      method: 'POST', headers: {'x-api-key': API_KEY, 'content-type': 'application/json'},
+      body: JSON.stringify({kind: 'service', displayName: 'E2E Bot', roleNames: ['customer']}),
+    });
+    const createdUser = (await createUser.json()) as {principalId?: string};
+    check('create user → 201', createUser.status === 201, createUser.status);
+    const usersList = (await (await fetch(`${base}/v1/tenants/tnt_admin_e2e/users`, {headers: {'x-api-key': API_KEY}})).json()) as {items: Array<{principalId: string}>};
+    check('created user appears in list', usersList.items.some(u => u.principalId === createdUser.principalId), createdUser);
+    const crossUser = await fetch(`${base}/v1/tenants/tnt_other_usr/users`, {
+      method: 'POST', headers: {'x-api-key': API_KEY, 'content-type': 'application/json'}, body: JSON.stringify({kind: 'user'}),
+    });
+    check('cross-tenant user create → 403', crossUser.status === 403, crossUser.status);
   } finally {
     await app.stop();
   }

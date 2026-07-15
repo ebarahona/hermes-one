@@ -38,6 +38,7 @@ import type {
   DrizzleMessageRepository,
   DrizzleTenantRepository,
   DrizzleTurnPersistence,
+  DrizzleUserRepository,
   PlatformDbHandle,
 } from '@platform-internal/drizzle';
 import type {RedisClient} from '@platform-internal/redis';
@@ -120,6 +121,9 @@ export namespace PlatformBindings {
   export const ROLE_REGISTRY = BindingKey.create<RoleRegistry>('platform.tenant.roleRegistry');
   export const TENANT_REPOSITORY = BindingKey.create<DrizzleTenantRepository>(
     'platform.data.tenant-repository',
+  );
+  export const USER_REPOSITORY = BindingKey.create<DrizzleUserRepository>(
+    'platform.data.user-repository',
   );
 
   // ── request context (request scope) ─────────────────────────────────────

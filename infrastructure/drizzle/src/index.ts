@@ -107,6 +107,12 @@ export {
 
 // Migration runner.
 export {DrizzleTenantRepository, type TenantPatch} from './tenant-repository.js';
+export {
+  DrizzleUserRepository,
+  type UserCreateInput,
+  type UserDto,
+  type UserKind,
+} from './user-repository.js';
 export {runMigrations, type MigrationResult} from './migrate.js';
 
 export const descriptor = {

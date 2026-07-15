@@ -37,6 +37,7 @@
     "@platform-internal/telemetry": "workspace:*",
     "@platform/capability-contract": "workspace:*",
     "@platform/contracts": "workspace:*",
+    "@platform/definition-substrate": "workspace:*",
     "@platform/expression-core": "workspace:*",
     "@platform/policy-dsl": "workspace:*",
     "@platform/rule-dsl": "workspace:*",

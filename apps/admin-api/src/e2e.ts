@@ -21,7 +21,7 @@ const SEEDS: ApiKeySeed[] = [
       keyId: 'apk_e2e',
       tenantId: 'tnt_admin_e2e' as TenantId,
       principalId: 'prn_svc_e2e' as PrincipalId,
-      scopes: ['tenant.role.read', 'tenant.role.create'] as Scope[],
+      scopes: ['tenant.role.read', 'tenant.role.create', 'deployment.read'] as Scope[],
       status: 'active',
       expiresAt: null,
     },
@@ -133,6 +133,13 @@ async function main(): Promise<void> {
       body: JSON.stringify({scopes: []}), // missing name
     });
     check('create with bad body → 422', badBody.status === 422, badBody.status);
+
+    // 10. deployment reads (SubstrateComponent + DeploymentService): a tenant with no deployment → 404
+    //     (a real round-trip through the store under RLS); another tenant → 403 (boundary).
+    const activeDep = await fetch(`${base}/v1/deployments/active?tenantId=tnt_admin_e2e`, {headers: {'x-api-key': API_KEY}});
+    check('active deployment (none) → 404', activeDep.status === 404, activeDep.status);
+    const crossDep = await fetch(`${base}/v1/deployments/active?tenantId=tnt_other_dep`, {headers: {'x-api-key': API_KEY}});
+    check('cross-tenant deployment → 403', crossDep.status === 403, crossDep.status);
   } finally {
     await app.stop();
   }

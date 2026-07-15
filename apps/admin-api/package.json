@@ -36,6 +36,7 @@
     "@platform-internal/config": "workspace:*",
     "@platform-internal/loopback-core": "workspace:*",
     "@platform/contracts": "workspace:*",
+    "@platform/definition-substrate": "workspace:*",
     "reflect-metadata": "^0.2.2",
     "zod": "^4.4.3"
   },

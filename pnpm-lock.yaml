@@ -104,6 +104,9 @@ importers:
       '@platform/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@platform/definition-substrate':
+        specifier: workspace:*
+        version: link:../../packages/definition-substrate
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -465,6 +468,9 @@ importers:
       '@platform/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@platform/definition-substrate':
+        specifier: workspace:*
+        version: link:../../packages/definition-substrate
       '@platform/expression-core':
         specifier: workspace:*
         version: link:../../packages/expression-core

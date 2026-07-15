@@ -16,6 +16,7 @@ import {
   PlatformBindings,
   PlatformRestApplication,
   registerPlatformRestSequence,
+  SubstrateComponent,
 } from '@platform-internal/loopback-core';
 import {
   AuthBindings,
@@ -28,6 +29,7 @@ import type {CompositionRoot, JwtVerifier} from '@platform/contracts';
 import {PingController} from './ping.controller.js';
 import {WhoamiController} from './whoami.controller.js';
 import {RoleController} from './role.controller.js';
+import {DeploymentController} from './deployment.controller.js';
 
 export interface AdminApiRootOptions {
   /** Dev/seed api keys for the StaticApiKeyStore. Empty in prod until the DB-backed store lands. */
@@ -74,10 +76,14 @@ export class AdminApiRoot implements CompositionRoot<PlatformRestApplication> {
     app.component(AuthComponent);
     // Persistence: the shared PG pool, ROLE_REGISTRY, and the fail-closed RLS boot gate (observers run
     // at app.start(), datasource-before-server, so the gate fires before the REST server listens).
-    if (this.withPersistence) app.component(PersistenceComponent);
+    if (this.withPersistence) {
+      app.component(PersistenceComponent);
+      app.component(SubstrateComponent); // DEPLOYMENT_SERVICE (reads over the bound store)
+    }
     app.controller(PingController);
     app.controller(WhoamiController);
     app.controller(RoleController);
+    app.controller(DeploymentController);
   }
 
   async start(_app: PlatformRestApplication): Promise<void> {

@@ -36,6 +36,7 @@ export {
 } from './components/capability-registry.component.js';
 export {RuleRuntimeComponent} from './components/rule-runtime.component.js';
 export {PolicyRuntimeComponent} from './components/policy-runtime.component.js';
+export {SubstrateComponent} from './components/substrate.component.js';
 
 // REST surface (loopback/application-bootstrap.md + sequence-implementation.md) — the admin-api host.
 export {PlatformRestApplication} from './rest-application.js';

@@ -21,7 +21,7 @@ const SEEDS: ApiKeySeed[] = [
       keyId: 'apk_e2e',
       tenantId: 'tnt_admin_e2e' as TenantId,
       principalId: 'prn_svc_e2e' as PrincipalId,
-      scopes: ['tenant.role.read', 'tenant.role.create', 'deployment.read', 'platform.tenant.read', 'definition.write'] as Scope[],
+      scopes: ['tenant.role.read', 'tenant.role.create', 'deployment.read', 'platform.tenant.read', 'definition.write', 'deployment.publish'] as Scope[],
       status: 'active',
       expiresAt: null,
     },
@@ -173,6 +173,20 @@ async function main(): Promise<void> {
       body: JSON.stringify({...defBody, tenantId: 'tnt_other_def'}),
     });
     check('cross-tenant definition → 403', crossDef.status === 403, crossDef.status);
+
+    // 13. deployment preview (validateManifest, no write): a well-formed manifest → 200 ok:true; a
+    //     manifest for another tenant → 403. (Publish/read-back is covered by the deployment-write itest.)
+    const pick = (kind: string) => ({kind, definitionId: 'def_x', planId: kind === 'capability' || kind === 'agent-engine' ? null : 'pln_x', version: '1.0.0', contentHash: `sha256:${'0'.repeat(64)}`});
+    const manifest = {tenantId: 'tnt_admin_e2e', workflow: pick('workflow'), agentEngine: pick('agent-engine'), policy: pick('policy'), rules: [], capabilities: [], operatorRegistryVersion: '1.0.0'};
+    const preview = await fetch(`${base}/v1/deployments/preview`, {
+      method: 'POST', headers: {'x-api-key': API_KEY, 'content-type': 'application/json'}, body: JSON.stringify(manifest),
+    });
+    const previewBody = (await preview.json()) as {ok?: boolean};
+    check('deployment preview → 200 ok:true', preview.status === 200 && previewBody.ok === true, {status: preview.status, body: previewBody});
+    const crossPreview = await fetch(`${base}/v1/deployments/preview`, {
+      method: 'POST', headers: {'x-api-key': API_KEY, 'content-type': 'application/json'}, body: JSON.stringify({...manifest, tenantId: 'tnt_other_dep'}),
+    });
+    check('cross-tenant preview → 403', crossPreview.status === 403, crossPreview.status);
   } finally {
     await app.stop();
   }

@@ -36,7 +36,8 @@
     "@platform-internal/config": "workspace:*",
     "@platform-internal/loopback-core": "workspace:*",
     "@platform/contracts": "workspace:*",
-    "reflect-metadata": "^0.2.2"
+    "reflect-metadata": "^0.2.2",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "jose": "^6.2.3"

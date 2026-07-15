@@ -21,7 +21,7 @@ const SEEDS: ApiKeySeed[] = [
       keyId: 'apk_e2e',
       tenantId: 'tnt_admin_e2e' as TenantId,
       principalId: 'prn_svc_e2e' as PrincipalId,
-      scopes: ['tenant.role.read'] as Scope[],
+      scopes: ['tenant.role.read', 'tenant.role.create'] as Scope[],
       status: 'active',
       expiresAt: null,
     },
@@ -114,6 +114,25 @@ async function main(): Promise<void> {
     const crossBody = (await crossTenant.json()) as {error?: {code?: string}};
     check('cross-tenant roles read → 403', crossTenant.status === 403, crossTenant.status);
     check('cross-tenant → forbidden_scope', crossBody.error?.code === 'forbidden_scope', crossBody);
+
+    // 8. write path: create a tenant role (201, or 409 on a re-run — both prove the endpoint), then
+    //    confirm it lists. Re-run-safe (the e2e is intentionally re-run for idempotency discipline).
+    const create = await fetch(`${base}/v1/tenants/tnt_admin_e2e/roles`, {
+      method: 'POST',
+      headers: {'x-api-key': API_KEY, 'content-type': 'application/json'},
+      body: JSON.stringify({name: 'e2erole', scopes: ['tenant.role.read']}),
+    });
+    check('create role → 201 or 409 (re-run)', create.status === 201 || create.status === 409, create.status);
+    const after = (await (await fetch(`${base}/v1/tenants/tnt_admin_e2e/roles`, {headers: {'x-api-key': API_KEY}})).json()) as Array<{name?: string}>;
+    check('created role appears in list', after.some(r => r.name === 'e2erole'), after);
+
+    // 9. write scope gate: a bad body → 422
+    const badBody = await fetch(`${base}/v1/tenants/tnt_admin_e2e/roles`, {
+      method: 'POST',
+      headers: {'x-api-key': API_KEY, 'content-type': 'application/json'},
+      body: JSON.stringify({scopes: []}), // missing name
+    });
+    check('create with bad body → 422', badBody.status === 422, badBody.status);
   } finally {
     await app.stop();
   }

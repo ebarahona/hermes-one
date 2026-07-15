@@ -35,6 +35,7 @@
     "@platform-internal/loopback-core": "workspace:*",
     "@platform/capability-contract": "workspace:*",
     "@platform/contracts": "workspace:*",
+    "jose": "^6.2.3",
     "zod": "^4.4.3"
   }
 }

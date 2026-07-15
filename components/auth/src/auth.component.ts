@@ -14,6 +14,7 @@ import {
 import {AuthBindings} from './auth.bindings.js';
 import {DefaultPrincipalMapper} from './principal-mapper.js';
 import {ApiKeyStrategy} from './api-key.strategy.js';
+import {OidcStrategy} from './oidc.strategy.js';
 
 export class AuthComponent implements Component, PlatformComponentBoundary {
   readonly plane = 'edge' as const;
@@ -29,11 +30,18 @@ export class AuthComponent implements Component, PlatformComponentBoundary {
     Binding.bind(AuthBindings.PRINCIPAL_MAPPER.key)
       .toClass(DefaultPrincipalMapper)
       .inScope(BindingScope.REQUEST),
-    // Contribute the api-key strategy to the extension point (discovered by the registry's @extensions()).
+    // Contribute the strategies to the extension point (discovered by the registry's @extensions()).
+    // Strategy order (design 001 §5): cheap-shape first — api-key before oidc. OidcStrategy is inert
+    // unless oidc is configured, so registering it always is safe (stackless deployments stay api-key).
     Binding.bind('platform.auth.strategy.api-key')
       .toClass(ApiKeyStrategy)
       .tag({[CoreTags.EXTENSION_FOR]: AUTH_STRATEGIES_EXTENSION_POINT})
       .tag({extensionType: AUTH_STRATEGY_EXTENSION_TYPE, name: 'api-key', version: '1.0.0'})
+      .inScope(BindingScope.SINGLETON),
+    Binding.bind('platform.auth.strategy.oidc')
+      .toClass(OidcStrategy)
+      .tag({[CoreTags.EXTENSION_FOR]: AUTH_STRATEGIES_EXTENSION_POINT})
+      .tag({extensionType: AUTH_STRATEGY_EXTENSION_TYPE, name: 'oidc', version: '1.0.0'})
       .inScope(BindingScope.SINGLETON),
   ];
 }

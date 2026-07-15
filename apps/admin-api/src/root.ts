@@ -24,7 +24,7 @@ import {
   StaticApiKeyStore,
   type ApiKeySeed,
 } from '@platform-internal/auth';
-import type {CompositionRoot} from '@platform/contracts';
+import type {CompositionRoot, JwtVerifier} from '@platform/contracts';
 import {PingController} from './ping.controller.js';
 import {WhoamiController} from './whoami.controller.js';
 import {RoleController} from './role.controller.js';
@@ -35,15 +35,23 @@ export interface AdminApiRootOptions {
   /** Register the Persistence component (shared PG pool + RLS boot gate + ROLE_REGISTRY). Default true.
    *  The hermetic sequence/auth spec sets false so it boots with no backing stack. */
   readonly withPersistence?: boolean;
+  /** Full auth config (apiKey + optional oidc). Defaults to api-key-only ({apiKey:{}}). */
+  readonly authConfig?: AuthConfig;
+  /** The OIDC JwtVerifier (JWKS-backed). When present, the oidc strategy activates (bearer JWTs). */
+  readonly jwtVerifier?: JwtVerifier;
 }
 
 export class AdminApiRoot implements CompositionRoot<PlatformRestApplication> {
   private readonly apiKeySeeds: readonly ApiKeySeed[];
   private readonly withPersistence: boolean;
+  private readonly authConfig: AuthConfig;
+  private readonly jwtVerifier?: JwtVerifier;
 
   constructor(private readonly config: HermesConfig, opts: AdminApiRootOptions = {}) {
     this.apiKeySeeds = opts.apiKeySeeds ?? [];
     this.withPersistence = opts.withPersistence ?? true;
+    this.authConfig = opts.authConfig ?? AuthConfig.parse({apiKey: {}});
+    this.jwtVerifier = opts.jwtVerifier;
   }
 
   createApp(): PlatformRestApplication {
@@ -54,9 +62,11 @@ export class AdminApiRoot implements CompositionRoot<PlatformRestApplication> {
 
   bindPorts(app: PlatformRestApplication): void {
     app.bind(PlatformBindings.CONFIG.key).to(this.config);
-    // AUTH-3 config + store (request-shaped bits the AuthComponent can't supply).
-    app.bind(AuthBindings.CONFIG.key).to(AuthConfig.parse({apiKey: {}}));
+    // AUTH-3 config + stores (request-shaped bits the AuthComponent can't supply).
+    app.bind(AuthBindings.CONFIG.key).to(this.authConfig);
     app.bind(AuthBindings.API_KEY_STORE.key).to(new StaticApiKeyStore(this.apiKeySeeds));
+    // The oidc strategy stays inert unless a verifier is bound (design 001 §5).
+    if (this.jwtVerifier) app.bind(AuthBindings.JWT_VERIFIER.key).to(this.jwtVerifier);
   }
 
   registerComponents(app: PlatformRestApplication): void {

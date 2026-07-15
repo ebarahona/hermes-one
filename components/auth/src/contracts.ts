@@ -28,16 +28,33 @@ export interface AuthStrategy {
   authenticate(request: Request): Promise<AuthenticatedIdentity | undefined>;
 }
 
+/** One OIDC issuer's verification + claim-mapping config (design 001 §Configuration `oidc.issuers[]`). */
+export const OidcIssuerConfig = z.object({
+  issuer: z.string().min(1),                         // expected `iss`
+  audience: z.string().min(1),                       // expected `aud`
+  jwksRef: z.string().min(1),                         // secret:// pointer to the JWKS (URL or key set)
+  tenantClaim: z.string().min(1).default('tid'),      // token claim carrying the tenant id → VerifiedClaims.tid
+  rolesClaim: z.string().min(1).default('roles'),     // token claim carrying the role names → VerifiedClaims.roles
+  jwksCacheTtlSeconds: z.number().int().positive().default(900),
+});
+export type OidcIssuerConfig = z.infer<typeof OidcIssuerConfig>;
+
 /**
- * Minimal AuthConfig for AUTH-3 Slice 2 (api-key only). The full shape (strategyOrder, oidc issuers,
- * session, stepUp — design 001 §Configuration) lands with the oidc strategy (Slice 4). The spec's
- * AuthConfig is JSON-Schema-only; this is the zod source it generates from (contracts are Zod-first).
+ * AuthConfig. Slice 2 shipped `apiKey`; Slice 4 adds the optional `oidc` block. The `oidc` strategy is
+ * INERT when the block is absent (no JWKS/issuers) — so a stackless deployment stays api-key-only. The
+ * remaining spec fields (strategyOrder, session, stepUp — design 001 §Configuration) land with the
+ * session/cookie branch. The spec's AuthConfig is JSON-Schema-only; this is the Zod source (Zod-first).
  */
 export const AuthConfig = z.object({
   apiKey: z.object({
     header: z.string().min(1).default('x-api-key'),
     hashAlgo: z.enum(['sha-256', 'sha-512']).default('sha-256'),
   }),
+  oidc: z
+    .object({
+      issuers: z.array(OidcIssuerConfig).min(1),
+    })
+    .optional(),
 });
 export type AuthConfig = z.infer<typeof AuthConfig>;
 

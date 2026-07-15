@@ -20,6 +20,8 @@ export {
 } from './auth-strategy.registry.js';
 export {DefaultPrincipalMapper} from './principal-mapper.js';
 export {ApiKeyStrategy} from './api-key.strategy.js';
+export {OidcStrategy} from './oidc.strategy.js';
+export {JoseJwtVerifier, type ResolvedIssuer} from './jwt-verifier.js';
 export {StaticApiKeyStore, type ApiKeySeed, type ApiKeyHashAlgo} from './static-api-key-store.js';
-export {type AuthStrategy, AuthConfig, unauthorizedError} from './contracts.js';
+export {type AuthStrategy, AuthConfig, OidcIssuerConfig, unauthorizedError} from './contracts.js';
 export {assertScope, forbiddenScopeError} from './authorize.js';

@@ -107,6 +107,10 @@ importers:
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
+    devDependencies:
+      jose:
+        specifier: ^6.2.3
+        version: 6.2.3
 
   apps/admin-web: {}
 
@@ -374,6 +378,9 @@ importers:
       '@platform/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      jose:
+        specifier: ^6.2.3
+        version: 6.2.3
       zod:
         specifier: ^4.4.3
         version: 4.4.3

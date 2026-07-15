@@ -5,7 +5,7 @@
 // (the spec's import of AuthConfig from ./contracts is honored here; the spec's own contracts block
 // omitted the type — a doc inconsistency the agent flagged).
 import {BindingKey} from '@loopback/context';
-import type {ApiKeyStore, PrincipalMapper} from '@platform/contracts';
+import type {ApiKeyStore, JwtVerifier, PrincipalMapper} from '@platform/contracts';
 import type {AuthConfig} from './contracts.js';
 import type {AuthStrategyRegistry} from './auth-strategy.registry.js';
 
@@ -13,5 +13,6 @@ export namespace AuthBindings {
   export const STRATEGY_REGISTRY = BindingKey.create<AuthStrategyRegistry>('platform.auth.strategy-registry');
   export const PRINCIPAL_MAPPER = BindingKey.create<PrincipalMapper>('platform.auth.principal-mapper');
   export const API_KEY_STORE = BindingKey.create<ApiKeyStore>('platform.auth.api-key-store');
+  export const JWT_VERIFIER = BindingKey.create<JwtVerifier>('platform.auth.jwt-verifier');
   export const CONFIG = BindingKey.create<AuthConfig>('platform.auth.config');
 }

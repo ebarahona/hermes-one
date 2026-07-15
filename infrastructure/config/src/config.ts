@@ -57,6 +57,12 @@ export const HermesConfig = z.object({
     channelPattern: z.string().min(1),
     tenants: z.array(z.string().min(1)),
   }),
+  // Edge REST surface (loopback/application-bootstrap.md — admin-api/api-gateway listen port). The
+  // LB4 RestApplication root binds this into `rest: {port}`. Version prefix + pagination live with the
+  // api layer (rest-api-reference.md EdgeApiConfig) — this only carries where the process listens.
+  api: z.object({
+    port: z.coerce.number().int().min(1).max(65535), // admin-api HTTP listen port
+  }),
   // OpenTelemetry distributed tracing (observability/tracing-metrics-logging.md, OB5). `mode` selects the
   // span exporter: off → NoopTracer (unit/dev quiet); console → stdout (dev); otlp → ship to a collector
   // (prod). `endpoint` is the OTLP/HTTP traces URL used when mode==='otlp'. Structured logs + metrics
@@ -82,6 +88,7 @@ const DEFAULTS = {
   HERMES_OUTBOX_MAX_ATTEMPTS: '10', // EventEnvelopeConfig.outboxMaxAttempts default
   HERMES_OUTBOX_CHANNEL_PATTERN: 'events:{tenantId}:{aggregateType}',
   HERMES_OUTBOX_TENANTS: '', // csv; empty → publisher loop disabled
+  HERMES_ADMIN_API_PORT: '3001', // edge REST listen port (admin-api)
   HERMES_OTEL_TRACES: 'off', // off | console | otlp
   HERMES_OTEL_ENDPOINT: 'http://127.0.0.1:4318/v1/traces', // OTLP/HTTP traces (matches infra collector)
 } as const;
@@ -126,6 +133,9 @@ export function loadConfig(
       maxAttempts: g('HERMES_OUTBOX_MAX_ATTEMPTS'),
       channelPattern: g('HERMES_OUTBOX_CHANNEL_PATTERN'),
       tenants: g('HERMES_OUTBOX_TENANTS').split(',').map(t => t.trim()).filter(Boolean),
+    },
+    api: {
+      port: g('HERMES_ADMIN_API_PORT'),
     },
     otel: {
       mode: g('HERMES_OTEL_TRACES'),

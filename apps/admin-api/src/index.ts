@@ -1,10 +1,19 @@
-// @platform-internal/admin-api — app (edge plane). Skeleton stub.
-
+// @platform-internal/admin-api — app (edge plane). The LB4 REST admin surface (RestApplication +
+// the platform sequence, api/admin-api.md controllers). Slice 1: the bootable surface + public
+// /v1/healthz; auth strategies and real admin controllers layer in next.
 export const descriptor = {
   name: '@platform-internal/admin-api',
   role: 'app',
   plane: 'edge',
   published: false,
-  sourceDocs: ['16-admin-ui'],
-  governedBy: [],
+  sourceDocs: [
+    'loopback/application-bootstrap',
+    'loopback/sequence-implementation',
+    'api/admin-api',
+    'api/rest-api-reference',
+  ],
+  governedBy: ['ADR-017', 'ADR-022'],
 } as const;
+
+export {AdminApiRoot} from './root.js';
+export {PingController} from './ping.controller.js';

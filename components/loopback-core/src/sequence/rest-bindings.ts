@@ -1,0 +1,6 @@
+// REST-surface-local binding keys (loopback/binding-key-registry.md grammar `platform.<area>.<name>`).
+// Kept out of the global PlatformBindings until they graduate past the admin-api slice.
+import {BindingKey} from '@loopback/core';
+
+/** Path prefixes that bypass the fail-closed authentication slot (health/openapi). App-scoped. */
+export const REST_PUBLIC_PATHS = BindingKey.create<readonly string[]>('platform.rest.public-paths');

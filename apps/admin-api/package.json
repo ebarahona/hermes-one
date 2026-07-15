@@ -19,8 +19,22 @@
     "plane": "edge",
     "published": false,
     "sourceDocs": [
-      "16-admin-ui"
+      "loopback/application-bootstrap",
+      "loopback/sequence-implementation",
+      "api/admin-api",
+      "api/rest-api-reference"
     ],
-    "governedBy": []
+    "governedBy": [
+      "ADR-017",
+      "ADR-022"
+    ]
+  },
+  "dependencies": {
+    "@loopback/core": "^7.0.13",
+    "@loopback/rest": "^14.0.13",
+    "@platform-internal/config": "workspace:*",
+    "@platform-internal/loopback-core": "workspace:*",
+    "@platform/contracts": "workspace:*",
+    "reflect-metadata": "^0.2.2"
   }
 }

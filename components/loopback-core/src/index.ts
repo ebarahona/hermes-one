@@ -36,3 +36,21 @@ export {
 } from './components/capability-registry.component.js';
 export {RuleRuntimeComponent} from './components/rule-runtime.component.js';
 export {PolicyRuntimeComponent} from './components/policy-runtime.component.js';
+
+// REST surface (loopback/application-bootstrap.md + sequence-implementation.md) — the admin-api host.
+export {PlatformRestApplication} from './rest-application.js';
+export {
+  PlatformSequenceGroups,
+  PLATFORM_PRE_ROUTING_GROUPS,
+} from './sequence/sequence-groups.js';
+export {registerPlatformRestSequence} from './sequence/register.js';
+export {REST_PUBLIC_PATHS} from './sequence/rest-bindings.js';
+export {
+  CorrelationMiddleware,
+  CORRELATION_ID_REQUEST_KEY,
+} from './sequence/correlation.middleware.js';
+export {
+  FailClosedAuthenticationMiddleware,
+  DEFAULT_PUBLIC_PATHS,
+} from './sequence/authentication.middleware.js';
+export {PlatformReject} from './sequence/platform-reject.js';

@@ -1,0 +1,39 @@
+{
+  "name": "@platform-internal/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "hermes": {
+    "name": "@platform-internal/auth",
+    "role": "component",
+    "plane": "edge",
+    "published": false,
+    "sourceDocs": [
+      "loopback/authentication-strategies",
+      "loopback/authorization-voters"
+    ],
+    "governedBy": [
+      "ADR-017",
+      "ADR-019",
+      "ADR-022"
+    ]
+  },
+  "dependencies": {
+    "@loopback/context": "^8.0.13",
+    "@loopback/core": "^7.0.13",
+    "@loopback/rest": "^14.0.13",
+    "@platform-internal/loopback-core": "workspace:*",
+    "@platform/contracts": "workspace:*",
+    "zod": "^4.4.3"
+  }
+}

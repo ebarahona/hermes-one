@@ -1,11 +1,28 @@
-// Hermetic proof of the Slice 1 REST surface — boots the real LB4 RestApplication on an ephemeral
-// port (no backing stack: Slice 1 binds no datasource) and drives the sequence contract over HTTP.
-// Runs in `pnpm test` and the CI `verify` job. The `node dist/e2e.js` smoke asserts the same.
+// Hermetic proof of the Slice 1+2 REST surface — boots the real LB4 RestApplication on an ephemeral
+// port (no backing stack: no datasource bound) and drives the sequence + AUTH-3 api-key path over
+// HTTP. Runs in `pnpm test` and the CI `verify` job. The `node dist/e2e.js` smoke asserts the same.
 import 'reflect-metadata';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {loadConfig} from '@platform-internal/config';
+import type {ApiKeySeed} from '@platform-internal/auth';
+import type {PrincipalId, Scope, TenantId} from '@platform/contracts';
 import {AdminApiRoot} from './root.js';
 import type {PlatformRestApplication} from '@platform-internal/loopback-core';
+
+const API_KEY = 'dev-key-abc123';
+const SEEDS: ApiKeySeed[] = [
+  {
+    key: API_KEY,
+    record: {
+      keyId: 'apk_spec',
+      tenantId: 'tnt_admin_spec' as TenantId,
+      principalId: 'prn_svc_spec' as PrincipalId,
+      scopes: ['tenant.role.read'] as Scope[],
+      status: 'active',
+      expiresAt: null,
+    },
+  },
+];
 
 let app: PlatformRestApplication;
 let base: string;
@@ -13,7 +30,7 @@ let base: string;
 beforeAll(async () => {
   const loaded = loadConfig();
   const cfg = {...loaded, api: {...loaded.api, port: 0}}; // ephemeral (schema floors real config at 1)
-  const root = new AdminApiRoot(cfg);
+  const root = new AdminApiRoot(cfg, SEEDS);
   app = root.createApp();
   root.bindPorts(app);
   root.registerComponents(app);
@@ -25,7 +42,7 @@ afterAll(async () => {
   await app?.stop();
 });
 
-describe('admin-api REST surface (Slice 1)', () => {
+describe('admin-api REST surface (Slice 1+2)', () => {
   it('serves the public health route with a minted correlation id', async () => {
     const res = await fetch(`${base}/v1/healthz`);
     expect(res.status).toBe(200);
@@ -39,7 +56,7 @@ describe('admin-api REST surface (Slice 1)', () => {
     expect(res.headers.get('x-correlation-id')).toBe(cid);
   });
 
-  it('rejects a non-public route with 401 BEFORE routing (no 404 leak) as a PlatformError', async () => {
+  it('rejects an unauthenticated non-public route with 401 BEFORE routing (no 404 leak)', async () => {
     const res = await fetch(`${base}/v1/whoami`);
     const text = await res.text();
     expect(res.status).toBe(401); // fail-closed authenticate runs before findRoute → 401, not 404
@@ -47,8 +64,25 @@ describe('admin-api REST surface (Slice 1)', () => {
     expect(body.error?.code).toBe('unauthorized');
     expect(body.error?.httpStatus).toBe(401);
     expect(res.headers.get('x-correlation-id')).toBeTruthy();
-    // No leakage: the generic 401 carries no route path or schema/stack detail.
     expect(text).not.toContain('whoami');
     expect(text).not.toMatch(/schema|stack|route/i);
+  });
+
+  it('rejects an invalid api key with 401 (no distinction from absent)', async () => {
+    const res = await fetch(`${base}/v1/whoami`, {headers: {'x-api-key': 'not-a-real-key'}});
+    const body = (await res.json()) as {error?: {code?: string}};
+    expect(res.status).toBe(401);
+    expect(body.error?.code).toBe('unauthorized');
+  });
+
+  it('authenticates a valid api key → the bound service principal (api-key strategy end-to-end)', async () => {
+    const res = await fetch(`${base}/v1/whoami`, {headers: {'x-api-key': API_KEY}});
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      principalId: 'prn_svc_spec',
+      tenantId: 'tnt_admin_spec',
+      kind: 'service',
+      scopes: ['tenant.role.read'],
+    });
   });
 });

@@ -1,13 +1,32 @@
-// admin-api Slice 1 e2e — boots the real LB4 REST surface on an ephemeral port and drives the
-// sequence contract end-to-end (no mocks). Asserts:
+// admin-api Slice 1+2 e2e — boots the real LB4 REST surface on an ephemeral port and drives the
+// sequence + AUTH-3 api-key path end-to-end (no mocks). Asserts:
 //   1. GET /v1/healthz (public)      → 200, {status:'ok'}, X-Correlation-Id present (minted)
 //   2. inbound x-correlation-id      → echoed on the response (Correlation-always law)
-//   3. GET /v1/whoami (not public)   → 401 {error: PlatformError(unauthorized)} BEFORE route match
+//   3. GET /v1/whoami, no key        → 401 {error: PlatformError(unauthorized)} BEFORE route match
 //                                      (fail-closed authenticate + authorize-before-validate), no leakage
-// Run: `node apps/admin-api/dist/e2e.js` (no backing stack needed — Slice 1 binds no datasource).
+//   4. GET /v1/whoami, bad key       → 401 (indistinguishable from absent)
+//   5. GET /v1/whoami, valid api key → 200 + the bound service principal (api-key strategy)
+// Run: `node apps/admin-api/dist/e2e.js` (no backing stack needed — no datasource bound).
 import 'reflect-metadata';
 import {loadConfig} from '@platform-internal/config';
+import type {ApiKeySeed} from '@platform-internal/auth';
+import type {PrincipalId, Scope, TenantId} from '@platform/contracts';
 import {AdminApiRoot} from './root.js';
+
+const API_KEY = 'dev-key-e2e-xyz';
+const SEEDS: ApiKeySeed[] = [
+  {
+    key: API_KEY,
+    record: {
+      keyId: 'apk_e2e',
+      tenantId: 'tnt_admin_e2e' as TenantId,
+      principalId: 'prn_svc_e2e' as PrincipalId,
+      scopes: ['tenant.role.read'] as Scope[],
+      status: 'active',
+      expiresAt: null,
+    },
+  },
+];
 
 let failures = 0;
 function check(label: string, cond: boolean, detail?: unknown): void {
@@ -23,7 +42,7 @@ async function main(): Promise<void> {
   // Ephemeral port (0) for the test — override the loaded config (the schema floors real config at 1).
   const loaded = loadConfig();
   const cfg = {...loaded, api: {...loaded.api, port: 0}};
-  const root = new AdminApiRoot(cfg);
+  const root = new AdminApiRoot(cfg, SEEDS);
   const app = root.createApp();
   root.bindPorts(app);
   root.registerComponents(app);
@@ -61,6 +80,26 @@ async function main(): Promise<void> {
       '401 → no route/schema leakage',
       !deniedText.includes('whoami') && !/schema|stack|route/i.test(deniedText),
       deniedText,
+    );
+
+    // 4. invalid api key → 401 (indistinguishable from absent)
+    const badKey = await fetch(`${base}/v1/whoami`, {headers: {'x-api-key': 'not-a-real-key'}});
+    const badKeyBody = (await badKey.json()) as {error?: {code?: string}};
+    check('invalid api key → 401', badKey.status === 401, badKey.status);
+    check('invalid api key → unauthorized', badKeyBody.error?.code === 'unauthorized', badKeyBody);
+
+    // 5. valid api key → 200 + the bound service principal
+    const authed = await fetch(`${base}/v1/whoami`, {headers: {'x-api-key': API_KEY}});
+    const me = (await authed.json()) as Record<string, unknown>;
+    check('valid api key → 200', authed.status === 200, authed.status);
+    check(
+      'valid api key → bound service principal',
+      me.principalId === 'prn_svc_e2e' &&
+        me.tenantId === 'tnt_admin_e2e' &&
+        me.kind === 'service' &&
+        Array.isArray(me.scopes) &&
+        (me.scopes as string[]).includes('tenant.role.read'),
+      me,
     );
   } finally {
     await app.stop();

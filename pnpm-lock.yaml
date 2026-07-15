@@ -92,6 +92,9 @@ importers:
       '@loopback/rest':
         specifier: ^14.0.13
         version: 14.0.14(@loopback/core@7.0.13)(@loopback/repository@7.0.14(@loopback/core@7.0.13))
+      '@platform-internal/auth':
+        specifier: workspace:*
+        version: link:../../components/auth
       '@platform-internal/config':
         specifier: workspace:*
         version: link:../../infrastructure/config
@@ -350,6 +353,27 @@ importers:
       pg:
         specifier: ^8.22.0
         version: 8.22.0
+
+  components/auth:
+    dependencies:
+      '@loopback/context':
+        specifier: ^8.0.13
+        version: 8.0.13
+      '@loopback/core':
+        specifier: ^7.0.13
+        version: 7.0.13
+      '@loopback/rest':
+        specifier: ^14.0.13
+        version: 14.0.14(@loopback/core@7.0.13)(@loopback/repository@7.0.14(@loopback/core@7.0.13))
+      '@platform-internal/loopback-core':
+        specifier: workspace:*
+        version: link:../loopback-core
+      '@platform/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
 
   components/capability-registry: {}
 

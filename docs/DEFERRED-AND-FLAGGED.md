@@ -163,6 +163,7 @@ the real LB4 extension-point idiom, no hardcoded lists), RuleRuntime, PolicyRunt
 | # | Item | Sev | Why deferred | Where stubbed | Faithful target |
 |---|------|-----|--------------|---------------|-----------------|
 | V1 | **`spike-tools.ts` demo `appointment.*` @tool names** | ⚪ | Spike fixtures | `components/agentback-runtime/src/spike-tools.ts` | Real capability-derived tools (Pack E electrician vertical) |
+| PE1 | **Pack E electrician vertical — STARTED (Slice 1 ✅ 2026-07-15): installs from data** | 🟡 | `verticals/electrician/pack.json` = the vertical as DATA (5 defs + manifest, ADR-013); `pack-e.itest` installs it via the admin API (PUT defs → resolve the workflow's content-addressed PinnedRefs → POST /v1/deployments) → active deployment reconstructs. REMAINING: a LIVE inbound turn against an electrician tenant (manual local-LLM gate — no CI); the triage rule uses LITERAL branches (compiles) not real intent conditions (needs known expression operators); the full per-vertical DOC SET (domain-model/workflow-catalog/…/evaluation-cases per `verticals/000-future-verticals-workplan.md`) not authored; no VerticalPackController REST install (installed directly via the definition/deployment controllers) | `verticals/electrician/` | Drive a real turn; enrich the rule; author the doc set; then the 3 follow-on verticals (real-estate/support/marketing) |
 
 ---
 

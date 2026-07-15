@@ -34,6 +34,7 @@
     "@loopback/rest": "^14.0.13",
     "@platform-internal/auth": "workspace:*",
     "@platform-internal/config": "workspace:*",
+    "@platform-internal/drizzle": "workspace:*",
     "@platform-internal/loopback-core": "workspace:*",
     "@platform/contracts": "workspace:*",
     "@platform/definition-substrate": "workspace:*",
@@ -41,6 +42,8 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "jose": "^6.2.3"
+    "@types/pg": "^8.20.0",
+    "jose": "^6.2.3",
+    "pg": "^8.22.0"
   }
 }

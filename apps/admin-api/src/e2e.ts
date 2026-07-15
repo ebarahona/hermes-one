@@ -21,7 +21,7 @@ const SEEDS: ApiKeySeed[] = [
       keyId: 'apk_e2e',
       tenantId: 'tnt_admin_e2e' as TenantId,
       principalId: 'prn_svc_e2e' as PrincipalId,
-      scopes: ['tenant.role.read', 'tenant.role.create', 'deployment.read'] as Scope[],
+      scopes: ['tenant.role.read', 'tenant.role.create', 'deployment.read', 'platform.tenant.read'] as Scope[],
       status: 'active',
       expiresAt: null,
     },
@@ -140,6 +140,12 @@ async function main(): Promise<void> {
     check('active deployment (none) → 404', activeDep.status === 404, activeDep.status);
     const crossDep = await fetch(`${base}/v1/deployments/active?tenantId=tnt_other_dep`, {headers: {'x-api-key': API_KEY}});
     check('cross-tenant deployment → 403', crossDep.status === 403, crossDep.status);
+
+    // 11. tenant self-service read: this tenant has no seeded row → 404 (round-trip); another tenant → 403.
+    const ownTenant = await fetch(`${base}/v1/tenants/tnt_admin_e2e`, {headers: {'x-api-key': API_KEY}});
+    check('own tenant (no row) → 404', ownTenant.status === 404, ownTenant.status);
+    const crossTenantGet = await fetch(`${base}/v1/tenants/tnt_other_ten`, {headers: {'x-api-key': API_KEY}});
+    check('cross-tenant tenant read → 403', crossTenantGet.status === 403, crossTenantGet.status);
   } finally {
     await app.stop();
   }

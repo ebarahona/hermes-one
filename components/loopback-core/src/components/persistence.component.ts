@@ -23,7 +23,7 @@ import {
   tenantGucPreflight,
   type PlatformDbHandle,
 } from '@platform-internal/drizzle';
-import {DrizzleRoleRegistry, DrizzleUsageMeter} from '@platform-internal/drizzle';
+import {DrizzleRoleRegistry, DrizzleTenantRepository, DrizzleUsageMeter} from '@platform-internal/drizzle';
 import {createRedisClient, type RedisClient} from '@platform-internal/redis';
 import type {HermesConfig} from '@platform-internal/config';
 import {PlatformBindings} from '../bindings.js';
@@ -70,6 +70,7 @@ export class PersistenceComponent implements Component, PlatformComponentBoundar
     PlatformBindings.AUDIT_SINK.key,
     PlatformBindings.USAGE_METER.key,
     PlatformBindings.ROLE_REGISTRY.key,
+    PlatformBindings.TENANT_REPOSITORY.key,
   ];
   readonly implementsExtensionPoints: readonly string[] = [];
   readonly consumesExtensionPoints: readonly string[] = [];
@@ -123,6 +124,9 @@ export class PersistenceComponent implements Component, PlatformComponentBoundar
       .inScope(BindingScope.SINGLETON),
     Binding.bind(PlatformBindings.ROLE_REGISTRY.key)
       .toDynamicValue(({context}) => new DrizzleRoleRegistry(context.getSync(PlatformBindings.POSTGRES).db))
+      .inScope(BindingScope.SINGLETON),
+    Binding.bind(PlatformBindings.TENANT_REPOSITORY.key)
+      .toDynamicValue(({context}) => new DrizzleTenantRepository(context.getSync(PlatformBindings.POSTGRES).db))
       .inScope(BindingScope.SINGLETON),
   ];
 

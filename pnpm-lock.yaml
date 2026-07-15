@@ -98,6 +98,9 @@ importers:
       '@platform-internal/config':
         specifier: workspace:*
         version: link:../../infrastructure/config
+      '@platform-internal/drizzle':
+        specifier: workspace:*
+        version: link:../../infrastructure/drizzle
       '@platform-internal/loopback-core':
         specifier: workspace:*
         version: link:../../components/loopback-core
@@ -114,9 +117,15 @@ importers:
         specifier: ^4.4.3
         version: 4.4.3
     devDependencies:
+      '@types/pg':
+        specifier: ^8.20.0
+        version: 8.20.0
       jose:
         specifier: ^6.2.3
         version: 6.2.3
+      pg:
+        specifier: ^8.22.0
+        version: 8.22.0
 
   apps/admin-web: {}
 

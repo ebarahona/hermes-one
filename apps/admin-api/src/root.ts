@@ -30,6 +30,7 @@ import {PingController} from './ping.controller.js';
 import {WhoamiController} from './whoami.controller.js';
 import {RoleController} from './role.controller.js';
 import {DeploymentController} from './deployment.controller.js';
+import {TenantController} from './tenant.controller.js';
 
 export interface AdminApiRootOptions {
   /** Dev/seed api keys for the StaticApiKeyStore. Empty in prod until the DB-backed store lands. */
@@ -84,6 +85,7 @@ export class AdminApiRoot implements CompositionRoot<PlatformRestApplication> {
     app.controller(WhoamiController);
     app.controller(RoleController);
     app.controller(DeploymentController);
+    app.controller(TenantController);
   }
 
   async start(_app: PlatformRestApplication): Promise<void> {

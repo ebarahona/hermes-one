@@ -106,6 +106,7 @@ export {
 } from './client.js';
 
 // Migration runner.
+export {DrizzleTenantRepository, type TenantPatch} from './tenant-repository.js';
 export {runMigrations, type MigrationResult} from './migrate.js';
 
 export const descriptor = {

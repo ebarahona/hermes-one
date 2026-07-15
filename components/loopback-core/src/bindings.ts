@@ -36,6 +36,7 @@ import type {
   CompiledPlanStore,
   DrizzleHandoffRepository,
   DrizzleMessageRepository,
+  DrizzleTenantRepository,
   DrizzleTurnPersistence,
   PlatformDbHandle,
 } from '@platform-internal/drizzle';
@@ -114,6 +115,9 @@ export namespace PlatformBindings {
   export const TENANT_ID = BindingKey.create<string>('platform.tenant.id');
   /** Canonical key from security/role-matrix.md — role NAMES → scopes at runtime, never cached. */
   export const ROLE_REGISTRY = BindingKey.create<RoleRegistry>('platform.tenant.roleRegistry');
+  export const TENANT_REPOSITORY = BindingKey.create<DrizzleTenantRepository>(
+    'platform.data.tenant-repository',
+  );
 
   // ── request context (request scope) ─────────────────────────────────────
   export const REQUEST_PRINCIPAL = BindingKey.create<Principal>('platform.request.principal');

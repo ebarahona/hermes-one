@@ -17,6 +17,7 @@ import {MCPBindings, MCP_DISPATCH_HOOK_TAG, type MCPServer} from '@agentback/mcp
 import {
   type AgentEngineContract,
   type CapabilityContract,
+  type CapabilityName,
   type CompiledPolicyPlan,
   type PlanId,
   type Scope,
@@ -27,17 +28,19 @@ import {
   type TurnRequest,
   type TurnResult,
 } from '@platform/contracts';
-import {capabilitiesForEngine} from '@platform/capability-contract';
+import {capabilitiesForEngine, ProviderRegistry, ProviderResolver} from '@platform/capability-contract';
 import {ExpressionPolicyRuntime} from '@platform/policy-dsl';
 import {builtinRegistry} from '@platform/expression-core';
 import {loadConfig} from '@platform-internal/config';
 import {createOpenAICompatibleModel, type SingleStepModel} from '@platform-internal/model-client';
-import {createAgentPlaneApp} from '@platform-internal/agentback-runtime';
+import {createAgentPlaneApp, CapabilityToolProjector} from '@platform-internal/agentback-runtime';
+import {InternalSchedulerProvider} from '@platform-internal/scheduler';
 import {
   PlatformToolExecutor,
   createEnvelopeHook,
   metaSourceFrom,
   type DispatchResult,
+  type ToolBindingSource,
 } from '@platform-internal/tool-executor';
 import {createModelDecider, runTurn, type DeciderTool, type TurnLedger} from '@platform-internal/agent-runtime';
 import {
@@ -92,8 +95,9 @@ class TracingToolExecutor extends PlatformToolExecutor {
     private readonly turnTraceparent: string,
     private readonly tenantId: string,
     private readonly turnId: string,
+    bindingSource?: ToolBindingSource,
   ) {
-    super(server, parent, metaSource);
+    super(server, parent, metaSource, bindingSource);
   }
 
   override async dispatch(call: ToolCall, ctx: TurnContext): Promise<DispatchResult> {
@@ -135,6 +139,7 @@ interface Booted {
   persistence: DrizzleTurnPersistence;
   tracer: Tracer;
   tracing: TracingHandle;
+  projector: CapabilityToolProjector;
 }
 let booted: Promise<Booted> | undefined;
 
@@ -152,7 +157,15 @@ function boot(): Promise<Booted> {
     const {repo: persistence} = createTurnPersistence(cfg.stores.authoritative.url);
     // OTel tracing (OB5): one provider per worker process; spans export to the configured exporter.
     const tracing = initTracing(tracingConfigFor(cfg.otel, 'hermes-agent-worker'));
-    return {app, server, model, store, persistence, tracer: tracing.tracer, tracing};
+    // The PROVIDER PLANE in the agent plane (tool-projection.md). Before this the agent plane had no
+    // ProviderRegistry at all and dispatched to the SpikeBookingTools fixtures; now a pinned capability
+    // projects to a tool whose generic body resolves the ranked adapter here. Adapters are plane-neutral
+    // (@platform-internal/*, no @loopback/*) so the agent plane may import them (ADR-017 / plane-lint).
+    const providers = new ProviderRegistry([new InternalSchedulerProvider()]);
+    const projector = new CapabilityToolProjector((capability, mapping, facts) =>
+      new ProviderResolver(providers).resolve(capability, mapping, facts),
+    );
+    return {app, server, model, store, persistence, tracer: tracing.tracer, tracing, projector};
   })());
 }
 
@@ -236,7 +249,7 @@ export async function agentTurn(request: TurnRequest, trace?: TraceHeader): Prom
 }
 
 async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<TurnResult> {
-  const {app, server, model, store, persistence, tracer} = await boot();
+  const {app, server, model, store, persistence, tracer, projector} = await boot();
   const tenantId = request.workspace.tenantRuntime.tenantId as TenantId;
   const scopes = request.workspace.principal.scopes as Scope[];
   const principalId = request.workspace.principal.id as PrincipalId;
@@ -259,15 +272,61 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
     deployment.policy.contentHash,
   )) as unknown as CompiledPolicyPlan;
 
-  // Scope-gated tool set from the engine's allowedCapabilities; envelope metadata from the contracts.
-  const tools: DeciderTool[] = capabilitiesForEngine(engine.body.allowedCapabilities, capContracts, scopes).map(c => ({
-    toolName: toolNameOf(c.name),
-    capability: c.name,
-    description: c.description,
-    parameters: c.inputJsonSchema,
-  }));
+  const eligible = capabilitiesForEngine(engine.body.allowedCapabilities, capContracts, scopes);
   const byName = new Map(capContracts.map(c => [c.name, c]));
   const metaSource = metaSourceFrom(n => byName.get(n));
+
+  // Project THIS turn's pinned capabilities into agentback tools whose generic body reaches the ranked
+  // provider (tool-projection.md). Per-turn rather than once-per-deployment: this worker is a
+  // multi-tenant singleton, so app-level registration keyed by tool NAME could not hold two tenants'
+  // contracts for the same capability. A contract the projector cannot faithfully rebuild is SKIPPED
+  // (never degraded to a weaker validator) and logged — the model then simply never sees that tool.
+  const projected = projector.project(capContracts, {
+    tenantId,
+    facts: {},
+    providerConfig: {},
+    idempotencyKeyFor: capability => `${request.turnId}:${capability}`,
+  });
+  for (const s of projected.report.skipped) {
+    turnLogger.log({
+      level: 'warn',
+      message: 'capability projection skipped',
+      timestamp: new Date().toISOString(),
+      correlation: correlationFromWorkspace(request.workspace, request.turnId),
+      fields: {capability: s.capability, reason: s.reason},
+    });
+  }
+  const bindingSource: ToolBindingSource = (capability: CapabilityName) => projected.bindings.get(capability);
+
+  // The model only ever sees capabilities that BOTH pass the scope gate AND projected to a real
+  // provider-backed tool. Offering a skipped capability would let dispatch fall through to whatever
+  // else answers to that name — the fixture path this slice retires — and pass canned data off as
+  // provider evidence. Fail-closed: no binding, no tool.
+  const tools: DeciderTool[] = eligible
+    .filter(c => projected.bindings.has(c.name))
+    .map(c => ({
+      toolName: toolNameOf(c.name),
+      capability: c.name,
+      description: c.description,
+      parameters: c.inputJsonSchema,
+    }));
+
+  // The turn's tool VISIBILITY — the three-way narrowing (engine.allowedCapabilities ∩ principal
+  // scopes ∩ successfully-projected). Logged because "why didn't the agent use the tool?" is
+  // otherwise indistinguishable between an unscoped principal, an engine that never allowed it, and
+  // a model that simply chose not to call it.
+  turnLogger.log({
+    level: 'info',
+    message: 'agent turn tool set',
+    timestamp: new Date().toISOString(),
+    correlation: correlationFromWorkspace(request.workspace, request.turnId),
+    fields: {
+      allowed: engine.body.allowedCapabilities,
+      pinned: capContracts.map(c => c.name),
+      scoped: eligible.map(c => c.name),
+      offered: tools.map(t => t.capability),
+    },
+  });
 
   const decider = createModelDecider({
     model,
@@ -294,6 +353,7 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
     turnSpan.traceparent,
     tenantId,
     request.turnId,
+    bindingSource,
   );
 
   let capturedLedger: TurnLedger | undefined;

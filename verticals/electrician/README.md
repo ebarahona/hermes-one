@@ -14,8 +14,8 @@ code is ever compiled into the platform.
 | workflow | `electrician-intake` | Entry workflow: triage an inbound message via the rule, then hand to the dispatcher agent. |
 | rule | `electrician-triage` | Routes the intent (emergency vs schedule). |
 | policy | `electrician-safety` | The turn's pre/post gates (permissive baseline). |
-| capability | `electrical.slot.read` | Read open service-visit slots (provider-neutral). |
-| agent-engine | `electrician-dispatcher` | Safety-first dispatcher persona; may use `electrical.slot.read`. |
+| capability | `appointment.slot.read` | Read open service-visit slots (provider-neutral, platform capability). |
+| agent-engine | `electrician-dispatcher` | Safety-first dispatcher persona; may use `appointment.slot.read`. |
 
 ## Status
 

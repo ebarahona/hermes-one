@@ -1,0 +1,32 @@
+{
+  "name": "@platform-internal/scheduler",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "hermes": {
+    "name": "@platform-internal/scheduler",
+    "role": "infrastructure",
+    "plane": "none",
+    "published": false,
+    "sourceDocs": [
+      "contracts/provider-contracts",
+      "agentback/tool-projection"
+    ],
+    "governedBy": [
+      "ADR-013"
+    ]
+  },
+  "dependencies": {
+    "@platform/contracts": "workspace:*"
+  }
+}

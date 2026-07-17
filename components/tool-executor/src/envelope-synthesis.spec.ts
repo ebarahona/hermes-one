@@ -28,7 +28,7 @@ const ctx = {turnId: 'trn_t3'} as unknown as TurnContext;
 function bootFactory() {
   let tick = 0;
   return () => {
-    const app = createAgentPlaneApp();
+    const app = createAgentPlaneApp({fixtures: true});
     app
       .bind('platform.hook.envelope')
       .to(

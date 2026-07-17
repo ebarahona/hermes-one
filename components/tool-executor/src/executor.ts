@@ -5,7 +5,7 @@
 // METADATA (derived from the CapabilityContract, never a hardcoded map); `evidence`/`metrics` come from
 // the dispatch hook. It never re-implements dispatch.
 import {Context} from '@agentback/context';
-import type {MCPServer} from '@agentback/mcp';
+import type {MCPServer, ToolBinding} from '@agentback/mcp';
 import {
   ToolResult,
   type CapabilityName,
@@ -50,11 +50,20 @@ function toErrorFields(err: unknown): {code: string; message: string; retryable:
   };
 }
 
+/**
+ * Resolves the PROJECTED ToolBinding for a capability (agentback-runtime's CapabilityToolProjector).
+ * When present, dispatch uses the turn's own projected tool — whose generic body reaches the ranked
+ * ProviderAdapter — instead of a statically-registered tool discovered off the shared app context.
+ * Absent → agentback resolves the name against its registered tools (the pre-projection path).
+ */
+export type ToolBindingSource = (capability: CapabilityName) => ToolBinding | undefined;
+
 export class PlatformToolExecutor implements ToolExecutor {
   constructor(
     private readonly server: MCPServer,
     private readonly parent: Context,
     private readonly metaSource: CapabilityMetaSource,
+    private readonly bindingSource?: ToolBindingSource,
   ) {}
 
   /** Canonical port: execute one proposed call and return the synthesized ToolResult. */
@@ -89,7 +98,11 @@ export class PlatformToolExecutor implements ToolExecutor {
     });
 
     try {
-      const output = await this.server.callTool(call.capability, call.input, {ctx: dispatchCtx});
+      const binding = this.bindingSource?.(call.capability);
+      const output = await this.server.callTool(call.capability, call.input, {
+        ctx: dispatchCtx,
+        ...(binding ? {binding} : {}),
+      });
       return {
         result: ToolResult.parse({
           toolCallId: call.toolCallId,

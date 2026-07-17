@@ -4,14 +4,24 @@
 import {MCPApplication, MCPBindings} from '@agentback/mcp';
 import {SpikeBookingTools} from './spike-tools.js';
 
+export interface AgentPlaneAppOptions {
+  /**
+   * Register the SpikeBookingTools de-risking FIXTURES (canned data). OFF by default: the live turn
+   * projects its pinned CapabilityContracts into provider-backed tools (CapabilityToolProjector,
+   * tool-projection.md), so a statically-registered fixture answering to the same capability name
+   * could serve canned data as if it were provider evidence. Only the spike specs that validate the
+   * agentback substrate itself (T1–T5) turn this on.
+   */
+  fixtures?: boolean;
+}
+
 /**
- * Build the agent-plane app with the spike tool providers registered. stdio is
- * disabled so in-process dispatch (`callTool`) never hijacks stdout — configured
- * before `start()` so the MCPServer picks it up.
+ * Build the agent-plane app. stdio is disabled so in-process dispatch (`callTool`) never hijacks
+ * stdout — configured before `start()` so the MCPServer picks it up.
  */
-export function createAgentPlaneApp(): MCPApplication {
+export function createAgentPlaneApp(opts: AgentPlaneAppOptions = {}): MCPApplication {
   const app = new MCPApplication();
   app.configure(MCPBindings.SERVER).to({transports: {stdio: false}});
-  app.service(SpikeBookingTools);
+  if (opts.fixtures) app.service(SpikeBookingTools);
   return app;
 }

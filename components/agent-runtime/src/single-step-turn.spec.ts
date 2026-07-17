@@ -41,7 +41,7 @@ const metaSource: CapabilityMetaSource = n => META[n] ?? {sideEffect: 'read', ch
 const execCtx = {turnId: 'trn_exec'} as unknown as TurnContext;
 
 function boot() {
-  const app = createAgentPlaneApp();
+  const app = createAgentPlaneApp({fixtures: true});
   app.bind('platform.hook.envelope').to(createEnvelopeHook()).tag(MCP_DISPATCH_HOOK_TAG);
   return app;
 }

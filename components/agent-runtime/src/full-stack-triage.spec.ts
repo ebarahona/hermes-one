@@ -144,7 +144,7 @@ const CAP_META: Record<string, CapabilityMeta> = {
 const metaSource: CapabilityMetaSource = n => CAP_META[n] ?? {sideEffect: 'read', changedDomains: ['none']};
 
 function boot() {
-  const app = createAgentPlaneApp();
+  const app = createAgentPlaneApp({fixtures: true});
   app
     .bind('platform.hook.envelope')
     .to(createEnvelopeHook())

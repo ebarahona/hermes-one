@@ -11,14 +11,14 @@ import {SlotReadOutput} from './spike-tools.js';
 
 describe('T1 — agentback @tool dispatch via callTool', () => {
   it('registers both the read-only and the confirm: tool', async () => {
-    await using t = await createTestApp(() => createAgentPlaneApp());
+    await using t = await createTestApp(() => createAgentPlaneApp({fixtures: true}));
     const names = (await t.mcp.listTools()).tools.map(x => x.name).sort();
     expect(names).toContain('appointment.slot.read');
     expect(names).toContain('appointment.booking.create');
   });
 
   it("dispatches the read tool and returns agentback's unwrapped, output-validated result", async () => {
-    await using t = await createTestApp(() => createAgentPlaneApp());
+    await using t = await createTestApp(() => createAgentPlaneApp({fixtures: true}));
     const server = await t.app.get<MCPServer>(MCPBindings.SERVER);
 
     const output = await server.callTool('appointment.slot.read', {
@@ -33,7 +33,7 @@ describe('T1 — agentback @tool dispatch via callTool', () => {
   });
 
   it("rejects input that violates the tool's Zod input schema", async () => {
-    await using t = await createTestApp(() => createAgentPlaneApp());
+    await using t = await createTestApp(() => createAgentPlaneApp({fixtures: true}));
     const server = await t.app.get<MCPServer>(MCPBindings.SERVER);
     await expect(
       // date must be a string

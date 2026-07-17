@@ -47,7 +47,7 @@
           "Answer basic electrical-safety questions plainly.",
           "Offer to schedule a service visit and read available slots."
         ],
-        "allowedCapabilities": ["electrical.slot.read"],
+        "allowedCapabilities": ["appointment.slot.read"],
         "referencedRules": [],
         "model": {"provider": "local", "model": "qwen3-coder-next-80b", "temperature": 0.2},
         "promptTemplateIds": []
@@ -87,14 +87,14 @@
     ],
     "capabilities": [
       {
-        "definitionId": "def_elec_slot_read",
+        "definitionId": "def_appt_slot_read",
         "kind": "capability",
-        "name": "electrical-slot-read",
-        "schemaRef": "electrical-slot-read.capability/v1",
+        "name": "appointment-slot-read",
+        "schemaRef": "appointment-slot-read.capability/v1",
         "version": "1.0.0",
         "body": {
-          "name": "electrical.slot.read",
-          "title": "Read electrician appointment slots",
+          "name": "appointment.slot.read",
+          "title": "Read appointment slots",
           "description": "List open service-visit slots for a given date and service type.",
           "inputJsonSchema": {"type": "object", "required": ["date"], "properties": {"date": {"type": "string"}, "serviceType": {"type": "string"}}},
           "outputJsonSchema": {"type": "object", "properties": {"slots": {"type": "array"}}},
@@ -102,7 +102,7 @@
           "changedDomains": ["none"],
           "idempotency": {"required": false, "keyFields": [], "ttlSeconds": 86400},
           "confirm": false,
-          "requiredScope": "electrical.slot.read",
+          "requiredScope": "appointment.slot.read",
           "providerMapping": {"providers": [{"providerId": "internal-scheduler", "priority": 100}], "eligibility": [], "onNoProvider": "fail"}
         }
       }

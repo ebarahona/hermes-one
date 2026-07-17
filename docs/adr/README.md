@@ -71,3 +71,51 @@ document that might not travel with the code.
 - **ADR-024 — Composable, independently-scalable core.** Three governing laws: a
   composable core (services depend on interfaces, not implementations); services
   own their data; independent scaling per traffic tier.
+
+- **ADR-025 — One SecretProvider; references never name vendors.** The
+  `security/secrets-and-key-management.md` port is canonical: `SecretRef` is
+  `secret://<store>/<path>` where the first segment is a logical STORE, never a
+  backend vendor; `resolve()` returns `ResolvedSecret`; caching is TTL-bounded
+  with `invalidate()` (rotation is a cache-drop, never a process restart).
+  `infrastructure/secrets-registry.md` is SUPERSEDED for the port/grammar (its
+  ops/runbook content stands). `SecretManagerConfig.backend` stays unpinned
+  config chosen at the composition root — embedding a vendor in every stored
+  reference would make swapping backends a platform-wide rewrite and forecloses
+  per-residency backends. Resolves ledger S5.
+
+- **ADR-026 — Tenant provider credentials are envelope-encrypted rows, not
+  secret-manager entries.** The platform has two trust chains (ADR-025's doc):
+  operational secrets by ref, and per-tenant keys enveloped under a tenant CMK.
+  Tenant vendor credentials (Twilio SIDs etc.) belong to the SECOND chain: a
+  cloud secret manager priced/quota'd per secret is O(tenants × providers) —
+  ~30k managed secrets at 10k tenants, on the dispatch hot path — while
+  envelope-encrypted rows in `capability.provider_credentials` (RLS'd like all
+  tenant data) cost storage, cache the KMS unwrap, and rotate as a row update.
+  PLATFORM secrets (datastore URLs, signing keys — O(1) in tenants) stay on the
+  SecretProvider chain. `ProviderCredentialStore.resolve(tenantId, providerId,
+  capability)` returns the credential RECORD (decrypt happens behind the port;
+  only one component touches key material); the orphaned `configKey` is DELETED
+  from contracts — the tuple is the identifier. Resolves ledger S6; amends
+  `table-catalog.md` (new table) and `secrets-and-key-management.md` (chain
+  ownership).
+
+- **ADR-027 — role-matrix.md governs role scopes; seeded defaults never carry
+  wildcards.** The security pack owns the role model; `migrations-and-seed.md`'s
+  divergent `customer` seed (`appointment.booking.*`) is corrected to the
+  role-matrix scopes. A wildcard in a SEEDED DEFAULT role silently auto-grants
+  every future capability in that namespace (a new `appointment.booking.refund`
+  would flow to every customer) — least-privilege requires enumerated leaf
+  scopes in defaults; wildcards remain legal in tenant-authored roles. Migration
+  0029 already complies. Resolves ledger PE4.
+
+- **ADR-028 — Tool-output evidence is authoritative and trusted; `trusted:false`
+  is the retrieved-content injection defense.** `EvidenceRecord.trusted` exists
+  for indirect-prompt-injection handling (its own contract comment): a
+  schema-validated result from a capability the platform authored, gated, and
+  invoked is NOT an injection vector, and ADR-009 evidence-only composition
+  grounds ONLY on trusted evidence — stamping tool output untrusted strips the
+  agent of the facts it just fetched and silently skips the post-gate.
+  `tool-output` evidence is `source:'authoritative', trusted:true` on every
+  path; `CapabilityInvoker` (which stamped provider/false) aligns. Retrieved/
+  free-text content stays untrusted. If a vendor field ever flows into a prompt,
+  split trust by FIELD, not by flipping the envelope. Resolves ledger A6.

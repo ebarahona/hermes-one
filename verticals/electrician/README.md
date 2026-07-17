@@ -24,6 +24,7 @@ code is ever compiled into the platform.
 - **Slice 2 (done):** a real inbound turn runs against an electrician tenant on live Temporal + the local
   LLM — the generic host interprets `electrician-intake` → the triage rule routes to the dispatcher agent
   node → a real bounded agent turn completes (`path=[triage,assist,end]`).
+  Run note: the e2e now also requires `HERMES_CREDENTIALS_MASTER_KEY` (ADR-026 envelope store).
 - **Slice 3 (done, 2026-07-17) — TOOL-BACKED, verified live:** the dispatcher no longer answers from persona
   alone. `appointment.slot.read` (the specs' canonical platform capability — this pack previously invented
   `electrical.slot.read`, which no seeded role granted) is projected into a real agentback `@tool` whose body
@@ -40,9 +41,10 @@ Tracked in `hermes-one/docs/DEFERRED-AND-FLAGGED.md` (PE1, PE5–PE7):
 - **The per-vertical doc set is not authored** (`domain-model.md`, `workflow-catalog.md`, … per
   `docs/implementation/verticals/000-future-verticals-workplan.md`).
 - **PE5** — the scheduler provider is a config-driven **stand-in**: slots come from
-  `ProviderExecutionContext.config.slotTemplates`, because the canonical 21-table catalog defines no
-  appointment/slot table (the prior `appointment_slots` table was removed as an ADR-013 violation). A real
-  deployment binds a vendor scheduler behind the same port — which needs the secrets seam (S1/S2/PE7).
+  `ProviderExecutionContext.config.slotTemplates` (now resolved from the tenant's OWN
+  envelope-encrypted credential row — ADR-026, landed 2026-07-17; the e2e proves a tenant `rotate()`
+  changes live slot output with zero deploys). A real vendor scheduler binds behind the same
+  `ProviderAdapter` port; the credential seam it needed is DONE.
 - **PE6** — a capability whose `onNoProvider` is `handoff` is not routed to an actual handoff.
 - No `VerticalPackController` REST install (the pack installs via `installVerticalPack` / the admin API).
 

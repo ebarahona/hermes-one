@@ -2,8 +2,10 @@
 // these own the tenant-scoped authoring/deployment writes under RLS). definitions/deployments are
 // tenant-owned and RLS-protected, so every write goes through withTenant → set_config('app.tenant_id').
 import {and, desc, eq} from 'drizzle-orm';
-import type {TenantScope} from '@platform/contracts';
+import type {AuditEvent, TenantScope} from '@platform/contracts';
 import {TenantAwareRepository} from './tenant-aware.repository.js';
+import {insertAuditEvent} from './audit-repository.js';
+import {enqueueOutboxRow, deriveOutboxId} from './event-outbox-repository.js';
 import {
   definitions,
   definitionVersions,
@@ -36,8 +38,13 @@ export interface DefinitionVersionRow {
 
 export class DrizzleDefinitionRepository extends TenantAwareRepository {
   /** Upsert the authoring identity (current-version pointer) + append an immutable version row. */
-  async putDefinition(def: DefinitionRow, version: DefinitionVersionRow, scope: TenantScope): Promise<void> {
-    await this.withTenant(scope, async tx => {
+  async putDefinition(
+    def: DefinitionRow,
+    version: DefinitionVersionRow,
+    scope: TenantScope,
+    events: AuditEvent[] = [],
+  ): Promise<{versionInserted: boolean}> {
+    return this.withTenant(scope, async tx => {
       await tx
         .insert(definitions)
         .values({
@@ -56,7 +63,7 @@ export class DrizzleDefinitionRepository extends TenantAwareRepository {
           set: {currentVersion: def.currentVersion, status: def.status, updatedAt: new Date()},
         });
 
-      await tx
+      const versionRows = await tx
         .insert(definitionVersions)
         .values({
           definitionId: version.definitionId,
@@ -69,7 +76,27 @@ export class DrizzleDefinitionRepository extends TenantAwareRepository {
           diagnostics: version.diagnostics ?? [],
           createdBy: version.createdBy,
         })
-        .onConflictDoNothing({target: [definitionVersions.definitionId, definitionVersions.version]});
+        .onConflictDoNothing({target: [definitionVersions.definitionId, definitionVersions.version]})
+        .returning({definitionId: definitionVersions.definitionId});
+      const versionInserted = versionRows.length > 0;
+
+      // Commit-and-publish (F3, same rule as persistTurnAtomic): the audit event IS the domain event;
+      // its outbox row rides THIS transaction. Emitted ONLY on a fresh version insert — an idempotent
+      // re-put re-derives the same event and must not duplicate it (exactly-once, the billing rule).
+      if (versionInserted) {
+        for (const event of events) {
+          await insertAuditEvent(tx, event);
+          await enqueueOutboxRow(tx, {
+            outboxId: deriveOutboxId(event.id),
+            tenantId: event.tenantId,
+            aggregateType: 'audit_event',
+            aggregateId: event.id,
+            eventType: event.action,
+            payload: event as unknown as Record<string, unknown>,
+          });
+        }
+      }
+      return {versionInserted};
     });
   }
 
@@ -134,6 +161,7 @@ export class DrizzleDeploymentRepository extends TenantAwareRepository {
     dep: DeploymentRowInput,
     members: DeploymentMemberInput[],
     scope: TenantScope,
+    events: AuditEvent[] = [],
   ): Promise<void> {
     await this.withTenant(scope, async tx => {
       await tx
@@ -163,6 +191,20 @@ export class DrizzleDeploymentRepository extends TenantAwareRepository {
             contentHash: m.contentHash,
           })),
         );
+      }
+
+      // Commit-and-publish (F3): deployment rows + audit trail + outbox in ONE transaction. Every
+      // publish mints a NEW version, so events are unconditional here (no idempotent-replay branch).
+      for (const event of events) {
+        await insertAuditEvent(tx, event);
+        await enqueueOutboxRow(tx, {
+          outboxId: deriveOutboxId(event.id),
+          tenantId: event.tenantId,
+          aggregateType: 'audit_event',
+          aggregateId: event.id,
+          eventType: event.action,
+          payload: event as unknown as Record<string, unknown>,
+        });
       }
     });
   }

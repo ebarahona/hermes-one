@@ -20,6 +20,7 @@ import type {
   DefinitionWritePort,
   PlanStorePort,
 } from './ports.js';
+import {definitionPublishedEvent} from './events.js';
 
 export interface CompileDiagnostic {
   code: string;
@@ -131,6 +132,23 @@ export class DefinitionRegistry {
       ? {...base, body: def.body}
       : {...base, ...(def.body as Record<string, unknown>)}) as unknown as ValidatedContractBase;
 
+    // definition.published fires for kind:'capability' ONLY (events/domain-events.md's trigger
+    // column); it rides putDefinition's transaction and is skipped on an idempotent re-put.
+    const events =
+      def.kind === 'capability'
+        ? [
+            definitionPublishedEvent({
+              tenantId,
+              actor,
+              definitionId: def.definitionId,
+              name: def.name,
+              version: def.version,
+              contentHash,
+              occurredAt: at as never,
+            }),
+          ]
+        : [];
+
     // Authoring identity + version FIRST — validated_contracts.definition_id has an FK to definitions.
     await this.deps.definitions.putDefinition(
       {
@@ -155,6 +173,7 @@ export class DefinitionRegistry {
         createdBy: actor,
       },
       scope,
+      events,
     );
     await this.deps.store.putValidatedContract(contract);
     return {definitionId: def.definitionId, planId: null, contentHash, version: def.version, status: 'published', diagnostics: []};

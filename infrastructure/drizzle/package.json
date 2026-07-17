@@ -41,6 +41,7 @@
   },
   "devDependencies": {
     "@platform-internal/config": "workspace:*",
-    "@types/pg": "^8.20.0"
+    "@types/pg": "^8.20.0",
+    "@platform/definition-substrate": "workspace:*"
   }
 }

@@ -10,6 +10,7 @@ export {
   type PutDefinitionResult,
   type CompileDiagnostic,
 } from './registry.js';
+export {definitionPublishedEvent, deploymentPublishedEvent} from './events.js';
 export {
   DeploymentService,
   type PublishDeploymentInput,

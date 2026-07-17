@@ -2,6 +2,7 @@
 // composition root). Declared here so the published @platform/definition-substrate package stays free
 // of any infrastructure dependency — the concrete Drizzle repositories match these shapes structurally.
 import type {
+  AuditEvent,
   CompiledPlanBase,
   ContentHash,
   Deployment,
@@ -48,7 +49,19 @@ export interface DefinitionVersionRowLike {
 }
 
 export interface DefinitionWritePort {
-  putDefinition(def: DefinitionRowLike, version: DefinitionVersionRowLike, scope: TenantScope): Promise<void>;
+  /**
+   * Upsert identity + insert the version row. `events` (audit + their outbox envelopes) commit in the
+   * SAME transaction — and are written ONLY when the version row was NEWLY inserted, so an idempotent
+   * re-put of identical content emits nothing (the billing rule: enqueue only when inserted). A crash
+   * mid-write leaves NOTHING: no published version without its audit trail, no audit row whose event
+   * never entered the outbox.
+   */
+  putDefinition(
+    def: DefinitionRowLike,
+    version: DefinitionVersionRowLike,
+    scope: TenantScope,
+    events?: AuditEvent[],
+  ): Promise<{versionInserted: boolean}>;
   getDefinition(definitionId: string, scope: TenantScope): Promise<DefinitionRowLike | null>;
 }
 
@@ -71,6 +84,12 @@ export interface DeploymentMemberInputLike {
 
 export interface DeploymentWritePort {
   latestVersion(scope: TenantScope): Promise<string | null>;
-  publish(dep: DeploymentRowInputLike, members: DeploymentMemberInputLike[], scope: TenantScope): Promise<void>;
+  /** `events` commit in the SAME transaction as the deployment rows (commit-and-publish, F3 rule). */
+  publish(
+    dep: DeploymentRowInputLike,
+    members: DeploymentMemberInputLike[],
+    scope: TenantScope,
+    events?: AuditEvent[],
+  ): Promise<void>;
   repointActive(newDep: DeploymentRowInputLike, fromVersion: string, scope: TenantScope): Promise<void>;
 }

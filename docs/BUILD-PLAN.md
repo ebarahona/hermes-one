@@ -44,14 +44,14 @@ BOTH planes pass `providerConfig: {}`.
 4. ✅ **Proven with Pack E (2026-07-17)** — a tenant rotate() changed live provider output (slots=09:15, not the platform default): the scheduler provider reads per-tenant config through the real chain.
    Real vendor creds (available for testing) enter only as gitignored env for a MANUAL gate.
 
-## Phase 2 — Write-path integrity 🔄 (AU2 ✅ 2026-07-17; AU3 · AU4 · L1c remaining)
+## Phase 2 — Write-path integrity 🔄 (AU2 ✅ · AU4 substrate-events ✅ 2026-07-17; AU3 · tenant.config.changed · L1c remaining)
 
 Two coupled fixes, both about durable truth:
 1. ✅ **Replay-stable time (DONE 2026-07-17):** stamp `occurredAt` in the WORKFLOW (Temporal's deterministic clock),
    thread through `TurnRequest` — the audit `integrityHash` covers `occurredAt`, which today is
    wall-clock-fresh per attempt, so tamper-reject (AU2) is UNSAFE until this lands. Contract change
    at the plane boundary; `agent-runtime-contracts.md` governs.
-2. **Atomic substrate writer** ("F3 for the substrate path"): a port + drizzle impl so
+2. ✅ **Atomic substrate writer (DONE 2026-07-17)** ("F3 for the substrate path"): a port + drizzle impl so
    `DeploymentService.publish` / `DefinitionRegistry.put` commit rows AND outbox events in one
    transaction. `definition-substrate` stays pure (depends only on contracts; the composition root
    injects the writer). AU3/AU4's missing audit/domain events become one-line emissions on the seam;

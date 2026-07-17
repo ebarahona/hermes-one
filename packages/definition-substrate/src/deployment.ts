@@ -15,6 +15,7 @@ import {
   type TenantId,
 } from '@platform/contracts';
 import type {DeploymentWritePort, PlanStorePort, DeploymentMemberInputLike} from './ports.js';
+import {deploymentPublishedEvent} from './events.js';
 
 export interface PublishDeploymentInput {
   tenantId: TenantId;
@@ -132,6 +133,18 @@ export class DeploymentService {
       {deploymentId, version, operatorRegistryVersion: input.operatorRegistryVersion, notes: input.notes, createdBy: input.actor},
       members,
       scope,
+      // deployment.published rides the SAME transaction as the deployment rows (commit-and-publish).
+      [
+        deploymentPublishedEvent({
+          tenantId: input.tenantId,
+          actor: input.actor,
+          deploymentId,
+          version,
+          operatorRegistryVersion: input.operatorRegistryVersion,
+          memberCount: members.length,
+          occurredAt: this.deps.now() as never,
+        }),
+      ],
     );
     await this.deps.store.invalidateActiveDeployment(input.tenantId);
     return {deploymentId, tenantId: input.tenantId, version} as DeploymentRef;

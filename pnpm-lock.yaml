@@ -572,6 +572,9 @@ importers:
       '@platform-internal/config':
         specifier: workspace:*
         version: link:../config
+      '@platform/definition-substrate':
+        specifier: workspace:*
+        version: link:../../packages/definition-substrate
       '@types/pg':
         specifier: ^8.20.0
         version: 8.20.0

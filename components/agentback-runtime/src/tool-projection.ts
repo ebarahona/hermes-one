@@ -104,8 +104,14 @@ export interface ProjectionContext {
   facts: Record<string, unknown>;
   /** Secrets resolved from the chosen provider's configKey — never logged, never in the contract. */
   providerConfig: Readonly<Record<string, string>>;
-  /** Derived by the executor from the capability's IdempotencySpec; passed to the adapter. */
-  idempotencyKeyFor: (capability: CapabilityName) => string;
+  /**
+   * Derived from the capability's IdempotencySpec — `turnId + name + keyFields` values
+   * (deriveIdempotencyKey; tool-projection.md "Idempotency key"). It takes the INPUT because the
+   * keyFields are read out of it: without them, two calls to one capability with different arguments
+   * in the same turn would share a key, and a keyed provider (e.g. messaging.reply.send deriving its
+   * messageId from the key) would treat the second as a replay of the first.
+   */
+  idempotencyKeyFor: (capability: CapabilityName, input: Record<string, unknown>) => string;
   /**
    * Reports which adapter actually served a dispatch. The generic body resolves the ranked provider
    * privately, so without this the synthesized ToolResult could not name it — and `metrics.providerId`
@@ -121,9 +127,13 @@ export class CapabilityToolProjector {
   constructor(private readonly resolve: ProviderResolveFn) {}
 
   /**
-   * Map one contract to its agentback `@tool` options (pure). `scope` is the contract's requiredScope
-   * so `tools/list` visibility is correct; authorization ENFORCEMENT stays with agentback's voters —
-   * the projector never re-implements it (tool-projection.md).
+   * Map one contract to its agentback `@tool` options (pure). `scope` carries the contract's
+   * requiredScope onto the tool so `tools/list` visibility is correct (tool-projection.md).
+   *
+   * NOTE: setting `scope` does NOT by itself enforce authorization — agentback's `@authorize` voters
+   * are separate metadata this projector does not apply. The scope gate that actually protects the
+   * turn is `capabilitiesForEngine` (engine.allowedCapabilities ∩ principal scopes), applied by the
+   * caller BEFORE projection, so an out-of-scope capability is never projected or offered.
    */
   toToolOptions(contract: CapabilityContract): AgentbackToolOptions {
     return {
@@ -179,13 +189,15 @@ export class CapabilityToolProjector {
       Object.defineProperty(ProjectedCapabilities.prototype, method, {
         value: async function (input: Record<string, unknown>): Promise<unknown> {
           // The generic body (tool-projection.md): resolve the ranked adapter, call it, return the
-          // UNWRAPPED output. A NoProviderError propagates so the caller maps onNoProvider.
+          // UNWRAPPED output. A NoProviderError carries its `code` + onNoProvider out to the executor,
+          // which normalizes it into ToolResult.error (routing the 'handoff' disposition to an actual
+          // handoff is NOT yet wired — flagged, see DEFERRED-AND-FLAGGED PE6).
           const adapter = await resolve(contract.name, contract.providerMapping, ctx.facts);
           ctx.onProviderResolved?.(contract.name, adapter.providerId);
           return adapter.execute(input, {
             tenantId: ctx.tenantId,
             capability: contract.name,
-            idempotencyKey: ctx.idempotencyKeyFor(contract.name),
+            idempotencyKey: ctx.idempotencyKeyFor(contract.name, input),
             config: ctx.providerConfig,
           });
         },
@@ -210,7 +222,16 @@ export class CapabilityToolProjector {
 
       bindings.set(contract.name, {
         ctor: ProjectedCapabilities,
-        meta: {name: contract.name, methodName: method, input: opts.input, output: opts.output, confirm: opts.confirm},
+        meta: {
+          name: contract.name,
+          methodName: method,
+          input: opts.input,
+          output: opts.output,
+          confirm: opts.confirm,
+          // Carried so a re-projection at a DIFFERENT contentHash reports a real conflict rather than
+          // 'unknown' on both sides.
+          contentHash: contract.contentHash,
+        },
       } as unknown as ToolBinding);
 
       metadata.put({

@@ -61,8 +61,12 @@ export function createEnvelopeHook(deps?: {
             result && typeof result === 'object'
               ? (result as Record<string, unknown>)
               : {value: result},
-          source: 'authoritative',
-          trusted: true,
+          // A tool result is a PROVIDER's claim, not platform-authoritative state — the capability
+          // plane's own invoker stamps provider/false for the same evidence (CapabilityInvoker), and
+          // ADR-009 evidence-only composition depends on the distinction. 'authoritative' is reserved
+          // for the platform's own system-of-record reads.
+          source: 'provider',
+          trusted: false,
           observedAt: isoNow() as EvidenceRecord['observedAt'],
         } as EvidenceRecord);
       }

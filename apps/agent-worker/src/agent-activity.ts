@@ -286,11 +286,29 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
   // Which adapter served each capability this turn — recorded at dispatch by the projected body, read
   // back when the executor synthesizes ToolMetrics.providerId. Per-turn, so it cannot bleed tenants.
   const servedBy = new Map<string, string>();
-  const projected = projector.project(capContracts, {
+  // Provider eligibility (ProviderMapping.eligibility) is an expression over TENANT-RUNTIME facts —
+  // residency, features, channel. Passing {} would make every fact-referencing rule read undefined,
+  // silently ineligible-or-eligible by accident.
+  const facts: Record<string, unknown> = {
     tenantId,
-    facts: {},
+    channel: request.workspace.channel,
+    dataResidency: request.workspace.tenantRuntime.tenant.dataResidency,
+    features: request.workspace.tenantRuntime.tenant.features,
+    locale: request.workspace.tenantRuntime.locale,
+  };
+  // Project ONLY the scope-eligible subset: an out-of-scope capability must not have a callable
+  // binding at all (ADR-019 fail-closed), not merely be withheld from the model's tool list.
+  const projected = projector.project(eligible, {
+    tenantId,
+    facts,
     providerConfig: {},
-    idempotencyKeyFor: capability => `${request.turnId}:${capability}`,
+    // Canonical material: turnId + name + the contract's keyFields values (deriveIdempotencyKey;
+    // tool-projection.md "Idempotency key"). keyFields come from the INPUT, so two calls to one
+    // capability with different arguments in a turn get distinct keys.
+    idempotencyKeyFor: (capability, input) => {
+      const contract = byName.get(capability);
+      return contract ? deriveIdempotencyKey(contract, input, request.turnId) : `${request.turnId}:${capability}`;
+    },
     onProviderResolved: (capability, providerId) => servedBy.set(capability, providerId),
   });
   for (const s of projected.report.skipped) {
@@ -371,7 +389,14 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
     tenantId,
     request.turnId,
     bindingSource,
-    (capability: CapabilityName) => servedBy.get(capability),
+    // CONSUME-ONCE: a dispatch that never resolved a provider (NoProviderError) must not read back
+    // the PREVIOUS call's providerId and stamp it onto an ok:false envelope for a provider that was
+    // never reached.
+    (capability: CapabilityName) => {
+      const id = servedBy.get(capability);
+      servedBy.delete(capability);
+      return id;
+    },
   );
 
   let capturedLedger: TurnLedger | undefined;

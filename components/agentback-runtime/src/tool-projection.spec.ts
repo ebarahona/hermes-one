@@ -44,7 +44,7 @@ const ctx = (): ProjectionContext => ({
   tenantId: 'tnt_test' as ProjectionContext['tenantId'],
   facts: {},
   providerConfig: {},
-  idempotencyKeyFor: () => 'idem_test',
+  idempotencyKeyFor: (capability, input) => `trn_test:${capability}:${JSON.stringify(input)}`,
 });
 
 const adapter = (execute: ProviderAdapter['execute']): ProviderAdapter =>
@@ -81,10 +81,38 @@ describe('jsonSchemaToZod (bounded allow-list)', () => {
   // than the authored contract — an unrepresentable construct is a projection-time failure.
   it('THROWS on a keyword outside the allow-list rather than degrading', () => {
     expect(() => jsonSchemaToZod({oneOf: [{type: 'string'}]})).toThrow(UnsupportedSchemaError);
-    expect(() => jsonSchemaToZod({type: 'object', properties: {}, additionalProperties: true})).toThrow(
-      UnsupportedSchemaError,
-    );
     expect(() => jsonSchemaToZod({type: 'object', properties: {a: {$ref: '#/x'}}})).toThrow(UnsupportedSchemaError);
+    expect(() => jsonSchemaToZod({type: 'string', format: 'int64'})).toThrow(UnsupportedSchemaError);
+  });
+
+  // Contracts are Zod-first and their JSON Schema is GENERATED from Zod (ADR-020), so the rebuilder
+  // must accept exactly what that generator emits — otherwise a spec-faithful contract is skipped and
+  // its tool silently vanishes from the agent's tool set.
+  it('rebuilds the real Zod→JSON-Schema output ($schema, format+pattern, bounds, default)', () => {
+    const generated = {
+      $schema: 'https://json-schema.org/draft/2020-12/schema',
+      type: 'object',
+      properties: {
+        date: {type: 'string', format: 'date', pattern: '^\\d{4}-\\d{2}-\\d{2}$'},
+        email: {type: 'string', format: 'email'},
+        n: {type: 'integer', minimum: -10, maximum: 10},
+        tz: {default: 'UTC', type: 'string'},
+      },
+      required: ['date', 'n', 'tz'],
+      additionalProperties: false,
+    };
+    const s = jsonSchemaToZod(generated);
+    expect(s.parse({date: '2026-07-20', n: 5})).toEqual({date: '2026-07-20', n: 5, tz: 'UTC'}); // default applied
+    expect(() => s.parse({date: 'tomorrow', n: 5})).toThrow(); // format/pattern enforced
+    expect(() => s.parse({date: '2026-07-20', n: 99})).toThrow(); // bounds enforced
+    expect(() => s.parse({date: '2026-07-20', n: 5, email: 'nope'})).toThrow(); // format enforced
+    expect(() => s.parse({date: '2026-07-20', n: 5, sneaky: 1})).toThrow(); // additionalProperties:false REJECTS
+  });
+
+  it('honours additionalProperties given as a schema (catchall), not just booleans', () => {
+    const s = jsonSchemaToZod({type: 'object', properties: {a: {type: 'string'}}, additionalProperties: {type: 'number'}});
+    expect(s.parse({a: 'x', extra: 1})).toEqual({a: 'x', extra: 1});
+    expect(() => s.parse({a: 'x', extra: 'not-a-number'})).toThrow();
   });
 });
 
@@ -149,8 +177,35 @@ describe('CapabilityToolProjector', () => {
     expect(resolve).toHaveBeenCalledWith('appointment.slot.read', SLOT_READ.providerMapping, {});
     expect(execute).toHaveBeenCalledWith(
       {date: '2026-07-20'},
-      expect.objectContaining({tenantId: 'tnt_test', capability: 'appointment.slot.read', idempotencyKey: 'idem_test'}),
+      expect.objectContaining({
+        tenantId: 'tnt_test',
+        capability: 'appointment.slot.read',
+        // The key is derived from the INPUT, not the capability alone — two calls with different
+        // arguments in one turn must not collide.
+        idempotencyKey: 'trn_test:appointment.slot.read:{"date":"2026-07-20"}',
+      }),
     );
+  });
+
+  it('derives a DISTINCT idempotency key per input within one turn', async () => {
+    const keys: string[] = [];
+    const p = new CapabilityToolProjector(async () => adapter(async () => ({slots: []})));
+    const {bindings} = p.project([SLOT_READ], {
+      ...ctx(),
+      idempotencyKeyFor: (capability, input) => {
+        const k = `trn_test:${capability}:${JSON.stringify(input)}`;
+        keys.push(k);
+        return k;
+      },
+    });
+    const binding = bindings.get('appointment.slot.read')!;
+    const Ctor = binding.ctor as new () => Record<string, (i: unknown) => Promise<unknown>>;
+    const method = (binding.meta as {methodName: string}).methodName;
+
+    await new Ctor()[method]({date: '2026-07-20'});
+    await new Ctor()[method]({date: '2026-07-21'});
+
+    expect(new Set(keys).size).toBe(2);
   });
 
   // ToolMetrics.providerId is canonical (agent-runtime-contracts.md; the `internal-scheduler` example

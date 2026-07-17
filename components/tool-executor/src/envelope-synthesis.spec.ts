@@ -71,8 +71,10 @@ describe('ToolResult envelope synthesis (ADR-018)', () => {
     expect(result.evidence[0]).toMatchObject({
       kind: 'tool-output',
       capability: 'appointment.slot.read',
-      source: 'authoritative',
-      trusted: true,
+      // A tool result is a PROVIDER's claim, never platform-authoritative state — same stamping the
+      // capability plane's own CapabilityInvoker applies. ADR-009 composition leans on this.
+      source: 'provider',
+      trusted: false,
     });
     expect(result.metrics.latencyMs).toBe(5);
     expect(result.error).toBeNull();

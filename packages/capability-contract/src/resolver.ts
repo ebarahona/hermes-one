@@ -17,6 +17,14 @@ import type {ProviderRegistry} from './provider-registry.js';
 
 /** Raised when no provider can serve a request. `onNoProvider` tells the caller to fail or hand off. */
 export class NoProviderError extends Error {
+  /**
+   * Classified so a caller that normalizes thrown errors by `code` (the agent plane's ToolExecutor)
+   * surfaces the real reason instead of a generic `internal_error`. Not retryable: no provider is
+   * eligible/healthy for this request, so an immediate retry resolves the same way.
+   */
+  readonly code = 'no_provider' as const;
+  readonly retryable = false as const;
+
   constructor(
     readonly capability: CapabilityName,
     readonly onNoProvider: 'fail' | 'handoff',

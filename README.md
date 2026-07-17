@@ -8,7 +8,7 @@ every tool call passes a policy gate, every side effect is idempotent, every rea
 tenant-scoped by row-level security, and every turn is durably recorded for replay, audit, and
 evaluation. Governing decisions live in `docs/adr/`; the build sequence in `docs/BUILD-PLAN.md`.
 
-## What runs today
+## Capabilities
 
 - **Verticals are data, not code (ADR-013) — proven live.** The electrician vertical is a single
   `pack.json` (workflow, triage rule, policy, capability, agent engine). Installing it through the
@@ -33,7 +33,7 @@ evaluation. Governing decisions live in `docs/adr/`; the build sequence in `docs
   (edge → activity → agent turn → tool), structured PII-redacting logs, cost analytics, and an
   evaluation harness wired into deployment publish as a regression gate.
 
-## Architecture in one paragraph
+## Architecture
 
 Two DI planes that never share a live context: the **edge plane** on LoopBack 4 and the **agent
 plane** on agentback — authored by the creator of LoopBack (the original framework and LoopBack 4),

@@ -61,8 +61,9 @@ export interface ProviderCredentialRecord {
 /**
  * Bound at platform.provider.credentialStore (camelCase per the spec's own registry-sync list).
  * Fail-closed: no bundle → throws (never silently send); a credential-LESS internal provider is an
- * EXPLICIT empty bundle, not an absent one. `rotate`/`revoke` land with the envelope store
- * (flagged — the static stand-in cannot honor them meaningfully).
+ * EXPLICIT empty bundle, not an absent one; a REVOKED credential throws.
+ * `rotate` is the ONLY write path — credentials enter the store already-typed and leave encrypted;
+ * rotation is dual-version-free by design (ADR-026: a row update, atomic per credential set).
  */
 export interface ProviderCredentialStore {
   resolve(
@@ -70,4 +71,13 @@ export interface ProviderCredentialStore {
     providerId: string,
     capability: CapabilityName,
   ): Promise<ProviderCredentialRecord>;
+  /** Create-or-replace the tenant's bundle for (provider, capability). Never logs the config. */
+  rotate(
+    tenantId: TenantId,
+    providerId: string,
+    capability: CapabilityName,
+    config: Readonly<Record<string, string>>,
+  ): Promise<void>;
+  /** Kill-switch: subsequent resolves fail-closed until a new rotate(). */
+  revoke(tenantId: TenantId, providerId: string, capability: CapabilityName): Promise<void>;
 }

@@ -13,7 +13,12 @@ import 'reflect-metadata';
 import {fileURLToPath} from 'node:url';
 import {NativeConnection, Worker} from '@temporalio/worker';
 import {loadConfig, type HermesConfig} from '@platform-internal/config';
-import {StaticProviderCredentialStore} from '@platform-internal/secrets';
+import {
+  EnvelopeCredentialStore,
+  FallbackCredentialStore,
+  LocalAesGcmCipher,
+  StaticProviderCredentialStore,
+} from '@platform-internal/secrets';
 import {
   CapabilityRegistryComponent,
   ObservabilityComponent,
@@ -24,6 +29,7 @@ import {
   type IndexedCapabilityRegistry,
 } from '@platform-internal/loopback-core';
 import {
+  createCredentialRowStore,
   EventOutboxPublisherLoop,
   type DrizzleAuditSink,
   type DrizzleEventOutboxRepository,
@@ -107,12 +113,24 @@ export async function createActivityWorker(): Promise<Worker> {
         // ProviderCredentialStore (S7/PE7): explicit bundles only — internal-message-log is
         // credential-less ({}); twilio-sms gets the env bundle when SMS is configured; anything
         // else stays fail-closed at the store. The ADR-026 per-tenant envelope store swaps in here.
-        new StaticProviderCredentialStore({
-          'internal-message-log': {},
-          ...(cfg.sms
-            ? {'twilio-sms': {accountSid: cfg.sms.accountSid, authToken: cfg.sms.authToken, from: cfg.sms.from}}
-            : {}),
-        }),
+        (() => {
+          const platformDefaults = new StaticProviderCredentialStore({
+            'internal-message-log': {},
+            ...(cfg.sms
+              ? {'twilio-sms': {accountSid: cfg.sms.accountSid, authToken: cfg.sms.authToken, from: cfg.sms.from}}
+              : {}),
+          });
+          // ADR-026: tenant envelope rows over platform env defaults (see agent-worker boot).
+          return cfg.credentials
+            ? new FallbackCredentialStore(
+                new EnvelopeCredentialStore(
+                  createCredentialRowStore(cfg.stores.authoritative.url).repo,
+                  new LocalAesGcmCipher(cfg.credentials.masterKey),
+                ),
+                platformDefaults,
+              )
+            : platformDefaults;
+        })(),
       ),
       ...createDecisionActivities(audit),
     }),

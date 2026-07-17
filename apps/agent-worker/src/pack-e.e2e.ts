@@ -17,13 +17,14 @@
 // provider rather than a fixture.
 //
 //   docker compose -f infra/docker-compose.yml up -d   (+ llama-server at :8080)
-//   pnpm -r build && node apps/agent-worker/dist/pack-e.e2e.js
+//   HERMES_CREDENTIALS_MASTER_KEY=<64 hex> pnpm -r build && node apps/agent-worker/dist/pack-e.e2e.js
 import {Client, Connection} from '@temporalio/client';
 import {loadConfig} from '@platform-internal/config';
-import {createAuditQueryService, createRoleRegistry} from '@platform-internal/drizzle';
+import {createAuditQueryService, createCredentialRowStore, createRoleRegistry} from '@platform-internal/drizzle';
+import {EnvelopeCredentialStore, LocalAesGcmCipher} from '@platform-internal/secrets';
 import {createWorkflowWorker, installElectricianPack, WORKFLOW_QUEUE} from '@platform-internal/workflow-worker';
 import {createActivityWorker} from '@platform-internal/activity-worker';
-import type {Principal, TenantId, ToolResult} from '@platform/contracts';
+import type {CapabilityName, Principal, TenantId, ToolResult} from '@platform/contracts';
 import {createAgentWorker} from './worker.js';
 
 const TENANT = 'tnt_elec_demo';
@@ -36,6 +37,12 @@ interface Case {
   expectToolCall: boolean;
 }
 
+// The TENANT's own slot template — rotated into capability.provider_credentials as an
+// envelope-encrypted row before the turn runs. The platform default is 14:00/15:30; seeing THIS
+// value in the reply's tool output proves the whole ADR-026 chain live: tenant row → RLS read →
+// per-tenant decrypt → ProviderExecutionContext.config → provider behavior. No deploy, one rotate().
+const TENANT_SLOT_TEMPLATE = '09:15:00-05:00';
+
 const CASES: Case[] = [
   {
     name: 'emergency → safety reply',
@@ -43,7 +50,7 @@ const CASES: Case[] = [
     expectToolCall: false,
   },
   {
-    name: 'scheduling → provider-backed slot read',
+    name: 'scheduling → provider-backed slot read (TENANT-OWN credentials)',
     intent:
       'nothing urgent — an outlet in my kitchen stopped working. what appointment slots do you have open on 2026-07-20? please check availability.',
     expectToolCall: true,
@@ -57,6 +64,18 @@ async function main(): Promise<void> {
   //    exactly what the admin API does, headless. Returns the plan refs + the pinned deployment.
   const install = await installElectricianPack(cfg.stores.authoritative.url, cfg.stores.ephemeral.url, TENANT);
   console.log(`[pack-e] installed electrician deployment ${install.deployment.deploymentId} (v${install.deployment.version}) for ${TENANT}`);
+
+  // 1b. The tenant brings its own provider configuration (ADR-026): one rotate(), no deploy. The
+  //     agent-worker resolves this same row per turn through the envelope store layered over the
+  //     platform defaults.
+  if (!cfg.credentials) throw new Error('pack-e e2e needs HERMES_CREDENTIALS_MASTER_KEY (ADR-026 envelope store)');
+  const rows = createCredentialRowStore(cfg.stores.authoritative.url);
+  const credStore = new EnvelopeCredentialStore(rows.repo, new LocalAesGcmCipher(cfg.credentials.masterKey));
+  await credStore.rotate(TENANT as Parameters<typeof credStore.rotate>[0], 'internal-scheduler', SLOT_READ as CapabilityName, {
+    slotTemplates: TENANT_SLOT_TEMPLATE,
+  });
+  await rows.close();
+  console.log(`[pack-e] rotated tenant-own internal-scheduler credentials (slotTemplates=${TENANT_SLOT_TEMPLATE})`);
 
   const connection = await Connection.connect({address: cfg.temporal.address});
   const client = new Client({connection, namespace: cfg.temporal.namespace});
@@ -116,7 +135,12 @@ async function main(): Promise<void> {
         .filter(r => r.capability === SLOT_READ);
       const viaProvider = toolCalls.filter(r => r.metrics?.providerId === 'internal-scheduler');
 
-      const toolOk = c.expectToolCall ? viaProvider.length > 0 && viaProvider.every(r => r.ok) : true;
+      // The slots must carry the TENANT's template — platform defaults here mean the envelope
+      // chain silently fell through, which is exactly the regression this guards against.
+      const tenantSlots = viaProvider.every(r =>
+        ((r.output as {slots?: string[]})?.slots ?? []).every(slot => slot.endsWith(`T${TENANT_SLOT_TEMPLATE}`)),
+      );
+      const toolOk = c.expectToolCall ? viaProvider.length > 0 && viaProvider.every(r => r.ok) && tenantSlots : true;
       results.push({
         name: c.name,
         pass: pathOk && toolOk,
@@ -143,7 +167,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
   console.log(
-    '\nPack E live-turn E2E OK — the electrician vertical (authored as DATA) ran real agent turns end-to-end on Temporal + the live LLM, and the scheduling turn reached the REAL provider plane (internal-scheduler) through a projected capability tool.',
+    "\nPack E live-turn E2E OK — the electrician vertical (authored as DATA) ran real agent turns end-to-end on Temporal + the live LLM, and the scheduling turn reached the REAL provider plane through the tenant's OWN envelope-encrypted credentials (ADR-026).",
   );
   process.exit(0);
 }

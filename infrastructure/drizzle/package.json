@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@platform-internal/redis": "workspace:*",
+    "@platform-internal/secrets": "workspace:*",
     "@platform/contracts": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "drizzle-zod": "^0.8.3",

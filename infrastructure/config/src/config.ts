@@ -48,6 +48,10 @@ export const HermesConfig = z.object({
       timeoutMs: z.coerce.number().int().min(100).optional(),
     })
     .optional(),
+  // Tenant provider-credential encryption (ADR-026). When the master key is present, composition
+  // roots layer the envelope store (per-tenant rows) over the static env bundle; absent → static
+  // only. The key is 32 bytes hex and NEVER leaves the composition root.
+  credentials: z.object({masterKey: z.string().regex(/^[0-9a-f]{64}$/i)}).optional(),
   // Transactional-outbox publisher (events/event-envelope.md EventEnvelopeConfig). The loop drains
   // per tenant under RLS — the tenant list is a config stand-in until the tenant registry exists
   // (CT1/CT2; the cross-tenant relay role is an unresolved spec question). Empty tenants → loop off.
@@ -102,6 +106,9 @@ export function loadConfig(
 ): HermesConfig {
   const g = (k: keyof typeof DEFAULTS): string => env[k] ?? DEFAULTS[k];
   // Vendor SMS is opt-in: only assembled when a vendor is named (all creds then required by the schema).
+  const credentials = env.HERMES_CREDENTIALS_MASTER_KEY
+    ? {masterKey: env.HERMES_CREDENTIALS_MASTER_KEY}
+    : undefined;
   const sms = env.SMS_VENDOR
     ? {
         vendor: env.SMS_VENDOR,
@@ -128,6 +135,7 @@ export function loadConfig(
       apiKey: g('LLM_API_KEY'),
     },
     sms,
+    credentials,
     outbox: {
       pollIntervalMs: g('HERMES_OUTBOX_POLL_MS'),
       maxAttempts: g('HERMES_OUTBOX_MAX_ATTEMPTS'),

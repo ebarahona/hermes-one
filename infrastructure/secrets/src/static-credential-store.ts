@@ -53,4 +53,13 @@ export class StaticProviderCredentialStore implements ProviderCredentialStore {
       rotatedAt: this.clock().toISOString() as IsoTimestamp,
     };
   }
+
+  /** Env-backed and immutable — rotation happens where the env does. Fail loudly, never pretend. */
+  async rotate(): Promise<void> {
+    throw new Error('StaticProviderCredentialStore cannot rotate — configure the envelope store (ADR-026)');
+  }
+
+  async revoke(): Promise<void> {
+    throw new Error('StaticProviderCredentialStore cannot revoke — configure the envelope store (ADR-026)');
+  }
 }

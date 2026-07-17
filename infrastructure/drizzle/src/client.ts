@@ -14,6 +14,7 @@ import {DrizzleAuditQueryService} from './audit-query.js';
 import {DrizzleTurnPersistence} from './turn-persistence.js';
 import {DrizzleEventOutboxRepository} from './event-outbox-repository.js';
 import {DrizzleRoleRegistry} from './role-registry.js';
+import {DrizzleCredentialRowStore} from './provider-credential-rows.js';
 import {assertNonBypassingRole} from './rls-self-check.js';
 import {
   DrizzleDefinitionRepository,
@@ -171,6 +172,17 @@ export interface RoleRegistryHandle {
 export function createRoleRegistry(pgUrl: string, opts: {appRole?: string} = {}): RoleRegistryHandle {
   const {db, pool} = createPlatformDb(pgUrl, {appRole: opts.appRole});
   return {repo: new DrizzleRoleRegistry(db), close: () => pool.end()};
+}
+
+export interface CredentialRowStoreHandle {
+  repo: DrizzleCredentialRowStore;
+  close: () => Promise<void>;
+}
+
+/** Row store behind @platform-internal/secrets' EnvelopeCredentialStore (ADR-026, migration 0030). */
+export function createCredentialRowStore(pgUrl: string, opts: {appRole?: string} = {}): CredentialRowStoreHandle {
+  const {db, pool} = createPlatformDb(pgUrl, {appRole: opts.appRole});
+  return {repo: new DrizzleCredentialRowStore(db), close: () => pool.end()};
 }
 
 export interface AuditQueryServiceHandle {

@@ -553,6 +553,9 @@ importers:
       '@platform-internal/redis':
         specifier: workspace:*
         version: link:../redis
+      '@platform-internal/secrets':
+        specifier: workspace:*
+        version: link:../secrets
       '@platform/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts

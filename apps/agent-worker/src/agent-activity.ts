@@ -35,7 +35,12 @@ import {loadConfig} from '@platform-internal/config';
 import {createOpenAICompatibleModel, type SingleStepModel} from '@platform-internal/model-client';
 import {createAgentPlaneApp, CapabilityToolProjector} from '@platform-internal/agentback-runtime';
 import {InternalSchedulerProvider} from '@platform-internal/scheduler';
-import {StaticProviderCredentialStore} from '@platform-internal/secrets';
+import {
+  EnvelopeCredentialStore,
+  FallbackCredentialStore,
+  LocalAesGcmCipher,
+  StaticProviderCredentialStore,
+} from '@platform-internal/secrets';
 import {
   PlatformToolExecutor,
   createEnvelopeHook,
@@ -48,6 +53,7 @@ import {createModelDecider, runTurn, type DeciderTool, type TurnLedger} from '@p
 import {
   assertRlsPostureAtBoot,
   createCompiledPlanStore,
+  createCredentialRowStore,
   createTurnPersistence,
   type CompiledPlanStore,
   type DrizzleTurnPersistence,
@@ -181,7 +187,19 @@ function boot(): Promise<Booted> {
     // store, which is WHY providerConfig was {} here (PE7). internal-scheduler is credential-less —
     // an EXPLICIT empty bundle; absence stays fail-closed. The per-tenant envelope store (ADR-026)
     // swaps in behind this same port.
-    const credentials = new StaticProviderCredentialStore({[new InternalSchedulerProvider().providerId]: {}});
+    const platformDefaults = new StaticProviderCredentialStore({[new InternalSchedulerProvider().providerId]: {}});
+    // ADR-026: with a master key configured, per-tenant envelope-encrypted rows take precedence and
+    // the static env bundle becomes the platform DEFAULT a tenant falls back to until they bring
+    // their own vendor account (rotate()). Without a key: static only, exactly as before.
+    const credentials = cfg.credentials
+      ? new FallbackCredentialStore(
+          new EnvelopeCredentialStore(
+            createCredentialRowStore(cfg.stores.authoritative.url).repo,
+            new LocalAesGcmCipher(cfg.credentials.masterKey),
+          ),
+          platformDefaults,
+        )
+      : platformDefaults;
     return {app, server, model, store, persistence, tracer: tracing.tracer, tracing, projector, credentials};
   })());
 }

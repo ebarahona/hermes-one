@@ -196,6 +196,26 @@ describe('CapabilityInvoker — resolves + executes + envelopes', () => {
     expect(res.metrics.providerId).toBe('twilio');
   });
 
+  // CT3: the tenant's provider_mappings override outranks the contract default at INVOCATION time —
+  // and absence of an override row means the contract default (table-catalog.md).
+  it('a tenant provider-mapping override wins over the contract default; absence falls back', async () => {
+    const providers = new ProviderRegistry([fakeProvider('twilio'), fakeProvider('bandwidth')]);
+    // Contract default ranks twilio first (makeCap). The override flips the ranking to bandwidth.
+    const override = {
+      providers: [
+        {providerId: 'bandwidth', priority: 200},
+        {providerId: 'twilio', priority: 100},
+      ],
+      eligibility: [],
+      onNoProvider: 'fail' as const,
+    };
+    const overridden = new CapabilityInvoker(() => makeCap(), new ProviderResolver(providers), async () => override);
+    expect((await overridden.invoke(call, ctx)).metrics.providerId).toBe('bandwidth');
+
+    const absent = new CapabilityInvoker(() => makeCap(), new ProviderResolver(providers), async () => null);
+    expect((await absent.invoke(call, ctx)).metrics.providerId).toBe('twilio');
+  });
+
   it('maps a provider execution failure to an ok:false ToolResult', async () => {
     const providers = new ProviderRegistry([
       fakeProvider('twilio', {throwErr: {code: 'provider_rejected', message: 'blocked', retryable: false}}),

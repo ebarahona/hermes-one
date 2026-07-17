@@ -17,6 +17,7 @@ import {
   DrizzleEventOutboxRepository,
   DrizzleHandoffRepository,
   DrizzleMessageRepository,
+  DrizzleProviderMappingRepository,
   DrizzleTurnPersistence,
   assertNonBypassingRole,
   createPlatformDb,
@@ -72,6 +73,7 @@ export class PersistenceComponent implements Component, PlatformComponentBoundar
     PlatformBindings.ROLE_REGISTRY.key,
     PlatformBindings.TENANT_REPOSITORY.key,
     PlatformBindings.USER_REPOSITORY.key,
+    PlatformBindings.PROVIDER_MAPPING_REPOSITORY.key,
   ];
   readonly implementsExtensionPoints: readonly string[] = [];
   readonly consumesExtensionPoints: readonly string[] = [];
@@ -131,6 +133,9 @@ export class PersistenceComponent implements Component, PlatformComponentBoundar
       .inScope(BindingScope.SINGLETON),
     Binding.bind(PlatformBindings.USER_REPOSITORY.key)
       .toDynamicValue(({context}) => new DrizzleUserRepository(context.getSync(PlatformBindings.POSTGRES).db))
+      .inScope(BindingScope.SINGLETON),
+    Binding.bind(PlatformBindings.PROVIDER_MAPPING_REPOSITORY.key)
+      .toDynamicValue(({context}) => new DrizzleProviderMappingRepository(context.getSync(PlatformBindings.POSTGRES).db))
       .inScope(BindingScope.SINGLETON),
   ];
 

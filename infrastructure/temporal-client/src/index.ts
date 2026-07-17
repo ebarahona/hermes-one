@@ -14,3 +14,4 @@ export const descriptor = {
 export * from './retry-policy.js';
 export * from './activity-options.js';
 export * from './trace-propagation.js';
+export * from './versioning.js';

@@ -119,3 +119,24 @@ document that might not travel with the code.
   path; `CapabilityInvoker` (which stamped provider/false) aligns. Retrieved/
   free-text content stays untrusted. If a vendor field ever flows into a prompt,
   split trust by FIELD, not by flipping the envelope. Resolves ledger A6.
+
+- **ADR-029 — Worker versioning pins the Worker-Deployments generation; the
+  replay gate is generation-independent and lands first.** `temporal/
+  worker-versioning-and-replay.md` mandates Build-ID versioning + `patched()`
+  for risky interpreter changes + a hard replay-test gate, but leaves the
+  Temporal API generation UNPINNED (its Open Question #1). Our installed SDK
+  (@temporalio 1.20.2) deprecates the legacy `buildId`/`useVersioning` shape;
+  the successor is `workerDeploymentOptions` ({version: {buildId,
+  deploymentName}, useWorkerVersioning, defaultVersioningBehavior}) — and
+  `PINNED` behavior is exactly the spec's requirement (open executions stay on
+  the build they started on). Building new infrastructure on a deprecated API
+  contradicts this platform's charter, so: (1) the generation is PINNED to
+  Worker Deployments; the spec's `BuildIdRegistry` compatible-with model maps
+  onto deployment versions; (2) `executeCompiledWorkflow` runs PINNED —
+  interpreter code (`buildId`) and plan data (`contentHash`) stay orthogonal
+  axes (ADR-014); (3) the REPLAY GATE — replay captured histories against the
+  candidate interpreter, fail CI on ANY nondeterminism, no waiver path — is
+  generation-independent (`Worker.runReplayHistories`) and ships immediately;
+  versioned dispatch itself is config-gated off in dev until the compose
+  server's support is verified live (never enable an unverified primitive).
+  Resolves ledger T6's design half.

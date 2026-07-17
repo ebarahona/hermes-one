@@ -33,6 +33,7 @@ import {DeploymentController} from './deployment.controller.js';
 import {TenantController} from './tenant.controller.js';
 import {DefinitionController} from './definition.controller.js';
 import {UserController} from './user.controller.js';
+import {ProviderMappingController} from './provider-mapping.controller.js';
 
 export interface AdminApiRootOptions {
   /** Dev/seed api keys for the StaticApiKeyStore. Empty in prod until the DB-backed store lands. */
@@ -90,6 +91,7 @@ export class AdminApiRoot implements CompositionRoot<PlatformRestApplication> {
     app.controller(TenantController);
     app.controller(DefinitionController);
     app.controller(UserController);
+    app.controller(ProviderMappingController);
   }
 
   async start(_app: PlatformRestApplication): Promise<void> {

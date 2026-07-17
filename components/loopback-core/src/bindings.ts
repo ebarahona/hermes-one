@@ -36,6 +36,7 @@ import type {
   CompiledPlanStore,
   DrizzleHandoffRepository,
   DrizzleMessageRepository,
+  DrizzleProviderMappingRepository,
   DrizzleTenantRepository,
   DrizzleTurnPersistence,
   DrizzleUserRepository,
@@ -61,6 +62,11 @@ export namespace PlatformBindings {
   export const PROVIDER_REGISTRY = BindingKey.create<ProviderRegistry>('platform.provider.registry');
   /** Grammar-derived (flagged): the resolve+execute path over the registry/resolver (ADR-018). */
   export const CAPABILITY_INVOKER = BindingKey.create<CapabilityInvoker>('platform.capability.invoker');
+  /** New key, flagged (capability-and-provider-api.md ProviderMappingController): the tenant
+   *  OVERRIDE surface over capability.provider_mappings (ledger CT3). */
+  export const PROVIDER_MAPPING_REPOSITORY = BindingKey.create<DrizzleProviderMappingRepository>(
+    'platform.capability.providerMappingRepository',
+  );
 
   // ── policy runtime (ADR-019) ─────────────────────────────────────────────
   export const POLICY_RUNTIME = BindingKey.create<PolicyRuntime>('platform.policy.runtime');

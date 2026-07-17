@@ -8,7 +8,7 @@
 // parameter; `installElectricianPack` remains as a thin, named convenience over it.
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
-import {createCompiledPlanStore, createSubstrateWrite, runMigrations} from '@platform-internal/drizzle';
+import {createCompiledPlanStore, createSubstrateWrite, createVerticalPackInstallations, runMigrations} from '@platform-internal/drizzle';
 import {builtinRegistry} from '@platform/expression-core';
 import {compileRule} from '@platform/rule-dsl';
 import {compileWorkflow} from '@platform/workflow-dsl';
@@ -36,7 +36,7 @@ interface PackDef {
   body: unknown;
 }
 interface Pack {
-  manifest: {operatorRegistryVersion: string};
+  manifest: {packId: string; packVersion: string; operatorRegistryVersion: string};
   definitions: {workflow: PackDef; agentEngine: PackDef; policy: PackDef; rules: PackDef[]; capabilities: PackDef[]};
 }
 
@@ -119,6 +119,29 @@ export async function installVerticalPack(
       operatorRegistryVersion: pack.manifest.operatorRegistryVersion as SemVer,
       actor: ACTOR,
     });
+
+    // Record the installation (tenant.vertical_pack_installations, ADR-013/CT2): which pack, which
+    // version, which definitions it minted — so "what packs does this tenant run?" is a query.
+    const installs = createVerticalPackInstallations(pgUrl);
+    try {
+      await installs.repo.record({
+        installationId: `vpi_${tenantId}_${pack.manifest.packId}`.replace(/[^a-zA-Z0-9_]/g, '_'),
+        tenantId: tenantId as TenantId,
+        packId: pack.manifest.packId,
+        packVersion: pack.manifest.packVersion,
+        status: 'active',
+        installedDefinitions: [
+          {kind: d.workflow.kind, definitionId: d.workflow.definitionId, version: d.workflow.version},
+          {kind: d.agentEngine.kind, definitionId: d.agentEngine.definitionId, version: d.agentEngine.version},
+          {kind: d.policy.kind, definitionId: d.policy.definitionId, version: d.policy.version},
+          ...d.rules.map(r => ({kind: r.kind, definitionId: r.definitionId, version: r.version})),
+          ...d.capabilities.map(c => ({kind: c.kind, definitionId: c.definitionId, version: c.version})),
+        ],
+        installedBy: ACTOR,
+      });
+    } finally {
+      await installs.close();
+    }
 
     return {
       tenantId,

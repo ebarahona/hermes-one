@@ -11,6 +11,7 @@ export {capabilitiesForEngine, scopeSatisfies} from './tools.js';
 export {
   CapabilityInvoker,
   type CapabilityLookup,
+  type ProviderMappingOverrideLookup,
   type InvokeContext,
 } from './invoker.js';
 

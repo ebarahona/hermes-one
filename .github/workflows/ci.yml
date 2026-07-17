@@ -34,6 +34,9 @@ jobs:
       # (verification-discipline), so unit tests on a fresh clone need dist to exist.
       - run: pnpm -r build
       - run: pnpm verify # typecheck + plane-lint + unit tests
+      # Replay gate (ADR-029 / worker-versioning-and-replay.md): every committed golden history must
+      # replay against THIS build's interpreter with zero nondeterminism. Hard blocker, no waiver.
+      - run: pnpm -F @platform-internal/workflow-worker replay-gate
 
   integration:
     runs-on: ubuntu-latest

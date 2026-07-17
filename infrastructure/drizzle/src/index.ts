@@ -49,6 +49,8 @@ export {DrizzleAuditSink} from './audit-repository.js';
 export {DrizzleUsageMeter} from './usage-repository.js';
 export {DrizzleAuditQueryService} from './audit-query.js';
 export {DrizzleCredentialRowStore} from './provider-credential-rows.js';
+export {DrizzleVerticalPackInstallationRepository, type VerticalPackInstallation} from './vertical-pack-repository.js';
+export {DrizzleProviderMappingRepository} from './provider-mapping-repository.js';
 export {
   DrizzleTurnPersistence,
   type TurnPersistenceBundle,
@@ -88,6 +90,8 @@ export {
   createUsageMeter,
   createAuditQueryService,
   createCredentialRowStore,
+  createVerticalPackInstallations,
+  createProviderMappingRepository,
   createTurnPersistence,
   createEventOutboxRepository,
   createRoleRegistry,
@@ -102,6 +106,8 @@ export {
   type UsageMeterHandle,
   type AuditQueryServiceHandle,
   type CredentialRowStoreHandle,
+  type VerticalPackInstallationsHandle,
+  type ProviderMappingRepositoryHandle,
   type TurnPersistenceHandle,
   type EventOutboxRepositoryHandle,
   type RoleRegistryHandle,

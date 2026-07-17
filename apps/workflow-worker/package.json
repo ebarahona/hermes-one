@@ -13,7 +13,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "clean": "rm -rf dist *.tsbuildinfo",
     "worker": "node dist/worker.js",
-    "e2e": "node dist/e2e.js"
+    "e2e": "node dist/e2e.js",
+    "replay-gate": "node dist/replay-gate-main.js"
   },
   "hermes": {
     "name": "@platform-internal/workflow-worker",
@@ -43,6 +44,7 @@
     "@platform/workflow-dsl": "workspace:*",
     "@temporalio/activity": "^1.20.2",
     "@temporalio/client": "^1.20.2",
+    "@temporalio/common": "^1.20.2",
     "@temporalio/worker": "^1.20.2",
     "@temporalio/workflow": "^1.20.2",
     "reflect-metadata": "^0.2.2"

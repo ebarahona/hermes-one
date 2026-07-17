@@ -15,6 +15,8 @@ import {DrizzleTurnPersistence} from './turn-persistence.js';
 import {DrizzleEventOutboxRepository} from './event-outbox-repository.js';
 import {DrizzleRoleRegistry} from './role-registry.js';
 import {DrizzleCredentialRowStore} from './provider-credential-rows.js';
+import {DrizzleVerticalPackInstallationRepository} from './vertical-pack-repository.js';
+import {DrizzleProviderMappingRepository} from './provider-mapping-repository.js';
 import {assertNonBypassingRole} from './rls-self-check.js';
 import {
   DrizzleDefinitionRepository,
@@ -180,9 +182,35 @@ export interface CredentialRowStoreHandle {
 }
 
 /** Row store behind @platform-internal/secrets' EnvelopeCredentialStore (ADR-026, migration 0030). */
+export interface VerticalPackInstallationsHandle {
+  repo: DrizzleVerticalPackInstallationRepository;
+  close: () => Promise<void>;
+}
+
+/** tenant.vertical_pack_installations (ADR-013/CT2) — written by the vertical installer. */
+export function createVerticalPackInstallations(pgUrl: string, opts: {appRole?: string} = {}): VerticalPackInstallationsHandle {
+  const {db, pool} = createPlatformDb(pgUrl, {appRole: opts.appRole});
+  return {repo: new DrizzleVerticalPackInstallationRepository(db), close: () => pool.end()};
+}
+
 export function createCredentialRowStore(pgUrl: string, opts: {appRole?: string} = {}): CredentialRowStoreHandle {
   const {db, pool} = createPlatformDb(pgUrl, {appRole: opts.appRole});
   return {repo: new DrizzleCredentialRowStore(db), close: () => pool.end()};
+}
+
+export interface ProviderMappingRepositoryHandle {
+  repo: DrizzleProviderMappingRepository;
+  close: () => Promise<void>;
+}
+
+/** Convenience composition: pg (as platform_app) → the tenant provider-mapping override repository
+ *  (capability.provider_mappings, migration 0023/0024, RLS strict). */
+export function createProviderMappingRepository(
+  pgUrl: string,
+  opts: {appRole?: string} = {},
+): ProviderMappingRepositoryHandle {
+  const {db, pool} = createPlatformDb(pgUrl, {appRole: opts.appRole});
+  return {repo: new DrizzleProviderMappingRepository(db), close: () => pool.end()};
 }
 
 export interface AuditQueryServiceHandle {

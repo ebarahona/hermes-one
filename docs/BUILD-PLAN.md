@@ -57,7 +57,7 @@ Two coupled fixes, both about durable truth:
    injects the writer). AU3/AU4's missing audit/domain events become one-line emissions on the seam;
    the Idempotency-Key interceptor (L1c) lands on the same path.
 
-## Phase 3 — The tenant spine (CT2 · CT3 · E2 · E3 → unblocks S3, CT4 tenant list)
+## Phase 3 — The tenant spine 🔄 (CT3 ✅ · CT2 narrowed 2026-07-17; E2/E3 re-scoped — see ledger)
 
 Multi-tenancy is real in the data layer, fake at the edges: `to → tenant` is a demo function, rule
 params come from demo config, and tenants cannot override providers because nothing reads
@@ -65,7 +65,7 @@ params come from demo config, and tenants cannot override providers because noth
 resolver merges the DB override ahead of the contract default (CT3) + the admin PUT for overrides +
 real tenant configuration (E2). Exit criterion: **tenant #2 is an onboarding row, not a deploy.**
 
-## Phase 4 — Production durability (T6 🔴 · T1 · P2 · I2 · T5)
+## Phase 4 — Production durability 🔄 (T6 replay-gate ✅ 2026-07-17, dispatch enablement pending; T1 · P2 · I2 · T5)
 
 `patched()`/Build-ID worker versioning BEFORE anything deploys twice (deploying new workflow code
 currently breaks in-flight executions); per-capability retry classes compiled into plans (T1); the

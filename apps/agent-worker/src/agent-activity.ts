@@ -54,6 +54,7 @@ import {
   assertRlsPostureAtBoot,
   createCompiledPlanStore,
   createCredentialRowStore,
+  createProviderMappingRepository,
   createTurnPersistence,
   type CompiledPlanStore,
   type DrizzleTurnPersistence,
@@ -157,6 +158,7 @@ interface Booted {
   tracing: TracingHandle;
   projector: CapabilityToolProjector;
   credentials: ProviderCredentialStore;
+  mappingOverrides: import('@platform-internal/drizzle').DrizzleProviderMappingRepository;
 }
 let booted: Promise<Booted> | undefined;
 
@@ -191,6 +193,7 @@ function boot(): Promise<Booted> {
     // ADR-026: with a master key configured, per-tenant envelope-encrypted rows take precedence and
     // the static env bundle becomes the platform DEFAULT a tenant falls back to until they bring
     // their own vendor account (rotate()). Without a key: static only, exactly as before.
+    const mappingOverrides = createProviderMappingRepository(cfg.stores.authoritative.url).repo;
     const credentials = cfg.credentials
       ? new FallbackCredentialStore(
           new EnvelopeCredentialStore(
@@ -200,7 +203,7 @@ function boot(): Promise<Booted> {
           platformDefaults,
         )
       : platformDefaults;
-    return {app, server, model, store, persistence, tracer: tracing.tracer, tracing, projector, credentials};
+    return {app, server, model, store, persistence, tracer: tracing.tracer, tracing, projector, credentials, mappingOverrides};
   })());
 }
 
@@ -284,7 +287,7 @@ export async function agentTurn(request: TurnRequest, trace?: TraceHeader): Prom
 }
 
 async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<TurnResult> {
-  const {app, server, model, store, persistence, tracer, projector, credentials} = await boot();
+  const {app, server, model, store, persistence, tracer, projector, credentials, mappingOverrides} = await boot();
   const tenantId = request.workspace.tenantRuntime.tenantId as TenantId;
   const scopes = request.workspace.principal.scopes as Scope[];
   const principalId = request.workspace.principal.id as PrincipalId;
@@ -307,7 +310,16 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
     deployment.policy.contentHash,
   )) as unknown as CompiledPolicyPlan;
 
-  const eligible = capabilitiesForEngine(engine.body.allowedCapabilities, capContracts, scopes);
+  const eligibleDefaults = capabilitiesForEngine(engine.body.allowedCapabilities, capContracts, scopes);
+  // Tenant provider-mapping overrides (CT3): substituted into the PINNED contracts before projection —
+  // the contract stays immutable/content-hashed; the override is plain tenant-row CRUD applied at
+  // turn assembly, mirroring the edge invoker. Absence of a row = the contract default.
+  const eligible = await Promise.all(
+    eligibleDefaults.map(async c => {
+      const o = await mappingOverrides.find(tenantId, c.name);
+      return o ? {...c, providerMapping: {providers: o.providers, eligibility: o.eligibility, onNoProvider: o.onNoProvider}} : c;
+    }),
+  );
   const byName = new Map(capContracts.map(c => [c.name, c]));
   const metaSource = metaSourceFrom(n => byName.get(n));
 

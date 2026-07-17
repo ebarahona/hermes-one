@@ -5,7 +5,7 @@
 // idiom) and discovered here at first resolution — no name→provider Map, no hardcoded list.
 import {Binding, CoreTags, type Component} from '@loopback/core';
 import {BindingScope} from '@loopback/context';
-import type {CapabilityContract, CapabilityName, ProviderAdapter} from '@platform/contracts';
+import type {CapabilityContract, CapabilityName, ProviderAdapter, ProviderMapping} from '@platform/contracts';
 import {
   CapabilityInvoker,
   InMemoryCapabilityRegistry,
@@ -62,7 +62,23 @@ export class CapabilityRegistryComponent implements Component, PlatformComponent
     Binding.bind(PlatformBindings.CAPABILITY_INVOKER.key)
       .toDynamicValue(({context}) => {
         const registry = context.getSync(PlatformBindings.CAPABILITY_REGISTRY) as IndexedCapabilityRegistry;
-        return new CapabilityInvoker(registry.lookup, context.getSync(PlatformBindings.CAPABILITY_RESOLVER));
+        // Tenant provider-mapping overrides (CT3): consulted at INVOCATION time, before ranking —
+        // absence of a row (or of the repository binding itself) means the contract default.
+        const overrides = context.isBound(PlatformBindings.PROVIDER_MAPPING_REPOSITORY.key)
+          ? (context.getSync(PlatformBindings.PROVIDER_MAPPING_REPOSITORY) as {
+              find(t: unknown, n: unknown): Promise<(ProviderMapping & {updatedAt: string; updatedBy: string}) | null>;
+            })
+          : undefined;
+        return new CapabilityInvoker(
+          registry.lookup,
+          context.getSync(PlatformBindings.CAPABILITY_RESOLVER),
+          overrides
+            ? async (tenantId, capability) => {
+                const o = await overrides.find(tenantId, capability);
+                return o ? {providers: o.providers, eligibility: o.eligibility, onNoProvider: o.onNoProvider} : null;
+              }
+            : undefined,
+        );
       })
       .inScope(BindingScope.SINGLETON),
   ];

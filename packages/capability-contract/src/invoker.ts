@@ -8,6 +8,7 @@ import {
   ToolResult,
   type CapabilityContract,
   type CapabilityName,
+  type ProviderMapping,
   type EvidenceId,
   type EvidenceRecord,
   type IsoTimestamp,
@@ -40,10 +41,22 @@ export interface InvokeContext {
 /** Looks up the pinned CapabilityContract for a name (from the active deployment's manifest). */
 export type CapabilityLookup = (name: CapabilityName) => CapabilityContract | undefined;
 
+/**
+ * Looks up the TENANT's provider-mapping override (capability.provider_mappings — CT3). Absence of a
+ * row means "use the contract's default" (table-catalog.md). The contract itself is immutable and
+ * content-hashed; the override is plain tenant-row CRUD, which is exactly why it is consulted at
+ * INVOCATION time rather than baked into the pinned contract.
+ */
+export type ProviderMappingOverrideLookup = (
+  tenantId: TenantId,
+  capability: CapabilityName,
+) => Promise<ProviderMapping | null>;
+
 export class CapabilityInvoker {
   constructor(
     private readonly lookup: CapabilityLookup,
     private readonly resolver: ProviderResolver,
+    private readonly mappingOverride?: ProviderMappingOverrideLookup,
   ) {}
 
   async invoke(call: ToolCall, ctx: InvokeContext): Promise<ToolResult> {
@@ -52,8 +65,10 @@ export class CapabilityInvoker {
       return this.errorResult(call, contract, 'not_found', `unknown capability: ${call.capability}`);
     }
 
-    // resolve() throws NoProviderError (fail/handoff) — propagated to the caller by design.
-    const provider = await this.resolver.resolve(call.capability, contract.providerMapping, ctx.facts);
+    // Tenant override first (CT3), contract default otherwise — then resolve() ranks within the
+    // EFFECTIVE mapping. resolve() throws NoProviderError (fail/handoff) — propagated by design.
+    const mapping = (await this.mappingOverride?.(ctx.tenantId, call.capability)) ?? contract.providerMapping;
+    const provider = await this.resolver.resolve(call.capability, mapping, ctx.facts);
 
     const started = Date.now();
     try {

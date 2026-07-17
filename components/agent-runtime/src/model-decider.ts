@@ -22,6 +22,13 @@ export function createModelDecider(opts: {
   objective: string;
   tools: DeciderTool[];
   now?: () => number;
+  /**
+   * Derives the ToolCall's idempotency key. The caller owns this because the canonical material is
+   * `turnId + capability name + the contract's declared keyFields` (deriveIdempotencyKey;
+   * tool-projection.md "Idempotency key") — and the decider has neither the turn nor the contract.
+   * Omitted → the legacy capability+args placeholder, which is NOT turn-scoped.
+   */
+  idempotencyKeyFor?: (capability: CapabilityName, args: Record<string, unknown>) => string;
 }): Decider {
   const now = opts.now ?? (() => Date.now());
   const specs: ModelToolSpec[] = opts.tools.map(t => ({
@@ -60,7 +67,9 @@ export function createModelDecider(opts: {
         toolCallId: `tc_${now()}_${step}` as ToolCall['toolCallId'],
         capability: tool.capability,
         input: proposed.arguments,
-        idempotencyKey: `idem_${tool.capability}_${JSON.stringify(proposed.arguments)}`,
+        idempotencyKey:
+          opts.idempotencyKeyFor?.(tool.capability, proposed.arguments) ??
+          `idem_${tool.capability}_${JSON.stringify(proposed.arguments)}`,
         proposedAt: new Date(now()).toISOString() as ToolCall['proposedAt'],
       };
       return {kind: 'tool', call, usage: result.usage};

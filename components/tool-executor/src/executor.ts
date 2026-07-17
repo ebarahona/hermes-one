@@ -58,12 +58,21 @@ function toErrorFields(err: unknown): {code: string; message: string; retryable:
  */
 export type ToolBindingSource = (capability: CapabilityName) => ToolBinding | undefined;
 
+/**
+ * Names the adapter that served a capability's dispatch, for `ToolMetrics.providerId` (canonical in
+ * agent-runtime-contracts.md; the `internal-scheduler` metrics example in table-catalog.md). Provider
+ * selection happens inside the projected tool body, so the executor cannot know it otherwise. Absent
+ * → providerId is omitted, exactly as before.
+ */
+export type ProviderIdSource = (capability: CapabilityName) => string | undefined;
+
 export class PlatformToolExecutor implements ToolExecutor {
   constructor(
     private readonly server: MCPServer,
     private readonly parent: Context,
     private readonly metaSource: CapabilityMetaSource,
     private readonly bindingSource?: ToolBindingSource,
+    private readonly providerIdSource?: ProviderIdSource,
   ) {}
 
   /** Canonical port: execute one proposed call and return the synthesized ToolResult. */
@@ -90,12 +99,18 @@ export class PlatformToolExecutor implements ToolExecutor {
     dispatchCtx.bind(COLLECTOR_KEY).to(collector);
 
     const stateChanging = MUTATING.has(meta.sideEffect);
-    const metrics = () => ({
-      latencyMs: collector.metrics.latencyMs ?? 0,
-      retries: 0,
-      costUsd: 0,
-      idempotentReplay: false,
-    });
+    // Read AFTER dispatch: the projected body resolves the provider during callTool, so the id is only
+    // known once the call has been attempted (and stays undefined if resolution itself failed).
+    const metrics = () => {
+      const providerId = this.providerIdSource?.(call.capability);
+      return {
+        latencyMs: collector.metrics.latencyMs ?? 0,
+        ...(providerId ? {providerId} : {}),
+        retries: 0,
+        costUsd: 0,
+        idempotentReplay: false,
+      };
+    };
 
     try {
       const binding = this.bindingSource?.(call.capability);

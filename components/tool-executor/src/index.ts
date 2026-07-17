@@ -8,6 +8,7 @@ export {
   type CapabilityMetaSource,
   type DispatchResult,
   type ToolBindingSource,
+  type ProviderIdSource,
 } from './executor.js';
 export {
   createEnvelopeHook,

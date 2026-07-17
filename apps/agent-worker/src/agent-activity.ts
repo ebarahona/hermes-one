@@ -28,7 +28,7 @@ import {
   type TurnRequest,
   type TurnResult,
 } from '@platform/contracts';
-import {capabilitiesForEngine, ProviderRegistry, ProviderResolver} from '@platform/capability-contract';
+import {capabilitiesForEngine, deriveIdempotencyKey, ProviderRegistry, ProviderResolver} from '@platform/capability-contract';
 import {ExpressionPolicyRuntime} from '@platform/policy-dsl';
 import {builtinRegistry} from '@platform/expression-core';
 import {loadConfig} from '@platform-internal/config';
@@ -41,6 +41,7 @@ import {
   metaSourceFrom,
   type DispatchResult,
   type ToolBindingSource,
+  type ProviderIdSource,
 } from '@platform-internal/tool-executor';
 import {createModelDecider, runTurn, type DeciderTool, type TurnLedger} from '@platform-internal/agent-runtime';
 import {
@@ -96,8 +97,9 @@ class TracingToolExecutor extends PlatformToolExecutor {
     private readonly tenantId: string,
     private readonly turnId: string,
     bindingSource?: ToolBindingSource,
+    providerIdSource?: ProviderIdSource,
   ) {
-    super(server, parent, metaSource, bindingSource);
+    super(server, parent, metaSource, bindingSource, providerIdSource);
   }
 
   override async dispatch(call: ToolCall, ctx: TurnContext): Promise<DispatchResult> {
@@ -281,11 +283,15 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
   // multi-tenant singleton, so app-level registration keyed by tool NAME could not hold two tenants'
   // contracts for the same capability. A contract the projector cannot faithfully rebuild is SKIPPED
   // (never degraded to a weaker validator) and logged — the model then simply never sees that tool.
+  // Which adapter served each capability this turn — recorded at dispatch by the projected body, read
+  // back when the executor synthesizes ToolMetrics.providerId. Per-turn, so it cannot bleed tenants.
+  const servedBy = new Map<string, string>();
   const projected = projector.project(capContracts, {
     tenantId,
     facts: {},
     providerConfig: {},
     idempotencyKeyFor: capability => `${request.turnId}:${capability}`,
+    onProviderResolved: (capability, providerId) => servedBy.set(capability, providerId),
   });
   for (const s of projected.report.skipped) {
     turnLogger.log({
@@ -332,6 +338,17 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
     model,
     objective: `${request.objective} (inbound: ${request.inbound.text ?? ''})`,
     tools,
+    // Canonical key material: turnId + name + the contract's keyFields (deriveIdempotencyKey;
+    // tool-projection.md "Idempotency key"). The decider's own placeholder is capability+args with NO
+    // turn — and `te_tenant_idempotency_uq` is UNIQUE per (tenant, key), so two DIFFERENT turns calling
+    // one capability with equal args collapsed to a single ledger row (the later turn's execution was
+    // silently dropped by ON CONFLICT DO NOTHING while its audit trail still logged tool.invoked).
+    idempotencyKeyFor: (capability, args) => {
+      const contract = byName.get(capability);
+      return contract
+        ? deriveIdempotencyKey(contract, args, request.turnId)
+        : `${request.turnId}:${capability}`;
+    },
   });
 
   // Span tree (OB5): temporal.activity.agentTurn (child of the edge trace via the explicit sidecar) →
@@ -354,6 +371,7 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
     tenantId,
     request.turnId,
     bindingSource,
+    (capability: CapabilityName) => servedBy.get(capability),
   );
 
   let capturedLedger: TurnLedger | undefined;

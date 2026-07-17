@@ -153,6 +153,25 @@ describe('CapabilityToolProjector', () => {
     );
   });
 
+  // ToolMetrics.providerId is canonical (agent-runtime-contracts.md; the `internal-scheduler` example
+  // in table-catalog.md). The body resolves the provider privately, so it must report it back or the
+  // synthesized envelope cannot name who served the call.
+  it('reports the resolved providerId so the envelope can carry ToolMetrics.providerId', async () => {
+    const served: Array<[string, string]> = [];
+    const p = new CapabilityToolProjector(async () => adapter(async () => ({slots: []})));
+    const {bindings} = p.project([SLOT_READ], {
+      ...ctx(),
+      onProviderResolved: (capability, providerId) => served.push([capability, providerId]),
+    });
+
+    expect(served).toEqual([]); // nothing resolved until a dispatch actually happens
+    const binding = bindings.get('appointment.slot.read')!;
+    const Ctor = binding.ctor as new () => Record<string, (i: unknown) => Promise<unknown>>;
+    await new Ctor()[(binding.meta as {methodName: string}).methodName]({date: '2026-07-20'});
+
+    expect(served).toEqual([['appointment.slot.read', 'internal-scheduler']]);
+  });
+
   it('skips (never silently degrades) a contract whose schema is outside the allow-list', () => {
     const bad = {...SLOT_READ, inputJsonSchema: {oneOf: [{type: 'string'}]}} as unknown as CapabilityContract;
     const p = new CapabilityToolProjector(async () => adapter(async () => ({})));

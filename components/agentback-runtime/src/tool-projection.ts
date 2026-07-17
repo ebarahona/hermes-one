@@ -106,6 +106,13 @@ export interface ProjectionContext {
   providerConfig: Readonly<Record<string, string>>;
   /** Derived by the executor from the capability's IdempotencySpec; passed to the adapter. */
   idempotencyKeyFor: (capability: CapabilityName) => string;
+  /**
+   * Reports which adapter actually served a dispatch. The generic body resolves the ranked provider
+   * privately, so without this the synthesized ToolResult could not name it — and `metrics.providerId`
+   * is part of the canonical ToolResult (agent-runtime-contracts.md; the `internal-scheduler` metrics
+   * example in table-catalog.md / tool-projection.md).
+   */
+  onProviderResolved?: (capability: CapabilityName, providerId: string) => void;
 }
 
 const methodNameFor = (i: number) => `cap_${i}`;
@@ -174,6 +181,7 @@ export class CapabilityToolProjector {
           // The generic body (tool-projection.md): resolve the ranked adapter, call it, return the
           // UNWRAPPED output. A NoProviderError propagates so the caller maps onNoProvider.
           const adapter = await resolve(contract.name, contract.providerMapping, ctx.facts);
+          ctx.onProviderResolved?.(contract.name, adapter.providerId);
           return adapter.execute(input, {
             tenantId: ctx.tenantId,
             capability: contract.name,

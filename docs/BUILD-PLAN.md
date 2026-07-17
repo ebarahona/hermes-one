@@ -7,8 +7,13 @@
 > wherever possible; deterministic-first; nothing on the hot path that breaks at 1,000 tenants).
 
 **State at authoring (2026-07-17):** Tiers 1–3 done · full admin API · AUTH-1→3 · Pack E runs a live
-TOOL-BACKED turn from pure data. Ledger: 4 🔴 / 51 🟡 / 13 ⚪. The ledger reads as ~55 problems;
-structurally it is **five root causes plus a tail** — most rows are downstream of one of these.
+TOOL-BACKED turn from pure data. Ledger at authoring: 4 🔴 / 51 🟡 / 13 ⚪ — five root causes plus a
+tail. **State after the first execution pass (same day): ZERO 🔴.** Closed/narrowed: S1 S2ⁿ S5 S6 S7
+PE4 PE7 A6 AU2 AU4 CT3 CT2ⁿ T6ⁿ (ⁿ = narrowed, remainder flagged). Phases 0–2 ✅ · Phase 3 core ✅
+(E2/E3 re-scoped on the ledger) · Phase 4 safety net ✅ (replay gate in CI; versioned dispatch
+config-gated). What remains is different in character: ONE user posture decision (the pre-tenant
+read — unblocks E3 + S3 + CT4-relay together), enablement tails needing external things (KMS pick,
+server upgrade), the messaging-convergence bundle (AU3 + S7-residual + P3), and the Phase 5 tail.
 
 ## Phase 0 — Ratify the four blocking decisions ✅ (ADRs 025–028, this commit)
 

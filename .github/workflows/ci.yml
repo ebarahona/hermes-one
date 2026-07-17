@@ -1,6 +1,7 @@
 # Minimal CI (deferral-ledger I0 / triage F7): the safety-critical verifications that previously ran
 # only when a human remembered to run them.
-#   verify      — hermetic: typecheck + plane-lint + unit tests + full build (pnpm verify && pnpm -r build)
+#   verify      — hermetic: typecheck + plane-lint + unit tests + full build + REPLAY GATE
+#                 (golden histories vs the candidate interpreter — ADR-029, fail on ANY nondeterminism)
 #   integration — live PG (RLS itests + the schema↔DB drift gate, I1) + Redis + a Temporal dev server;
 #                 runs `pnpm test:itest` TWICE (idempotency/replay bugs hide behind clean state —
 #                 verification discipline) and the two non-LLM e2es (missed-call workflow, signed webhook).

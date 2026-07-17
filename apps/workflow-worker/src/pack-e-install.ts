@@ -1,8 +1,11 @@
-// Headless installer for the electrician vertical (Pack E) — authors the pack's five definitions
-// through DefinitionRegistry.put and publishes the deployment via DeploymentService, exactly like the
-// admin API does (definition/deployment controllers), but in-process for the live-turn e2e. The pack
-// itself is DATA (verticals/electrician/pack.json); nothing here is electrician CODE. Returns the
-// refs the workflow interpreter host (runTriage) needs to drive a turn against the vertical.
+// Headless installer for ANY vertical pack — authors the pack's definitions through
+// DefinitionRegistry.put and publishes the deployment via DeploymentService, exactly like the admin
+// API does (definition/deployment controllers), but in-process for the live-turn e2e.
+//
+// Nothing here is vertical-specific: the pack is DATA (ADR-013) and the installer only walks it. It
+// was previously hardcoded to verticals/electrician/pack.json, which meant the NEXT vertical needed a
+// code edit — undercutting the very claim the pack exists to demonstrate. The pack path is now a
+// parameter; `installElectricianPack` remains as a thin, named convenience over it.
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {createCompiledPlanStore, createSubstrateWrite, runMigrations} from '@platform-internal/drizzle';
@@ -16,7 +19,7 @@ import type {Definition, DeploymentMember, PrincipalId, SemVer, TenantId} from '
 const V1 = '1.0.0' as SemVer;
 const ACTOR = 'prn_pack_e' as PrincipalId;
 
-export interface ElectricianInstall {
+export interface VerticalInstall {
   tenantId: string;
   deployment: {deploymentId: string; version: string};
   workflow: {planId: string; contentHash: string};
@@ -37,8 +40,11 @@ interface Pack {
   definitions: {workflow: PackDef; agentEngine: PackDef; policy: PackDef; rules: PackDef[]; capabilities: PackDef[]};
 }
 
-function readPack(): Pack {
-  return JSON.parse(readFileSync(join(process.cwd(), 'verticals/electrician/pack.json'), 'utf8'));
+/** Path of the electrician pack, relative to the repo root — the seed vertical shipped in-tree. */
+export const ELECTRICIAN_PACK = 'verticals/electrician/pack.json';
+
+function readPack(packPath: string): Pack {
+  return JSON.parse(readFileSync(join(process.cwd(), packPath), 'utf8'));
 }
 
 const authored = (d: PackDef, tenantId: string): Definition =>
@@ -57,12 +63,13 @@ const authored = (d: PackDef, tenantId: string): Definition =>
     body: d.body,
   }) as unknown as Definition;
 
-/** Install the electrician pack for a tenant. Idempotent-ish: publish bumps a new version each call. */
-export async function installElectricianPack(
+/** Install a vertical pack for a tenant. Idempotent-ish: publish bumps a new version each call. */
+export async function installVerticalPack(
   pgUrl: string,
   redisUrl: string,
-  tenantId: string = 'tnt_elec_demo',
-): Promise<ElectricianInstall> {
+  tenantId: string,
+  packPath: string = ELECTRICIAN_PACK,
+): Promise<VerticalInstall> {
   await runMigrations(pgUrl);
   const {store, close: closeStore} = createCompiledPlanStore(pgUrl, redisUrl);
   const write = createSubstrateWrite(pgUrl);
@@ -76,7 +83,7 @@ export async function installElectricianPack(
   const service = new DeploymentService({store, deployments: write.deployments, now: () => '2026-07-15T00:00:00.000Z'});
 
   try {
-    const pack = readPack();
+    const pack = readPack(packPath);
     const d = pack.definitions;
 
     // Author the referenced members first (the workflow pins them by content hash).
@@ -124,4 +131,16 @@ export async function installElectricianPack(
     await closeStore();
     await write.close();
   }
+}
+
+/**
+ * The electrician vertical (Pack E) — the seed vertical, kept as a named entry point for the e2es.
+ * A new vertical needs NO new installer: call installVerticalPack with its pack path.
+ */
+export function installElectricianPack(
+  pgUrl: string,
+  redisUrl: string,
+  tenantId = 'tnt_elec_demo',
+): Promise<VerticalInstall> {
+  return installVerticalPack(pgUrl, redisUrl, tenantId, ELECTRICIAN_PACK);
 }

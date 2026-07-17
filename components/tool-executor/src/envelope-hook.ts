@@ -61,12 +61,16 @@ export function createEnvelopeHook(deps?: {
             result && typeof result === 'object'
               ? (result as Record<string, unknown>)
               : {value: result},
-          // A tool result is a PROVIDER's claim, not platform-authoritative state — the capability
-          // plane's own invoker stamps provider/false for the same evidence (CapabilityInvoker), and
-          // ADR-009 evidence-only composition depends on the distinction. 'authoritative' is reserved
-          // for the platform's own system-of-record reads.
-          source: 'provider',
-          trusted: false,
+          // VERBATIM from the canonical tool-output example (agent-runtime-contracts.md §JSON
+          // examples): a result from a capability the PLATFORM invoked is authoritative/trusted.
+          // `trusted:false` is the indirect-injection defense for RETRIEVED content (the spec's other
+          // example is source:'retrieved'), not for structured capability results. ADR-009
+          // evidence-only composition grounds ONLY on trusted evidence (compose.ts) — stamping this
+          // untrusted silently strips the agent of the very facts it just fetched.
+          // NOTE: CapabilityInvoker stamps provider/false for the same tool-output — the two paths
+          // disagree. Flagged (DEFERRED-AND-FLAGGED A6); not silently reconciled either way.
+          source: 'authoritative',
+          trusted: true,
           observedAt: isoNow() as EvidenceRecord['observedAt'],
         } as EvidenceRecord);
       }

@@ -71,10 +71,11 @@ describe('ToolResult envelope synthesis (ADR-018)', () => {
     expect(result.evidence[0]).toMatchObject({
       kind: 'tool-output',
       capability: 'appointment.slot.read',
-      // A tool result is a PROVIDER's claim, never platform-authoritative state — same stamping the
-      // capability plane's own CapabilityInvoker applies. ADR-009 composition leans on this.
-      source: 'provider',
-      trusted: false,
+      // Canonical tool-output stamping (agent-runtime-contracts.md §JSON examples): a capability the
+      // PLATFORM invoked yields authoritative/trusted evidence — ADR-009 compose grounds only on
+      // trusted evidence, so this is what lets the agent state what it fetched.
+      source: 'authoritative',
+      trusted: true,
     });
     expect(result.metrics.latencyMs).toBe(5);
     expect(result.error).toBeNull();

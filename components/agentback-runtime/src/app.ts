@@ -6,7 +6,7 @@ import {SpikeBookingTools} from './spike-tools.js';
 
 export interface AgentPlaneAppOptions {
   /**
-   * Register the SpikeBookingTools de-risking FIXTURES (canned data). OFF by default: the live turn
+   * Register the SpikeBookingTools validation FIXTURES (canned data). OFF by default: the live turn
    * projects its pinned CapabilityContracts into provider-backed tools (CapabilityToolProjector,
    * tool-projection.md), so a statically-registered fixture answering to the same capability name
    * could serve canned data as if it were provider evidence. Only the spike specs that validate the

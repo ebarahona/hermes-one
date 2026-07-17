@@ -1,50 +1,85 @@
 # hermes-one
 
-**Hermes Orchestration Node Engine** — the agentic workflow platform monorepo.
+**Hermes Orchestration Node Engine** — a multi-tenant platform for vertical agentic workflows.
 
-A deterministic Temporal workflow rail with bounded agent nodes inside it. The
-workflow owns orchestration; the agent owns bounded reasoning; the model proposes,
-the runtime disposes. See `../docs/PROJECT-CONTEXT.md` for the platform thesis and
-`docs/adr/` for the ratified architecture decisions this code is governed by.
+A deterministic Temporal workflow rail with bounded agent nodes inside it. The workflow owns
+orchestration; the agent owns bounded reasoning; **the model proposes, the runtime disposes** —
+every tool call passes a policy gate, every side effect is idempotent, every read and write is
+tenant-scoped by row-level security, and every turn is durably recorded for replay, audit, and
+evaluation. Governing decisions live in `docs/adr/`; the build sequence in `docs/BUILD-PLAN.md`.
+
+## What runs today
+
+- **Verticals are data, not code (ADR-013) — proven live.** The electrician vertical is a single
+  `pack.json` (workflow, triage rule, policy, capability, agent engine). Installing it through the
+  platform's own admin API and driving a live LLM turn on real Temporal yields a **tool-backed
+  agent conversation** — the model calls `appointment.slot.read`, the platform resolves a ranked
+  provider, and the result is durably recorded. A new vertical is a new pack file, not a deploy.
+- **Bring-your-own-vendor multi-tenancy.** A tenant can rank its **own provider** first
+  (`capability.provider_mappings`, admin-managed) and supply its **own credentials**
+  (envelope-encrypted per tenant, rotated with a single API call) — zero deploys, proven live:
+  one credential rotation changes the next agent turn's provider behavior.
+- **A full admin control plane.** OIDC + API-key auth on a fail-closed LoopBack 4 sequence;
+  role-resolved, tenant-scoped, RLS-enforced routes for tenants, users, roles, definitions,
+  deployments (author → preview → publish → rollback), and provider-mapping overrides.
+- **Durable truth, transactionally.** Turn ledgers, audit events, usage metering, and outbox
+  envelopes commit in single tenant-scoped transactions (commit-and-publish). The audit trail is
+  **tamper-evident**: re-writing an existing event is refused, and replay-stable clocks make
+  legitimate re-execution idempotent.
+- **An interpreter replay gate in CI.** There is exactly ONE workflow interpreter (ADR-014);
+  every build replays committed golden histories against it and fails on any nondeterminism —
+  no waiver path (ADR-029).
+- **Observability end-to-end.** OpenTelemetry distributed tracing across the Temporal boundary
+  (edge → activity → agent turn → tool), structured PII-redacting logs, cost analytics, and an
+  evaluation harness wired into deployment publish as a regression gate.
+
+## Architecture in one paragraph
+
+Two DI planes that never share a live context: the **edge plane** on LoopBack 4 and the **agent
+plane** on agentback — authored by the creator of LoopBack (the original framework and LoopBack 4),
+so one proven IoC idiom spans both planes. They meet only at serializable boundaries (ADR-017),
+enforced mechanically by `pnpm plane-lint`. Everything configurable is a content-hashed, versioned
+definition (Zod-first contracts, ADR-016/020); everything durable is Temporal (ADR-014); every
+dependency is a port with adapters wired only at composition roots (ADR-024). The agent-plane
+substrate was qualified against the architecture's contracts with executable tests before adoption —
+see `docs/SPIKE-FINDINGS.md`.
 
 ## Layout (five areas)
 
 | Area              | Role                                                 | Scope                  |
 | ----------------- | ---------------------------------------------------- | ---------------------- |
 | `apps/`           | deployable processes (one DI container each)         | `@platform-internal/*` |
-| `packages/`       | pure libraries — schemas, compilers, plan types, SDK | `@platform/*`          |
+| `packages/`       | pure libraries — schemas, compilers, plan types      | `@platform/*`          |
 | `components/`     | DI-wired engines (depend on ports, not adapters)     | `@platform-internal/*` |
 | `infrastructure/` | I/O adapters (the only place with I/O)               | `@platform-internal/*` |
 | `verticals/`      | **data** bundles (not workspace packages)            | —                      |
 
-The edge/data plane (`@loopback/*`) and the agent plane (`@agentback/*`) never
-share a live DI `Context`; they meet only at serializable boundaries (ADR-017).
-`pnpm plane-lint` enforces this.
-
 ## Toolchain
 
-pnpm 11 workspace · ESM · Node ≥22.13 · TypeScript 5.7 · Zod (ADR-020) · Vitest.
+pnpm 11 workspace · ESM · Node ≥22.13 · TypeScript 5.7 · Zod (ADR-020) · Vitest · Temporal ·
+PostgreSQL (RLS) · Redis · Qdrant · OpenTelemetry.
 
 ## Commands
 
 ```bash
 pnpm install
-pnpm verify        # typecheck + plane-lint + test — the CI gate
-pnpm typecheck     # one whole-repo program, cross-package types from src
-pnpm plane-lint    # two-plane isolation check (ADR-017)
-pnpm test          # Vitest against src/ (fast dev loop)
-pnpm test:watch
-pnpm test:dist     # build, then run the suite against built dist/ (post-dev)
+docker compose -f infra/docker-compose.yml up -d   # Temporal + Postgres + Redis + Qdrant + OTel
+
+pnpm -r build      # build FIRST (tests resolve cross-package imports to dist)
+pnpm verify        # typecheck + plane-lint + unit tests — the CI gate
+pnpm test:itest    # integration suite against the live stack (RLS, atomicity, routes)
+pnpm -F @platform-internal/workflow-worker replay-gate   # interpreter nondeterminism gate (ADR-029)
+
+node apps/workflow-worker/dist/e2e.js   # missed-call flow on real Temporal
+node apps/api-gateway/dist/e2e.js       # signed webhook → workflow (replay-attack rejected live)
+node apps/agent-worker/dist/e2e.js      # 3-plane triage with a live LLM (local model at :8080)
+node apps/agent-worker/dist/pack-e.e2e.js  # the electrician vertical, end to end, tool-backed
 ```
 
-**Testing model:** development tests run against **`src/`** (Vitest transpiles on
-the fly — no build). A full suite runs against built **`dist/`** after development
-via `pnpm test:dist`.
+## Engineering discipline
 
-## Status
-
-The monorepo skeleton (34 workspace members + the electrician data vertical) is
-coherent — `pnpm verify` is green. The first real code is the **agent-plane
-de-risking spike**: `components/agentback-runtime` + `tool-executor` +
-`agent-runtime` validate agentback `0.7.1` against ADR-017/018/021. See
-`docs/SPIKE-FINDINGS.md`.
+Every intentional deferral and spec delta is recorded in `docs/DEFERRED-AND-FLAGGED.md` — nothing
+is silently improvised. Specs are the source of truth; where a library or a second spec genuinely
+conflicts, the conflict is ratified as an ADR (`docs/adr/`), never resolved ad hoc. CI runs the
+typecheck, the plane-isolation lint, the unit and integration suites, and the interpreter replay
+gate on every push.

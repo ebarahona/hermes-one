@@ -1,15 +1,38 @@
 // Tenant-scoped, append-only writer for audit.audit_events (RLS 'strict') — the store behind
-// platform.audit.sink (audit-contracts.md). Implements the canonical AuditSink port. Append is idempotent
-// on the event id (ON CONFLICT DO NOTHING) so a Temporal activity retry / actor replay that re-emits the
-// same event collapses to one row. All access goes through withTenant → set_config('app.tenant_id').
+// platform.audit.sink (audit-contracts.md). Implements the canonical AuditSink port.
+//
+// APPEND SEMANTICS (audit-contracts.md: "Append-only; throws if `id`/`integrityHash` already exists
+// (idempotent on replay)" + "`append` rejects a duplicate id/hash, making replay idempotent AND
+// MUTATION DETECTABLE"). One rule, keyed on the hash:
+//   same id + same integrityHash  → a genuine replay (workflow reset / re-execution) → no-op;
+//   same id + DIFFERENT hash      → the id is being reused for different content → THROW.
+// SAFE ONLY because every producer derives occurredAt from a replay-stable clock: the edge decision
+// activities take it from the workflow clock (their args), and the agent turn from
+// TurnRequest.startedAt (Phase 2a) — a wall-clock producer would make every re-execution look like
+// tampering and poison the enclosing persistTurnAtomic transaction.
 import {and, eq, sql} from 'drizzle-orm';
-import type {AuditAction, AuditEvent, AuditSink, TenantId} from '@platform/contracts';
+import {PlatformErrorException, type AuditAction, type AuditEvent, type AuditSink, type TenantId} from '@platform/contracts';
 import {TenantAwareRepository, type PlatformTx} from './tenant-aware.repository.js';
 import {auditEvents} from './schema/audit.schema.js';
 
+/** Raised when an existing audit id is re-appended with different content (tamper/id-collision). */
+function auditIntegrityConflict(event: AuditEvent, existingHash: string): PlatformErrorException {
+  return new PlatformErrorException({
+    category: 'conflict',
+    code: 'idempotency_conflict',
+    // Hashes are the evidence; the DETAIL is deliberately not echoed (it may carry PII).
+    message:
+      `Audit event ${event.id} already exists with a different integrityHash ` +
+      `(existing ${existingHash}, incoming ${event.integrityHash}) — the audit trail is append-only.`,
+    issues: [],
+    retryable: false,
+    httpStatus: 409,
+  });
+}
+
 /** Tx-scoped write core (shared with the atomic DrizzleTurnPersistence writer). */
 export async function insertAuditEvent(tx: PlatformTx, event: AuditEvent): Promise<void> {
-  await tx
+  const inserted = await tx
     .insert(auditEvents)
     .values({
       id: event.id,
@@ -25,11 +48,26 @@ export async function insertAuditEvent(tx: PlatformTx, event: AuditEvent): Promi
       occurredAt: new Date(event.occurredAt),
       integrityHash: event.integrityHash,
     })
-    .onConflictDoNothing({target: auditEvents.id});
+    .onConflictDoNothing({target: auditEvents.id})
+    .returning({id: auditEvents.id});
+
+  if (inserted.length > 0) return; // fresh append
+
+  // Conflict on id: replay (same hash) or mutation (different hash)? The hash decides.
+  const existing = await tx
+    .select({integrityHash: auditEvents.integrityHash})
+    .from(auditEvents)
+    .where(eq(auditEvents.id, event.id));
+  const existingHash = existing[0]?.integrityHash;
+  // No visible row despite the conflict = another tenant owns this id (RLS hides it). Same verdict:
+  // the id is taken by content we cannot vouch for — refuse rather than silently drop the event.
+  if (existingHash !== event.integrityHash) {
+    throw auditIntegrityConflict(event, existingHash ?? '<not visible to this tenant>');
+  }
 }
 
 export class DrizzleAuditSink extends TenantAwareRepository implements AuditSink {
-  /** Append one immutable audit event. Idempotent on id (replay-safe). */
+  /** Append one immutable audit event. Idempotent on a true replay; rejects a mutated re-append. */
   async append(event: AuditEvent): Promise<void> {
     await this.withTenant({tenantId: event.tenantId}, tx => insertAuditEvent(tx, event));
   }

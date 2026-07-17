@@ -109,6 +109,8 @@ function simTurnRequest(
 ): TurnRequest {
   return {
     turnId: `trn_sim_${candidate.version.replace(/\./g, '')}_${seq}`,
+    // Deterministic sim clock: the golden suite must produce byte-identical requests per run.
+    startedAt: '2026-07-17T00:00:00.000Z',
     workspace: {
       workspaceId: `wsp_sim_${tenantId}`,
       tenantRuntime: {

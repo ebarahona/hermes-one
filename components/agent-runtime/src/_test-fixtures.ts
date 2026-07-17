@@ -69,5 +69,6 @@ export function testTurnRequest(
     agentEngine: {definitionId: 'def_engine', version: '1.0.0', contentHash: `sha256:${'0'.repeat(64)}`},
     inbound,
     objective,
+    startedAt: '2026-07-17T00:00:00.000Z',
   } as TurnRequest;
 }

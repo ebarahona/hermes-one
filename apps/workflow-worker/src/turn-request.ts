@@ -15,6 +15,8 @@ export function buildAgentTurnRequest(
   objective: string,
   input: Record<string, unknown>,
   correlationId: string,
+  /** Workflow-clock timestamp (deterministic on replay) — the turn's durable rows derive from THIS. */
+  startedAt: string,
 ): TurnRequest {
   const turnId = `trn_${correlationId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 32)}`;
   return {
@@ -63,5 +65,6 @@ export function buildAgentTurnRequest(
     },
     inbound: {text: JSON.stringify(input), attachments: []},
     objective,
+    startedAt,
   } as unknown as TurnRequest;
 }

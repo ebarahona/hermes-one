@@ -67,6 +67,16 @@ export const TurnRequest = z.object({
   }),
   /** Objective the workflow set for this turn (bounded reasoning). */
   objective: TurnObjective,
+  /**
+   * AMENDED 2026-07-17 (hermes-one build, Phase 2): the turn's replay-stable clock, stamped by the
+   * WORKFLOW (Temporal workflow time — deterministic on replay/reset). Durable rows derived from the
+   * turn (audit occurredAt, handoff timestamps) MUST use this, never the activity's wall clock: the
+   * audit integrityHash covers occurredAt, so an attempt-fresh clock makes a re-execution with
+   * identical args look like TAMPERING to the append-only audit sink. Mirrors the edge pattern
+   * (decision activities already take occurredAt from the workflow clock). Time-as-input is the same
+   * rule ADR-015 applies to rules.
+   */
+  startedAt: IsoTimestamp,
 });
 export type TurnRequest = z.infer<typeof TurnRequest>;
 

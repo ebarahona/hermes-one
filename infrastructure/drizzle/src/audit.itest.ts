@@ -63,4 +63,37 @@ describe('DrizzleAuditSink (live)', () => {
     const c = await owner.query(`SELECT count(*)::int AS n FROM audit.audit_events WHERE tenant_id = $1`, [TENANT]);
     expect(c.rows[0].n).toBe(2);
   });
+
+  // audit-contracts.md: "append rejects a duplicate id/hash, making replay idempotent AND MUTATION
+  // DETECTABLE". Re-appending an existing id with DIFFERENT content is not a replay — it is the trail
+  // being rewritten, and an append-only, tamper-evident store must refuse it rather than silently
+  // drop it (which a bare ON CONFLICT DO NOTHING did). Safe now that every producer's occurredAt is
+  // replay-stable (edge: workflow clock in activity args; agent: TurnRequest.startedAt — Phase 2a).
+  it('REJECTS a re-append of the same id with a different integrityHash (tamper-evident)', async () => {
+    const mutated = {...ev('aud_it_1', 'tool.invoked', 'success'), integrityHash: `sha256:${'b'.repeat(64)}`};
+    await expect(audit.repo.append(mutated as AuditEvent)).rejects.toMatchObject({
+      error: {code: 'idempotency_conflict', retryable: false},
+    });
+
+    // and the original row is untouched — the refusal must not have rewritten anything
+    const row = await owner.query(
+      `SELECT integrity_hash FROM audit.audit_events WHERE tenant_id = $1 AND id = 'aud_it_1'`,
+      [TENANT],
+    );
+    expect(row.rows).toHaveLength(1);
+    expect(row.rows[0].integrity_hash).toBe(`sha256:${'a'.repeat(64)}`);
+  });
+
+  it('still rejects when only the DETAIL changed but the id is reused', async () => {
+    const rewritten = {
+      ...ev('aud_it_2', 'decision.policy', 'denied'),
+      detail: {k: 'tampered'},
+      integrityHash: `sha256:${'c'.repeat(64)}`,
+    };
+    await expect(audit.repo.append(rewritten as AuditEvent)).rejects.toMatchObject({
+      error: {code: 'idempotency_conflict'},
+    });
+    const row = await owner.query(`SELECT detail FROM audit.audit_events WHERE tenant_id = $1 AND id = 'aud_it_2'`, [TENANT]);
+    expect(row.rows[0].detail).toEqual({k: 'v'});
+  });
 });

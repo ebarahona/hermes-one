@@ -152,7 +152,13 @@ export async function runTriage(ref: WorkflowRunRef) {
       // it as an explicit sidecar arg to the turn activity (the spec's "traceparent on ActivityOptions").
       const {childTrace} = new PassThroughWorkflowTrace().onWorkflowExecute({trace: ref.trace});
       const result = await agentTurn(
-        buildAgentTurnRequest(ref.tenantId, pin, principal, engine, objective, input, correlationId),
+        // startedAt = WORKFLOW time (Temporal's sandbox Date is deterministic on replay/reset), so a
+        // re-execution with identical args re-derives byte-identical durable rows (audit tamper-reject
+        // safe). The activity's wall clock stays for operational concerns only.
+        buildAgentTurnRequest(
+          ref.tenantId, pin, principal, engine, objective, input, correlationId,
+          new Date().toISOString(),
+        ),
         childTrace,
       );
       return {outcome: result.outcome, reply: result.reply};

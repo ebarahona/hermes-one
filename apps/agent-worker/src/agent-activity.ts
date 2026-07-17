@@ -449,8 +449,12 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
       // a ledger without its audit trail or billing record. Idempotent; a Temporal retry collapses.
       onPersist: async turnLedger => {
         capturedLedger = turnLedger;
-        const now = new Date();
-        const occurredAt = now.toISOString() as IsoTimestamp;
+        // REPLAY-STABLE time (Phase 2a): the workflow stamped request.startedAt from ITS clock, so a
+        // re-execution with identical args re-derives identical audit rows (id AND integrityHash) —
+        // the precondition for the audit sink's tamper-reject (AU2). Wall clock here would make every
+        // re-execution look like tampering.
+        const now = new Date(request.startedAt);
+        const occurredAt = request.startedAt as IsoTimestamp;
         await persistence.persistTurnAtomic(
           {
             ledger: toLedgerRows(turnLedger),

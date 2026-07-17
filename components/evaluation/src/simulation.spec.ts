@@ -12,6 +12,7 @@ const NOW = '2026-07-13T00:00:00.000Z' as IsoTimestamp;
 function turnRequest(): TurnRequest {
   return {
     turnId: 'trn_sim',
+    startedAt: NOW,
     workspace: {
       workspaceId: 'wsp_sim',
       tenantRuntime: {

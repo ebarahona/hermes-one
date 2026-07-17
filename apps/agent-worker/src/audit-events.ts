@@ -1,7 +1,9 @@
 // Derive append-only AuditEvents (audit-contracts.md) from a completed turn's ledger — an edge concern
 // (the agent plane emits contract data; the edge records the audit trail). One event per material action:
 // tool.invoked (per tool execution), decision.policy (per gate decision), handoff.requested (on handoff).
-// Each id + integrityHash is deterministic over the row so a Temporal retry re-derives identical events
+// Each id + integrityHash is deterministic over the row — INCLUDING occurredAt, which the caller MUST
+// derive from TurnRequest.startedAt (workflow clock), never wall time — so a re-execution re-derives
+// byte-identical events
 // that collapse via the append's ON CONFLICT DO NOTHING (replay-safe, tamper-evident).
 //
 // FLAGGED: message.sent/received audit events belong to the channel layer (not the turn) — later.

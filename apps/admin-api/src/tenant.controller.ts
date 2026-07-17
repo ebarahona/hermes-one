@@ -9,6 +9,7 @@ import {inject} from '@loopback/core';
 import {get, param, patch, requestBody} from '@loopback/rest';
 import {z} from 'zod';
 import {PlatformBindings} from '@platform-internal/loopback-core';
+import {tenantConfigChangedEvent} from './audit-events.js';
 import {assertScope, forbiddenScopeError} from '@platform-internal/auth';
 import type {DrizzleTenantRepository} from '@platform-internal/drizzle';
 import {
@@ -47,6 +48,7 @@ export class TenantController {
   constructor(
     @inject(PlatformBindings.REQUEST_PRINCIPAL) private readonly principal: Principal,
     @inject(PlatformBindings.TENANT_REPOSITORY) private readonly tenants: DrizzleTenantRepository,
+    @inject(PlatformBindings.CORRELATION_ID) private readonly correlationId: string,
   ) {}
 
   private assertOwnTenant(tenantId: string, scope: Scope): TenantId {
@@ -70,6 +72,15 @@ export class TenantController {
     const owner = this.assertOwnTenant(tenantId, UPDATE_TENANT);
     const parsed = UpdateTenantRequest.safeParse(body);
     if (!parsed.success) throw validationFailed(parsed.error);
-    return this.tenants.updateTenant(owner, parsed.data); // not_found → 404
+    // tenant.config.changed rides the update's OWN transaction (commit-and-publish, AU4). Field NAMES
+    // only in the detail — values may carry PII/plan data.
+    const event = tenantConfigChangedEvent({
+      tenantId: owner,
+      actor: this.principal.id,
+      correlationId: this.correlationId,
+      changedFields: Object.keys(parsed.data).sort(),
+      occurredAt: new Date().toISOString() as never,
+    });
+    return this.tenants.updateTenant(owner, parsed.data, [event]); // not_found → 404
   }
 }

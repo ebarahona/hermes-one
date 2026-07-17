@@ -44,7 +44,7 @@ BOTH planes pass `providerConfig: {}`.
 4. ✅ **Proven with Pack E (2026-07-17)** — a tenant rotate() changed live provider output (slots=09:15, not the platform default): the scheduler provider reads per-tenant config through the real chain.
    Real vendor creds (available for testing) enter only as gitignored env for a MANUAL gate.
 
-## Phase 2 — Write-path integrity 🔄 (AU2 ✅ · AU4 substrate-events ✅ 2026-07-17; AU3 · tenant.config.changed · L1c remaining)
+## Phase 2 — Write-path integrity ✅ (AU2 ✅ · AU4 ✅ 2026-07-17; AU3 moved to the messaging convergence, L1c to the interceptor stack — see ledger)
 
 Two coupled fixes, both about durable truth:
 1. ✅ **Replay-stable time (DONE 2026-07-17):** stamp `occurredAt` in the WORKFLOW (Temporal's deterministic clock),

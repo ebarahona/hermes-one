@@ -34,6 +34,8 @@ beforeAll(async () => {
   const client = await owner.connect();
   try {
     await client.query(`SELECT set_config('app.tenant_id', $1, false)`, [TENANT]);
+    await client.query(`DELETE FROM event.event_outbox WHERE tenant_id = $1`, [TENANT]);
+    await client.query(`DELETE FROM audit.audit_events WHERE tenant_id = $1 AND action = 'tenant.config.changed'`, [TENANT]);
     await client.query(`DELETE FROM tenant.tenants WHERE id = $1`, [TENANT]);
     await client.query(
       `INSERT INTO tenant.tenants (id, tenant_id, slug, display_name, status, data_residency, features)
@@ -65,7 +67,9 @@ afterAll(async () => {
     const client = await owner.connect();
     try {
       await client.query(`SELECT set_config('app.tenant_id', $1, false)`, [TENANT]);
-      await client.query(`DELETE FROM tenant.tenants WHERE id = $1`, [TENANT]);
+      await client.query(`DELETE FROM event.event_outbox WHERE tenant_id = $1`, [TENANT]);
+    await client.query(`DELETE FROM audit.audit_events WHERE tenant_id = $1 AND action = 'tenant.config.changed'`, [TENANT]);
+    await client.query(`DELETE FROM tenant.tenants WHERE id = $1`, [TENANT]);
     } finally {
       client.release();
     }
@@ -91,6 +95,21 @@ describe('GET/PATCH /v1/tenants/{tenantId} (live)', () => {
     const ctx = (await res.json()) as {displayName: string; features: Record<string, boolean>};
     expect(ctx.displayName).toBe('Renamed Tenant');
     expect(ctx.features).toEqual({beta: true});
+
+    // tenant.config.changed rode the update's OWN transaction (AU4 commit-and-publish): one audit
+    // row + one outbox row, field NAMES only in the detail (never values — PII posture).
+    const audit = await owner.query(
+      `SELECT detail FROM audit.audit_events WHERE tenant_id = $1 AND action = 'tenant.config.changed'`,
+      [TENANT],
+    );
+    expect(audit.rows).toHaveLength(1);
+    expect(audit.rows[0].detail).toEqual({changedFields: ['displayName', 'features']});
+    expect(JSON.stringify(audit.rows[0].detail)).not.toContain('Renamed Tenant');
+    const outbox = await owner.query(
+      `SELECT count(*)::int AS n FROM event.event_outbox WHERE tenant_id = $1 AND event_type = 'tenant.config.changed'`,
+      [TENANT],
+    );
+    expect(outbox.rows[0].n).toBe(1);
   });
 
   it('rejects an invalid patch body → 422', async () => {

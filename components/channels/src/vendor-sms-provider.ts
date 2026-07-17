@@ -21,7 +21,7 @@ import {
 } from '@platform/contracts';
 import type {DrizzleMessageRepository} from '@platform-internal/drizzle';
 import {MESSAGING_REPLY_SEND, type MessageSendResult, type OutboundInput} from './messaging.js';
-import type {ProviderCredentialStore} from './credential-store.js';
+import type {ProviderCredentialStore} from '@platform/contracts';
 import type {SmsChannelTransport} from './sms-transport.js';
 
 export const TWILIO_SMS_PROVIDER_ID = 'twilio-sms';
@@ -105,7 +105,7 @@ export class VendorSmsProvider implements ProviderAdapter<OutboundInput, Message
       throw new Error(`circuit open for ${this.providerId}`);
     }
 
-    const config = await this.credentials.resolve(ctx.tenantId as TenantId, this.providerId, this.capability);
+    const config = (await this.credentials.resolve(ctx.tenantId as TenantId, this.providerId, this.capability)).config;
     const text = input.body ?? input.template ?? '';
     const conversationId = input.conversationId ?? `cnv_${shortHash(input.to, 16)}`;
 

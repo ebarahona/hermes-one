@@ -13,6 +13,7 @@ import 'reflect-metadata';
 import {fileURLToPath} from 'node:url';
 import {NativeConnection, Worker} from '@temporalio/worker';
 import {loadConfig, type HermesConfig} from '@platform-internal/config';
+import {StaticProviderCredentialStore} from '@platform-internal/secrets';
 import {
   CapabilityRegistryComponent,
   ObservabilityComponent,
@@ -100,7 +101,19 @@ export async function createActivityWorker(): Promise<Worker> {
     activities: withPlatformFailures({
       ...createRuleActivities(ruleRuntime),
       ...createPlanActivities(plans),
-      ...createCapabilityActivities(invoker, registry.lookup),
+      ...createCapabilityActivities(
+        invoker,
+        registry.lookup,
+        // ProviderCredentialStore (S7/PE7): explicit bundles only — internal-message-log is
+        // credential-less ({}); twilio-sms gets the env bundle when SMS is configured; anything
+        // else stays fail-closed at the store. The ADR-026 per-tenant envelope store swaps in here.
+        new StaticProviderCredentialStore({
+          'internal-message-log': {},
+          ...(cfg.sms
+            ? {'twilio-sms': {accountSid: cfg.sms.accountSid, authToken: cfg.sms.authToken, from: cfg.sms.from}}
+            : {}),
+        }),
+      ),
       ...createDecisionActivities(audit),
     }),
     taskQueue: ACTIVITY_QUEUE,

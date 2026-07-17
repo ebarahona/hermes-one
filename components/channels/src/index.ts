@@ -22,11 +22,6 @@ export {
   TWILIO_SMS_PROVIDER_ID,
   type CircuitConfig,
 } from './vendor-sms-provider.js';
-export {
-  StaticProviderCredentialStore,
-  MissingCredentialsError,
-  type ProviderCredentialStore,
-} from './credential-store.js';
 
 export const descriptor = {
   name: '@platform-internal/channels',

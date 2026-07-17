@@ -30,6 +30,7 @@
     "@platform-internal/drizzle": "workspace:*",
     "@platform-internal/loopback-core": "workspace:*",
     "@platform-internal/redis": "workspace:*",
+    "@platform-internal/secrets": "workspace:*",
     "@platform/contracts": "workspace:*"
   },
   "devDependencies": {

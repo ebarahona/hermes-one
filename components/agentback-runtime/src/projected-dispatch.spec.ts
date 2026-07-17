@@ -40,7 +40,7 @@ const SLOT_READ = {
 const ctx = (): ProjectionContext => ({
   tenantId: 'tnt_elec_demo' as ProjectionContext['tenantId'],
   facts: {},
-  providerConfig: {slotTemplates: '14:00:00-05:00'},
+  providerConfigFor: async () => ({slotTemplates: '14:00:00-05:00'}),
   idempotencyKeyFor: () => 'idem_projected',
 });
 

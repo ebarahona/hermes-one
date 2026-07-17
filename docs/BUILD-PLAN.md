@@ -26,21 +26,21 @@ Follow-through edits owned by later phases: `migrations-and-seed.md:212` (027), 
 stamping (028, Phase 1 since that file is already open there), `table-catalog.md` + secrets doc
 amendments (026, Phase 1).
 
-## Phase 1 — The credential spine 🔄 (S1 · S2 · S6 · S7 · PE7 → unblocks PE5, P3, P4)
+## Phase 1 — The credential spine 🔄 (S1 · S2 · S6 remaining; S7 ✅ · PE7 ✅ 2026-07-17)
 
 The one build that changes what the product can do: **a second tenant with its own vendor account.**
 Today the credential store is env-backed and tenant-agnostic, its PORT is trapped in the edge plane
 (`components/channels`, so the agent plane structurally cannot import it — root cause of PE7), and
 BOTH planes pass `providerConfig: {}`.
 
-1. **S7 (structural, first):** move the `ProviderCredentialStore` port to `@platform/contracts`
+1. ✅ **S7 (structural, DONE 2026-07-17):** move the `ProviderCredentialStore` port to `@platform/contracts`
    beside every other port; create `infrastructure/secrets` (plane `none`) — the member the spec
    already assigns; wire BOTH dead call sites (`agent-activity.ts`, `capability-activities.ts`).
 2. **ADR-026 store:** `capability.provider_credentials` table (envelope-encrypted, RLS'd, per
    `(tenant, provider, capability)`), `EnvelopeCredentialStore` in `infrastructure/secrets`, a
    dev-mode local cipher so no cloud account is needed to test — cloud KMS is one adapter behind
    the port, never a prerequisite.
-3. **ADR-028 alignment** (`CapabilityInvoker` evidence stamping) rides along — same files open.
+3. ✅ **ADR-028 alignment (DONE 2026-07-17)** (`CapabilityInvoker` evidence stamping) rides along — same files open.
 4. **Prove with Pack E:** the scheduler provider reads per-tenant config through the real chain.
    Real vendor creds (available for testing) enter only as gitignored env for a MANUAL gate.
 

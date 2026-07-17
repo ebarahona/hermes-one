@@ -43,7 +43,7 @@ const BOOKING_CREATE = {
 const ctx = (): ProjectionContext => ({
   tenantId: 'tnt_test' as ProjectionContext['tenantId'],
   facts: {},
-  providerConfig: {},
+  providerConfigFor: async () => ({}),
   idempotencyKeyFor: (capability, input) => `trn_test:${capability}:${JSON.stringify(input)}`,
 });
 
@@ -165,7 +165,10 @@ describe('CapabilityToolProjector', () => {
     const execute = vi.fn(async () => ({slots: ['2026-07-20T14:00:00-05:00']}));
     const resolve = vi.fn(async () => adapter(execute));
     const p = new CapabilityToolProjector(resolve);
-    const {bindings} = p.project([SLOT_READ], ctx());
+    // Credentials resolve per (capability, providerId) AFTER ranking — the bundle the store returns
+    // is exactly what reaches the adapter as ProviderExecutionContext.config (PE7).
+    const providerConfigFor = vi.fn(async () => ({slotTemplates: '09:00:00-05:00'}));
+    const {bindings} = p.project([SLOT_READ], {...ctx(), providerConfigFor});
 
     const binding = bindings.get('appointment.slot.read')!;
     const Ctor = binding.ctor as new () => Record<string, (i: unknown) => Promise<unknown>>;
@@ -175,6 +178,7 @@ describe('CapabilityToolProjector', () => {
     // Unwrapped — NOT a ToolResult envelope (the executor synthesizes that upstream, ADR-018).
     expect(out).toEqual({slots: ['2026-07-20T14:00:00-05:00']});
     expect(resolve).toHaveBeenCalledWith('appointment.slot.read', SLOT_READ.providerMapping, {});
+    expect(providerConfigFor).toHaveBeenCalledWith('appointment.slot.read', 'internal-scheduler');
     expect(execute).toHaveBeenCalledWith(
       {date: '2026-07-20'},
       expect.objectContaining({
@@ -183,6 +187,7 @@ describe('CapabilityToolProjector', () => {
         // The key is derived from the INPUT, not the capability alone — two calls with different
         // arguments in one turn must not collide.
         idempotencyKey: 'trn_test:appointment.slot.read:{"date":"2026-07-20"}',
+        config: {slotTemplates: '09:00:00-05:00'},
       }),
     );
   });

@@ -189,7 +189,10 @@ describe('CapabilityInvoker — resolves + executes + envelopes', () => {
     expect(res.stateChanged).toBe(true);
     expect(res.changedDomains).toEqual(['messaging', 'conversation']);
     expect(res.evidence[0].kind).toBe('tool-output');
-    expect(res.evidence[0].source).toBe('provider');
+    // ADR-028: an invoked capability's tool-output is authoritative/trusted (trusted:false is the
+    // RETRIEVED-content injection defense); ADR-009 composition grounds only on trusted evidence.
+    expect(res.evidence[0].source).toBe('authoritative');
+    expect(res.evidence[0].trusted).toBe(true);
     expect(res.metrics.providerId).toBe('twilio');
   });
 

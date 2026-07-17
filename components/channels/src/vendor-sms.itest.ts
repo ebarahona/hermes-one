@@ -18,7 +18,7 @@ import {
   type CapabilityLookup,
 } from '@platform/capability-contract';
 import type {CapabilityContract, CapabilityName, IsoTimestamp, ToolCall, ToolCallId, TurnId} from '@platform/contracts';
-import {StaticProviderCredentialStore} from './credential-store.js';
+import {StaticProviderCredentialStore} from '@platform-internal/secrets';
 import {MESSAGING_REPLY_SEND, PersistingMessageProvider, messagingReplySendContract, type OutboundInput} from './messaging.js';
 import {SmsChannelTransport} from './sms-transport.js';
 import {TWILIO_SMS_PROVIDER_ID, VendorSmsProvider} from './vendor-sms-provider.js';

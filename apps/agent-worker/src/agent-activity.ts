@@ -35,6 +35,7 @@ import {loadConfig} from '@platform-internal/config';
 import {createOpenAICompatibleModel, type SingleStepModel} from '@platform-internal/model-client';
 import {createAgentPlaneApp, CapabilityToolProjector} from '@platform-internal/agentback-runtime';
 import {InternalSchedulerProvider} from '@platform-internal/scheduler';
+import {StaticProviderCredentialStore} from '@platform-internal/secrets';
 import {
   PlatformToolExecutor,
   createEnvelopeHook,
@@ -53,7 +54,14 @@ import {
   type TurnLedgerRows,
   type HandoffTaskRow,
 } from '@platform-internal/drizzle';
-import {correlationFromWorkspace, type IsoTimestamp, type Logger, type Meter, type PrincipalId} from '@platform/contracts';
+import {
+  correlationFromWorkspace,
+  type IsoTimestamp,
+  type Logger,
+  type Meter,
+  type PrincipalId,
+  type ProviderCredentialStore,
+} from '@platform/contracts';
 import {
   JsonLogger,
   RedactingLogger,
@@ -142,6 +150,7 @@ interface Booted {
   tracer: Tracer;
   tracing: TracingHandle;
   projector: CapabilityToolProjector;
+  credentials: ProviderCredentialStore;
 }
 let booted: Promise<Booted> | undefined;
 
@@ -167,7 +176,13 @@ function boot(): Promise<Booted> {
     const projector = new CapabilityToolProjector((capability, mapping, facts) =>
       new ProviderResolver(providers).resolve(capability, mapping, facts),
     );
-    return {app, server, model, store, persistence, tracer: tracing.tracer, tracing, projector};
+    // ProviderCredentialStore (port in @platform/contracts, impl in the plane-neutral
+    // infrastructure/secrets — ledger S7): the agent plane could never import the old edge-plane
+    // store, which is WHY providerConfig was {} here (PE7). internal-scheduler is credential-less —
+    // an EXPLICIT empty bundle; absence stays fail-closed. The per-tenant envelope store (ADR-026)
+    // swaps in behind this same port.
+    const credentials = new StaticProviderCredentialStore({[new InternalSchedulerProvider().providerId]: {}});
+    return {app, server, model, store, persistence, tracer: tracing.tracer, tracing, projector, credentials};
   })());
 }
 
@@ -251,7 +266,7 @@ export async function agentTurn(request: TurnRequest, trace?: TraceHeader): Prom
 }
 
 async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<TurnResult> {
-  const {app, server, model, store, persistence, tracer, projector} = await boot();
+  const {app, server, model, store, persistence, tracer, projector, credentials} = await boot();
   const tenantId = request.workspace.tenantRuntime.tenantId as TenantId;
   const scopes = request.workspace.principal.scopes as Scope[];
   const principalId = request.workspace.principal.id as PrincipalId;
@@ -301,7 +316,10 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
   const projected = projector.project(eligible, {
     tenantId,
     facts,
-    providerConfig: {},
+    // Credentials resolve per (tenant, provider, capability) AFTER ranking picks the adapter (PE7
+    // closed): the record's decrypted bundle becomes ProviderExecutionContext.config.
+    providerConfigFor: async (capability, providerId) =>
+      (await credentials.resolve(tenantId, providerId, capability)).config,
     // Canonical material: turnId + name + the contract's keyFields values (deriveIdempotencyKey;
     // tool-projection.md "Idempotency key"). keyFields come from the INPUT, so two calls to one
     // capability with different arguments in a turn get distinct keys.

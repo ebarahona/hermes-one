@@ -1,0 +1,14 @@
+// @platform-internal/secrets — infrastructure (none plane). The secrets member the spec assigns
+// (security/secrets-and-key-management.md): ProviderCredentialStore implementations live here so
+// BOTH planes can wire them (the port itself is in @platform/contracts, ADR-026/ledger S7). The
+// envelope-encrypted per-tenant store (ADR-026) is the next adapter behind the same port.
+export {StaticProviderCredentialStore, MissingCredentialsError} from './static-credential-store.js';
+
+export const descriptor = {
+  name: '@platform-internal/secrets',
+  role: 'infrastructure',
+  plane: 'none',
+  published: false,
+  sourceDocs: ['security/secrets-and-key-management'],
+  governedBy: ['ADR-025', 'ADR-026'],
+} as const;

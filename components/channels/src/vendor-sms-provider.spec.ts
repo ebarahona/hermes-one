@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import type {DrizzleMessageRepository} from '@platform-internal/drizzle';
 import type {OutboundMessage, ProviderExecutionContext, TenantId} from '@platform/contracts';
-import {StaticProviderCredentialStore} from './credential-store.js';
+import {StaticProviderCredentialStore} from '@platform-internal/secrets';
 import {MESSAGING_REPLY_SEND, type OutboundInput} from './messaging.js';
 import type {SmsChannelTransport} from './sms-transport.js';
 import {TWILIO_SMS_PROVIDER_ID, VendorSmsProvider} from './vendor-sms-provider.js';

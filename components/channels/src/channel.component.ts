@@ -17,7 +17,7 @@ import {
 import type {HermesConfig} from '@platform-internal/config';
 import {PersistingMessageProvider} from './messaging.js';
 import {SmsChannelTransport} from './sms-transport.js';
-import {StaticProviderCredentialStore} from './credential-store.js';
+import {StaticProviderCredentialStore} from '@platform-internal/secrets';
 import {VendorSmsProvider, TWILIO_SMS_PROVIDER_ID} from './vendor-sms-provider.js';
 
 export class ChannelComponent implements Component, PlatformComponentBoundary {

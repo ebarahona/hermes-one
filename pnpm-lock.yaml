@@ -59,6 +59,9 @@ importers:
       '@platform-internal/redis':
         specifier: workspace:*
         version: link:../../infrastructure/redis
+      '@platform-internal/secrets':
+        specifier: workspace:*
+        version: link:../../infrastructure/secrets
       '@platform-internal/temporal-client':
         specifier: workspace:*
         version: link:../../infrastructure/temporal-client
@@ -155,6 +158,9 @@ importers:
       '@platform-internal/scheduler':
         specifier: workspace:*
         version: link:../../infrastructure/scheduler
+      '@platform-internal/secrets':
+        specifier: workspace:*
+        version: link:../../infrastructure/secrets
       '@platform-internal/telemetry':
         specifier: workspace:*
         version: link:../../infrastructure/telemetry
@@ -428,6 +434,9 @@ importers:
       '@platform-internal/redis':
         specifier: workspace:*
         version: link:../../infrastructure/redis
+      '@platform-internal/secrets':
+        specifier: workspace:*
+        version: link:../../infrastructure/secrets
       '@platform/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
@@ -589,6 +598,12 @@ importers:
         version: link:../config
 
   infrastructure/scheduler:
+    dependencies:
+      '@platform/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+
+  infrastructure/secrets:
     dependencies:
       '@platform/contracts':
         specifier: workspace:*

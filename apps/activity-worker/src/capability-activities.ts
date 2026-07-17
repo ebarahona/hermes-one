@@ -11,6 +11,7 @@ import {
 import type {
   CapabilityName,
   IsoTimestamp,
+  ProviderCredentialStore,
   TenantId,
   ToolCallId,
   TurnId,
@@ -25,7 +26,11 @@ export interface InvokeCapabilityArgs {
   correlationId: string;
 }
 
-export function createCapabilityActivities(invoker: CapabilityInvoker, lookup: CapabilityLookup) {
+export function createCapabilityActivities(
+  invoker: CapabilityInvoker,
+  lookup: CapabilityLookup,
+  credentials?: ProviderCredentialStore,
+) {
   return {
     async invokeCapability(a: InvokeCapabilityArgs): Promise<{
       delivered: boolean;
@@ -48,7 +53,22 @@ export function createCapabilityActivities(invoker: CapabilityInvoker, lookup: C
           idempotencyKey,
           proposedAt: now,
         },
-        {turnId, tenantId: a.tenantId as TenantId, facts: {}, now, providerConfig: {}},
+        {
+          turnId,
+          tenantId: a.tenantId as TenantId,
+          facts: {},
+          now,
+          providerConfig: {},
+          // PE7 (edge half): credentials resolve per (tenant, provider, capability) once ranking
+          // picks the adapter. Absent store → legacy {} (VendorSmsProvider still self-resolves —
+          // convergence onto this seam rides the ADR-026 envelope store, flagged S7).
+          ...(credentials
+            ? {
+                providerConfigFor: async (providerId: string) =>
+                  (await credentials.resolve(a.tenantId as TenantId, providerId, a.capability as CapabilityName)).config,
+              }
+            : {}),
+        },
       );
 
       const output = result.output as {providerMessageId?: string} | null;

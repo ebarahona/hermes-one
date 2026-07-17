@@ -37,6 +37,7 @@
     "@platform-internal/config": "workspace:*",
     "@platform-internal/model-client": "workspace:*",
     "@platform-internal/scheduler": "workspace:*",
+    "@platform-internal/secrets": "workspace:*",
     "@platform-internal/telemetry": "workspace:*",
     "@platform-internal/temporal-client": "workspace:*",
     "@platform-internal/tool-executor": "workspace:*",

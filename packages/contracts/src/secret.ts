@@ -6,6 +6,8 @@
 // composition-root.ts). NO resolved secret value is ever logged, stored in a definition body,
 // prompt, or the config object at rest — config carries only `secret://` refs.
 import {z} from 'zod';
+import type {CapabilityName} from './capability.js';
+import type {IsoTimestamp, TenantId} from './substrate.js';
 
 /** `secret://<store>/<path...>` — the ONE secret-pointer grammar used everywhere in the platform
  *  (binding-key-registry.md CONFIG, authentication-strategies.md jwksRef/trustBundleRef,
@@ -26,10 +28,46 @@ export interface ResolvedSecret {
 /**
  * Bound at platform.config.secret-provider. Lazily resolves any SecretRef against the backing
  * store; caches with TTL; never logs a resolved value. The ONLY component that talks to the secret
- * manager's read API directly.
+ * manager's read API directly. Canonical per ADR-025 (secrets-registry.md's competing port is
+ * superseded); this chain carries PLATFORM secrets only — O(1) in tenants.
  */
 export interface SecretProvider {
   resolve(ref: SecretRef): Promise<ResolvedSecret>;
   /** Drop a cached entry (called on a rotation event so the next resolve() re-fetches). */
   invalidate(ref: SecretRef): void;
+}
+
+/* --------------------- Tenant provider credentials (ADR-026) --------------------- */
+
+/**
+ * One tenant's credential set for one provider serving one capability — the SECOND trust chain
+ * (ADR-026): envelope-encrypted rows under the tenant CMK, NOT secret-manager entries (per-secret
+ * pricing/quotas are O(tenants × providers) on the dispatch hot path). Deviation from
+ * security/secrets-and-key-management.md:199-223 RATIFIED by ADR-026: the record carries the
+ * DECRYPTED `config` (decrypt happens behind the port — only one component touches key material),
+ * reconciling that doc's interface-vs-sequence-diagram conflict (ledger S6); the orphaned
+ * `configKey` is deleted — the (tenant, provider, capability) tuple IS the identifier.
+ */
+export interface ProviderCredentialRecord {
+  readonly tenantId: TenantId;
+  readonly providerId: string;
+  readonly capability: CapabilityName;
+  /** Decrypted bundle for ProviderExecutionContext.config. NEVER logged, NEVER in a contract body. */
+  readonly config: Readonly<Record<string, string>>;
+  readonly status: 'active' | 'rotating' | 'revoked';
+  readonly rotatedAt: IsoTimestamp;
+}
+
+/**
+ * Bound at platform.provider.credentialStore (camelCase per the spec's own registry-sync list).
+ * Fail-closed: no bundle → throws (never silently send); a credential-LESS internal provider is an
+ * EXPLICIT empty bundle, not an absent one. `rotate`/`revoke` land with the envelope store
+ * (flagged — the static stand-in cannot honor them meaningfully).
+ */
+export interface ProviderCredentialStore {
+  resolve(
+    tenantId: TenantId,
+    providerId: string,
+    capability: CapabilityName,
+  ): Promise<ProviderCredentialRecord>;
 }

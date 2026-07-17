@@ -102,8 +102,13 @@ export interface ProjectionContext {
   tenantId: TenantId;
   /** Tenant-runtime facts the resolver evaluates provider eligibility against. */
   facts: Record<string, unknown>;
-  /** Secrets resolved from the chosen provider's configKey — never logged, never in the contract. */
-  providerConfig: Readonly<Record<string, string>>;
+  /**
+   * Resolves the chosen provider's credential bundle (ProviderCredentialStore behind the caller's
+   * wiring — ADR-026). Called AFTER ranking, because only then is the providerId known. Fail-closed:
+   * a provider with no bundle throws; a credential-less internal provider is an explicit `{}`.
+   * Never logged, never in the contract.
+   */
+  providerConfigFor: (capability: CapabilityName, providerId: string) => Promise<Readonly<Record<string, string>>>;
   /**
    * Derived from the capability's IdempotencySpec — `turnId + name + keyFields` values
    * (deriveIdempotencyKey; tool-projection.md "Idempotency key"). It takes the INPUT because the
@@ -194,11 +199,12 @@ export class CapabilityToolProjector {
           // handoff is NOT yet wired — flagged, see DEFERRED-AND-FLAGGED PE6).
           const adapter = await resolve(contract.name, contract.providerMapping, ctx.facts);
           ctx.onProviderResolved?.(contract.name, adapter.providerId);
+          const config = await ctx.providerConfigFor(contract.name, adapter.providerId);
           return adapter.execute(input, {
             tenantId: ctx.tenantId,
             capability: contract.name,
             idempotencyKey: ctx.idempotencyKeyFor(contract.name, input),
-            config: ctx.providerConfig,
+            config,
           });
         },
         writable: true,

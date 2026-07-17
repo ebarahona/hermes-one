@@ -26,8 +26,15 @@ export interface InvokeContext {
   facts: Record<string, unknown>;
   /** Observation timestamp for synthesized evidence (the activity's clock). */
   now: IsoTimestamp;
-  /** Secrets resolved from the chosen provider's configKey — never logged, never in the contract. */
+  /** Static bundle fallback (legacy call sites). Superseded by providerConfigFor when present. */
   providerConfig: Readonly<Record<string, string>>;
+  /**
+   * Resolves the chosen provider's credential bundle per (tenant, provider, capability) — the
+   * ProviderCredentialStore chain (ADR-026). Called AFTER ranking, because only then is the
+   * providerId known. Fail-closed at the store; a credential-less internal provider is an
+   * explicit `{}` bundle. Never logged.
+   */
+  providerConfigFor?: (providerId: string) => Promise<Readonly<Record<string, string>>>;
 }
 
 /** Looks up the pinned CapabilityContract for a name (from the active deployment's manifest). */
@@ -50,11 +57,12 @@ export class CapabilityInvoker {
 
     const started = Date.now();
     try {
+      const config = ctx.providerConfigFor ? await ctx.providerConfigFor(provider.providerId) : ctx.providerConfig;
       const output = await provider.execute(call.input, {
         tenantId: ctx.tenantId,
         capability: call.capability,
         idempotencyKey: call.idempotencyKey,
-        config: ctx.providerConfig,
+        config,
       });
       return ToolResult.parse({
         toolCallId: call.toolCallId,
@@ -110,8 +118,12 @@ export class CapabilityInvoker {
       capability: call.capability,
       statement: `${call.capability} via ${providerId} returned a result`,
       data,
-      source: 'provider',
-      trusted: false,
+      // ADR-028: a schema-validated result from a capability the platform authored, gated, and
+      // invoked is authoritative/trusted — `trusted:false` is the RETRIEVED-content injection
+      // defense. This aligns with the agent plane's envelope hook and the canonical example in
+      // agent-runtime-contracts.md §JSON examples; ADR-009 composition grounds only on trusted.
+      source: 'authoritative',
+      trusted: true,
       observedAt: ctx.now,
     };
   }

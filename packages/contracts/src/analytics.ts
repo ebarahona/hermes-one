@@ -10,9 +10,7 @@
 // slice (they need audit-and-replay.md's SimulationService) — transcribed there when built.
 import {z} from 'zod';
 import {TenantId, IsoTimestamp} from './substrate.js';
-import type {MeterKind} from './audit.js';
-// MeterKind is a TYPE-only import here: the ReconciliationReport.deltas record is keyed by z.string()
-// (MeterKind values) per the Zod-v4 exhaustive-enum-record note below; the service signatures use it as a type.
+import {MeterKind} from './audit.js';
 
 /* -------------------------- Cost / token analytics ------------------------ */
 
@@ -21,12 +19,12 @@ export const ReconciliationReport = z.object({
   period: z.string().regex(/^\d{4}-\d{2}$/),
   status: z.enum(['ok', 'drift']),
   /**
-   * Per-meterKind delta between UsageRecord.summarize() and agentback's own export. Empty when 'ok'.
-   * DEVIATION (flagged): the spec writes `z.record(MeterKind, …)`, but under Zod v4 an enum-keyed record
-   * is EXHAUSTIVE (all keys required) — which rejects the `{}`/partial deltas this report needs — so we use
-   * `z.record(z.string(), …)`; the keys are still MeterKind values (only drifting meters appear).
+   * Per-meterKind delta between UsageRecord.summarize() and agentback's own export. Empty when 'ok';
+   * only drifting meters appear. Keyed by MeterKind via `z.partialRecord` — an enum-keyed record that
+   * is NOT exhaustive (the spec's `z.record(MeterKind, …)` would require every key present under Zod v4;
+   * `partialRecord` keeps the MeterKind key type while allowing the partial/empty maps this report needs).
    */
-  deltas: z.record(z.string(), z.object({platformTotal: z.number(), agentbackTotal: z.number(), diffPct: z.number()})),
+  deltas: z.partialRecord(MeterKind, z.object({platformTotal: z.number(), agentbackTotal: z.number(), diffPct: z.number()})),
   toleranceDiffPct: z.number(),
   reconciledAt: IsoTimestamp,
 });

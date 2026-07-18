@@ -164,15 +164,20 @@ export async function runTurn(request: TurnRequest, deps: TurnDeps): Promise<Tur
       .filter((x): x is TurnLedgerToolExecution => x !== null);
   };
 
-  // The initial handoff request, built from the stopping decision + grounded evidence (ADR-012). A
-  // policy/confirm gate → 'policy-required'; anything else the turn couldn't ground → 'agent-uncertain'.
+  // An explicit handoff cause set by a stopping path that isn't a policy gate — a provider that must
+  // route to a human (PE6, onNoProvider:'handoff'), or a reply that failed bounded repair (A2).
+  let handoffOverride: {reason: HandoffReason; summary: string} | undefined;
+
+  // The initial handoff request, built from the stopping cause + grounded evidence (ADR-012). An
+  // explicit override wins; else a policy/confirm gate → 'policy-required'; else 'agent-uncertain'.
   const buildHandoff = (): TurnLedgerHandoff => {
     const gatedForHuman = gateDecision?.outcome === 'handoff' || gateDecision?.outcome === 'approval';
-    const reason: HandoffReason = gatedForHuman ? 'policy-required' : 'agent-uncertain';
+    const reason: HandoffReason = handoffOverride?.reason ?? (gatedForHuman ? 'policy-required' : 'agent-uncertain');
+    const summary = handoffOverride?.summary ?? gateDecision?.reason ?? 'Agent handed off to a human';
     return {
       handoffId: `hof_${createHash('sha256').update(req.turnId).digest('hex').slice(0, 24)}` as HandoffId,
       reason,
-      summary: gateDecision?.reason ?? 'Agent handed off to a human',
+      summary,
       evidenceSnapshot: [...evidence],
       triggeringTurnId: req.turnId,
       conversationId: req.workspace.conversationId,
@@ -291,6 +296,17 @@ export async function runTurn(request: TurnRequest, deps: TurnDeps): Promise<Tur
     for (const d of result.changedDomains) {
       if (d !== 'none' && !dirtyDomains.includes(d)) dirtyDomains.push(d);
     }
+
+    // PE6: the capability had no eligible provider and its mapping says onNoProvider:'handoff' →
+    // route the turn to a human now, rather than re-prompting the model against a capability that
+    // cannot run (ADR-019). The failed ToolResult is already recorded above for the audit trail.
+    if (dispatch.pendingHandoff) {
+      handoffOverride = {
+        reason: 'error-escalation',
+        summary: `No provider available for ${call.capability}: ${dispatch.pendingHandoff.reason}`,
+      };
+      return finish('handoff');
+    }
     // SELECTIVE REFRESH by changedDomains would re-read the dirty domains here before composing;
     // no read-back capability is wired in this build, so the hook is a documented no-op.
   }
@@ -311,9 +327,28 @@ export async function runTurn(request: TurnRequest, deps: TurnDeps): Promise<Tur
     }
     if (post.outcome === 'repair') {
       gateDecision = post;
-      // Bounded repair: re-compose is out of scope for this build; deliver the grounded draft and
-      // record the repair decision so the boundary is auditable (flagged).
-      return finish('replied', draft);
+      // BOUNDED repair (ADR-019, A2): re-compose ONCE under the policy's repairInstruction, then
+      // re-gate. A model-backed composer can satisfy the instruction; the default evidence-only
+      // composer cannot reshape a grounded reply, so it yields the same draft and the re-gate fails
+      // again → escalate to a human. Either way a reply a policy flagged for repair is never
+      // delivered unrepaired, and the budget is exactly one attempt (no repair loop).
+      const repaired = compose(ctx(), req.objective, lastText, post.detail?.repairInstruction);
+      const regate = deps.policy.runtime.evaluatePostGates(
+        deps.policy.plan,
+        policyCtx({draftReply: repaired, facts: {draftReply: repaired}}),
+      );
+      recordDecision('postGate', regate);
+      if (regate.outcome === 'allow') return finish('replied', repaired);
+      if (regate.outcome === 'deny') {
+        gateDecision = regate;
+        return finish('failed');
+      }
+      gateDecision = regate;
+      handoffOverride = {
+        reason: 'policy-required',
+        summary: regate.reason || 'Reply could not be repaired to satisfy policy',
+      };
+      return finish('handoff');
     }
   }
 

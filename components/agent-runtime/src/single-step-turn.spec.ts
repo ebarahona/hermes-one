@@ -261,3 +261,74 @@ describe('confirm: tools never project to an autonomous agent', () => {
     expect(() => selectTools(tools, {include: ['appointment.booking.create']})).toThrow(/confirm:/);
   });
 });
+
+describe('bounded post-gate repair (ADR-019, A2)', () => {
+  // A composer that HONORS the repair instruction (a model-backed composer would); used to prove the
+  // repaired reply is delivered when the re-gate then allows it.
+  const repairingComposer = (ctx: TurnContext, _obj: string, fallback?: string, instruction?: string) =>
+    instruction ? `repaired(${instruction}): ${fallback ?? 'ok'}` : (fallback ?? 'ok');
+
+  // Post-gate: 'repair' on the first (un-repaired) draft, 'allow' once the reply is repaired.
+  const repairThenAllow: PolicyRuntime = {
+    evaluatePreGates: () => ({outcome: 'allow', policyRuleId: '<default>', reason: 'ok', decidedAt: FIXED_NOW}),
+    evaluatePostGates: (_p, c) => {
+      const reply = String((c as {draftReply?: string}).draftReply ?? '');
+      return reply.startsWith('repaired(')
+        ? {outcome: 'allow', policyRuleId: 'r_tone', reason: 'repaired ok', decidedAt: FIXED_NOW}
+        : {outcome: 'repair', policyRuleId: 'r_tone', reason: 'soften tone', detail: {repairInstruction: 'soften tone'}, decidedAt: FIXED_NOW};
+    },
+    toVoters: () => [],
+  };
+
+  it('re-composes ONCE under the repair instruction and delivers the repaired reply when it passes', async () => {
+    let captured: TurnLedger | undefined;
+    const result = await runTurn(testTurnRequest('reply please'), {
+      executor: {dispatch: async () => ({result: {toolCallId: 'tc_x', capability: 'noop' as CapabilityName, ok: true, output: {}, sideEffect: 'read', stateChanged: false, changedDomains: [], evidence: [], metrics: {latencyMs: 0, retries: 0, costUsd: 0, idempotentReplay: false}, error: null}})} as never,
+      decider: {propose: () => ({kind: 'done', reply: 'blunt reply', usage: noUsage})},
+      policy: {plan: emptyPolicyPlan, runtime: repairThenAllow},
+      compose: repairingComposer,
+      onPersist: async l => { captured = l; },
+      clock: {nowMs: () => 0},
+    });
+    expect(result.outcome).toBe('replied');
+    expect(result.reply).toBe('repaired(soften tone): blunt reply');
+    // both post-gate evaluations recorded (repair, then allow) — the boundary is auditable
+    const posts = captured!.policyDecisions.filter(d => d.site === 'postGate');
+    expect(posts.map(d => d.decision.outcome)).toEqual(['repair', 'allow']);
+  });
+
+  it('escalates to a human when the (default, non-reshaping) composer cannot satisfy the repair', async () => {
+    let captured: TurnLedger | undefined;
+    const result = await runTurn(testTurnRequest('reply please'), {
+      executor: {dispatch: async () => ({result: {toolCallId: 'tc_x', capability: 'noop' as CapabilityName, ok: true, output: {}, sideEffect: 'read', stateChanged: false, changedDomains: [], evidence: [], metrics: {latencyMs: 0, retries: 0, costUsd: 0, idempotentReplay: false}, error: null}})} as never,
+      decider: {propose: () => ({kind: 'done', reply: 'blunt reply', usage: noUsage})},
+      policy: {plan: emptyPolicyPlan, runtime: repairThenAllow}, // default composer never yields "repaired(" → stays repair
+      onPersist: async l => { captured = l; },
+      clock: {nowMs: () => 0},
+    });
+    expect(result.outcome).toBe('handoff');
+    expect(captured!.handoff?.reason).toBe('policy-required');
+  });
+});
+
+describe('provider onNoProvider:handoff routes the turn to a human (PE6)', () => {
+  it('a handoff-disposition dispatch ends the turn in handoff with error-escalation', async () => {
+    let captured: TurnLedger | undefined;
+    // The stub echoes the proposed call's id, exactly as the real executor does — so the failed
+    // result pairs into the ledger's toolExecutions for audit.
+    const failed = (c: ToolCall) => ({toolCallId: c.toolCallId, capability: c.capability, ok: false, output: null, sideEffect: 'read' as const, stateChanged: false, changedDomains: [], evidence: [], metrics: {latencyMs: 0, retries: 0, costUsd: 0, idempotentReplay: false}, error: {code: 'no_provider', message: 'all providers unhealthy', retryable: false}});
+    const result = await runTurn(testTurnRequest('book me'), {
+      executor: {dispatch: async (c: ToolCall) => ({result: failed(c), pendingHandoff: {reason: 'all providers unhealthy'}})} as never,
+      decider: stepThen(call('appointment.slot.read', {date: '2026-07-12'})),
+      policy: {plan: emptyPolicyPlan, runtime: allowRuntime},
+      onPersist: async l => { captured = l; },
+      clock: {nowMs: () => 0},
+    });
+    expect(result.outcome).toBe('handoff');
+    expect(captured!.handoff?.reason).toBe('error-escalation');
+    expect(captured!.handoff?.summary).toContain('No provider available for appointment.slot.read');
+    // the failed tool result is still on the ledger for audit
+    expect(captured!.toolExecutions).toHaveLength(1);
+    expect(captured!.toolExecutions[0].result.ok).toBe(false);
+  });
+});

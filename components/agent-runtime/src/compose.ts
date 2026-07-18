@@ -4,7 +4,19 @@
 // which by construction asserts no un-grounded facts. Retrieved/provider evidence is untrusted input.
 import type {TurnContext} from '@platform/contracts';
 
-export type Composer = (ctx: TurnContext, objective: string, fallbackText?: string) => string;
+/**
+ * `repairInstruction` is passed on a bounded post-gate repair (ADR-019): re-compose the reply to
+ * satisfy the policy's instruction while keeping the grounding. A model-backed composer honors it; the
+ * default evidence-only composer cannot (it may only restate grounded evidence, never reshape it), so
+ * a repair against the default composer yields the same draft and the loop escalates to a human —
+ * the safe outcome, since a reply a policy flagged for repair is never delivered unrepaired.
+ */
+export type Composer = (
+  ctx: TurnContext,
+  objective: string,
+  fallbackText?: string,
+  repairInstruction?: string,
+) => string;
 
 /** The default evidence-only composer: summarize grounded evidence statements, else the model's text. */
 export const composeEvidenceOnly: Composer = (ctx, _objective, fallbackText) => {

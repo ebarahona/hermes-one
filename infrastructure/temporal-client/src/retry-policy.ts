@@ -124,11 +124,10 @@ export const ERROR_CODE_TO_APPLICATION_FAILURE_TYPE: Record<ErrorCode, string> =
 };
 
 /**
- * DERIVED, not authored in `error-contracts.md`: which `ErrorCategory` each `ErrorCode` belongs to.
- * `error-contracts.md` defines `RETRYABLE_BY_CATEGORY` (keyed by category) and `HTTP_STATUS_BY_CODE`
- * (keyed by code) but no `code -> category` lookup. This table is inferred from the codes' names, the
- * JSON examples, and NAMING-CANON.md §5 (`tenant_not_resolved -> authorization`). Flagged in Open
- * Questions for upstream promotion into `error-contracts.md` as `CATEGORY_BY_CODE`.
+ * TRANSCRIBED VERBATIM from `error-contracts.md`'s canonical `CATEGORY_BY_CODE` (authored there
+ * 2026-07-17, T3): which `ErrorCategory` each `ErrorCode` belongs to — the complement to
+ * `RETRYABLE_BY_CATEGORY`/`HTTP_STATUS_BY_CODE`. The retry registry needs a code's retryability, which
+ * is a property of its category, so it consumes this lookup.
  */
 export const CATEGORY_BY_CODE: Record<ErrorCode, ErrorCategory> = {
   validation_failed: 'validation',

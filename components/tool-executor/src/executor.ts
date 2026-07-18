@@ -34,9 +34,16 @@ export type CapabilityMetaSource = (capability: CapabilityName) => CapabilityMet
 export interface DispatchResult {
   result: ToolResult;
   pendingConfirmation?: {token: string};
+  /**
+   * Present when the capability had NO eligible provider AND its `providerMapping.onNoProvider` is
+   * `'handoff'` (NoProviderError, capability-contract). The platform loop routes the turn to a human
+   * rather than re-prompting the model against a capability that cannot run (PE6 / ADR-019).
+   */
+  pendingHandoff?: {reason: string};
 }
 
 const CONFIRMATION_REQUIRED = 'confirmation_required';
+const NO_PROVIDER = 'no_provider';
 const MUTATING = new Set<SideEffectClass>(['write', 'external', 'payment']);
 const READ_META: CapabilityMeta = {sideEffect: 'read', changedDomains: ['none']};
 
@@ -135,6 +142,13 @@ export class PlatformToolExecutor implements ToolExecutor {
     } catch (err) {
       const fields = toErrorFields(err);
       const token = (err as {confirmationToken?: string}).confirmationToken;
+      // NoProviderError carries its onNoProvider disposition + reasons (capability-contract). Surface
+      // a handoff signal when the mapping says 'handoff' so the loop escalates instead of re-prompting.
+      const np = err as {code?: string; onNoProvider?: 'fail' | 'handoff'; reasons?: readonly string[]};
+      const pendingHandoff =
+        fields.code === NO_PROVIDER && np.onNoProvider === 'handoff'
+          ? {reason: (np.reasons ?? []).join('; ') || 'no eligible provider'}
+          : undefined;
       return {
         result: ToolResult.parse({
           toolCallId: call.toolCallId,
@@ -149,6 +163,7 @@ export class PlatformToolExecutor implements ToolExecutor {
           error: fields,
         }),
         ...(fields.code === CONFIRMATION_REQUIRED && token ? {pendingConfirmation: {token}} : {}),
+        ...(pendingHandoff ? {pendingHandoff} : {}),
       };
     }
   }

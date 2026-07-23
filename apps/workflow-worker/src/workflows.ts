@@ -45,6 +45,7 @@ interface EdgeActivities {
     input: Record<string, unknown>;
     tenantId: string;
     correlationId: string;
+    invokeSeq: number;
   }): Promise<{delivered: boolean; capability: string; ok: boolean; providerMessageId?: string}>;
   emitDecisionRule(a: {
     tenantId: string;
@@ -52,6 +53,7 @@ interface EdgeActivities {
     outcome: string;
     rulePlanId: string;
     occurredAt: string;
+    visitSeq: number;
   }): Promise<void>;
 }
 
@@ -105,17 +107,27 @@ function edgeEffects(
   tenantId: string,
   correlationId: string,
 ): WorkflowEffects {
+  // Deterministic per-run visit counter (workflow state — replay-stable): a plan that revisits the
+  // same rule node with the same outcome must emit a DISTINCT audit event, not tamper-reject on an
+  // id collision (the audit id covers the visit; the integrityHash covers occurredAt).
+  let ruleVisitSeq = 0;
+  // Deterministic per-run capability-invocation counter (workflow state — replay-stable, mirrors
+  // ruleVisitSeq): the activity folds it into the deterministic rail's derived turn identity, so two
+  // rule-driven invocations of one capability with equal keyFields in a run derive DISTINCT
+  // idempotency keys instead of the second side effect silently deduping. A Temporal retry of the
+  // SAME invocation replays the same recorded args → the same seq → the same identity.
+  let invokeSeq = 0;
   return {
     gatherFacts,
     // Evaluate the rule, then emit a `decision.rule` audit event — the deterministic-rail signal behind
-    // the deterministic-hit-rate KPI. One decision per inbound; idempotent on replay.
+    // the deterministic-hit-rate KPI. One decision per rule visit; idempotent on replay.
     evaluateRule: async (_ref: PinnedRef, facts, now) => {
       const result = await evaluateRule({rulePlan, parameters, facts, now});
-      await emitDecisionRule({tenantId, correlationId, outcome: result.outcome, rulePlanId: rulePlan.planId, occurredAt: now});
+      await emitDecisionRule({tenantId, correlationId, outcome: result.outcome, rulePlanId: rulePlan.planId, occurredAt: now, visitSeq: ruleVisitSeq++});
       return result;
     },
     invokeCapability: (capability, input) =>
-      invokeCapability({capability, input, tenantId, correlationId}),
+      invokeCapability({capability, input, tenantId, correlationId, invokeSeq: invokeSeq++}),
     now: () => new Date().toISOString() as IsoTimestamp,
   };
 }
@@ -143,6 +155,10 @@ export async function runTriage(ref: WorkflowRunRef) {
   const workflowPlan = await loadWorkflowPlan({tenantId: ref.tenantId, ...ref.workflow});
   const rulePlan = await loadRulePlan({tenantId: ref.tenantId, ...ref.rule});
   const correlationId = workflowInfo().workflowId;
+  // Deterministic agent-visit counter (workflow state — replay-stable): each agent-node visit in one
+  // run gets its own turnId, so a second visit's tool executions/usage are durable rows of their own
+  // instead of colliding into the first turn's idempotency keys.
+  let agentVisitSeq = 0;
   const effects: WorkflowEffects = {
     ...edgeEffects(rulePlan, ref.parameters, ref.tenantId, correlationId),
     // the agent turn crosses to agent-worker (agent plane) as its own activity, carrying a serializable
@@ -157,6 +173,10 @@ export async function runTriage(ref: WorkflowRunRef) {
         // safe). The activity's wall clock stays for operational concerns only.
         buildAgentTurnRequest(
           ref.tenantId, pin, principal, engine, objective, input, correlationId,
+          // The REAL conversation id from the ingest edge — a handoff turn persists its durable
+          // handoff_tasks row only when this is non-null (conversation_id NOT NULL).
+          ref.conversationId ?? null,
+          agentVisitSeq++,
           new Date().toISOString(),
         ),
         childTrace,

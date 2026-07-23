@@ -66,9 +66,14 @@ export function deriveAuditEvents(
     });
   }
 
-  // Deterministic id (replay-stable) over the row's material content + its position in the turn.
+  // Deterministic id (replay-stable) over the row's material content + its position in the turn. The
+  // id's correlation component is the TURN (turnId carries the workflow's per-visit sequence — mirrors
+  // the usage dedupeKey): keying on the workflow-wide correlationId made two agent-node visits in one
+  // run derive IDENTICAL ids for the same action/subject/seq while the integrityHash (covers turnId +
+  // occurredAt) differed → tamper-reject (409 idempotency_conflict, non-retryable) failed the second
+  // visit's persist. A Temporal retry of the SAME turn re-derives identical ids (turnId is retry-stable).
   return events.map((row, seq) => {
-    const id = `aud_${sha256hex(`${row.correlationId}:${row.action}:${row.subject}:${seq}`).slice(0, 24)}`;
+    const id = `aud_${sha256hex(`${row.turnId}:${row.action}:${row.subject}:${seq}`).slice(0, 24)}`;
     return {...row, id, integrityHash: integrityHash(row)} as AuditEvent;
   });
 }

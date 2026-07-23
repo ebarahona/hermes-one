@@ -8,9 +8,11 @@ import {loadConfig} from '@platform-internal/config';
 import type {CapabilityName, TenantId} from '@platform/contracts';
 import {
   EnvelopeCredentialStore,
+  FallbackCredentialStore,
   LocalAesGcmCipher,
   MissingCredentialsError,
   RevokedCredentialsError,
+  StaticProviderCredentialStore,
 } from '@platform-internal/secrets';
 import {runMigrations} from './migrate.js';
 import {createCredentialRowStore, type CredentialRowStoreHandle} from './client.js';
@@ -85,6 +87,31 @@ describe('provider_credentials (live, RLS)', () => {
     await store.revoke(TNT_A, 'twilio-sms', CAP);
     await expect(store.resolve(TNT_A, 'twilio-sms', CAP)).rejects.toThrow(RevokedCredentialsError);
     await store.rotate(TNT_A, 'twilio-sms', CAP, {accountSid: 'AC_v3', authToken: 'tok_v3'});
+    expect((await store.resolve(TNT_A, 'twilio-sms', CAP)).status).toBe('active');
+  });
+
+  it('revoking a tuple with NO prior row writes a durable revoked tombstone — no platform fallback', async () => {
+    const layered = new FallbackCredentialStore(
+      store,
+      new StaticProviderCredentialStore({'twilio-voice': {accountSid: 'AC_platform'}}),
+    );
+    // before: no tenant row → the tuple rides the platform bundle
+    expect((await layered.resolve(TNT_B, 'twilio-voice', CAP)).config).toEqual({accountSid: 'AC_platform'});
+
+    await layered.revoke(TNT_B, 'twilio-voice', CAP);
+
+    // the revocation intent is DURABLE — a revoked tombstone row, ciphertext never decrypted
+    const raw = await owner.query(
+      `SELECT status FROM capability.provider_credentials WHERE tenant_id = $1 AND provider_id = $2`,
+      [TNT_B, 'twilio-voice'],
+    );
+    expect(raw.rows).toEqual([{status: 'revoked'}]);
+
+    // fail-closed at both layers: never MissingCredentials → never the platform bundle
+    await expect(store.resolve(TNT_B, 'twilio-voice', CAP)).rejects.toThrow(RevokedCredentialsError);
+    await expect(layered.resolve(TNT_B, 'twilio-voice', CAP)).rejects.toThrow(RevokedCredentialsError);
+
+    // unaffected tuple: tenant A's own (rotated) credentials still resolve
     expect((await store.resolve(TNT_A, 'twilio-sms', CAP)).status).toBe('active');
   });
 });

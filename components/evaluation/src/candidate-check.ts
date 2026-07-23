@@ -85,8 +85,11 @@ function mockExecutor(
               capability: call.capability,
               statement: `simulated ${call.capability}: ${JSON.stringify(output)}`,
               data: {},
-              source: 'provider',
-              trusted: false,
+              // ADR-028: tool-output from an invoked capability is authoritative/trusted on EVERY
+              // path — the sim must stamp what prod stamps (envelope-hook.ts) or the publish gate
+              // exercises a different composeEvidenceOnly grounding than production.
+              source: 'authoritative',
+              trusted: true,
               observedAt: NOW,
             },
           ],

@@ -19,10 +19,14 @@ import {PlatformReject} from './platform-reject.js';
 const PLATFORM_ORDERED_GROUPS: readonly string[] = [
   RestMiddlewareGroups.SEND_RESPONSE, // outermost: catches downstream result/error → writes the response
   RestMiddlewareGroups.CORS,
-  RestMiddlewareGroups.API_SPEC,
   RestMiddlewareGroups.MIDDLEWARE,
   PlatformSequenceGroups.CORRELATION,
   PlatformSequenceGroups.AUTHENTICATION,
+  // API_SPEC runs AFTER authentication (LB4's default puts it right behind CORS): /openapi.json and
+  // /explorer expose the full route/schema surface — the exact leak "authorize-before-validate"
+  // exists to prevent — so the built-in spec endpoints authenticate like any route. Dev opts them
+  // back into anonymous serving via REST_PUBLIC_PATHS.
+  RestMiddlewareGroups.API_SPEC,
   RestMiddlewareGroups.FIND_ROUTE,
   RestMiddlewareGroups.PARSE_PARAMS,
   RestMiddlewareGroups.INVOKE_METHOD,

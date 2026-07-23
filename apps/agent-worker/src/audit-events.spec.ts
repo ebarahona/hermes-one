@@ -68,6 +68,18 @@ describe('deriveAuditEvents', () => {
     expect(a.map(e => e.integrityHash)).toEqual(b.map(e => e.integrityHash));
   });
 
+  it('folds the turn identity into the id — two visits with the same actions/subjects/seq derive distinct ids', () => {
+    // Two agent-node visits in one run: same workflow correlationId, same actions/subjects, only the
+    // turnId (per-visit sequence) differs. Ids must be pairwise distinct or the second visit's persist
+    // tamper-rejects (the integrityHash covers turnId + occurredAt and always differs).
+    const secondVisit: TurnLedger = {...ledger, turnId: 'trn_a_1' as TurnId};
+    const first = deriveAuditEvents(ledger, ctx);
+    const second = deriveAuditEvents(secondVisit, ctx);
+    first.forEach((e, i) => expect(second[i].id).not.toBe(e.id));
+    // Re-derivation under the SAME turnId (a Temporal retry of that turn) is stable.
+    expect(deriveAuditEvents(secondVisit, ctx).map(e => e.id)).toEqual(second.map(e => e.id));
+  });
+
   it('marks a failed tool invocation as error', () => {
     const failed = {...ledger, toolExecutions: [{call, result: {...okResult, ok: false, error: {code: 'x', message: 'boom', retryable: false}}}], policyDecisions: [], handoff: undefined};
     const events = deriveAuditEvents(failed as TurnLedger, ctx);

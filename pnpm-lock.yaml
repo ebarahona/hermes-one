@@ -201,6 +201,12 @@ importers:
       '@temporalio/client':
         specifier: ^1.20.2
         version: 1.20.2
+      '@types/pg':
+        specifier: ^8.20.0
+        version: 8.20.0
+      pg:
+        specifier: ^8.22.0
+        version: 8.22.0
 
   apps/api-gateway:
     dependencies:

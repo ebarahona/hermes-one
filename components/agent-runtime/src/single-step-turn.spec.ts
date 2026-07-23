@@ -311,6 +311,57 @@ describe('bounded post-gate repair (ADR-019, A2)', () => {
   });
 });
 
+describe('turn budget enforcement (over-budget short-circuits, agent-runtime-contracts "Bounded loop")', () => {
+  // The fixture's budgets: maxInputTokens 8000, maxOutputTokens 2000, maxModelCostUsd 1.
+  const costly = {inputTokens: 10, outputTokens: 10, costUsd: 2}; // over maxModelCostUsd
+  const modest = {inputTokens: 100, outputTokens: 50, costUsd: 0.01}; // within every bound
+  const okResult = (c: ToolCall) => ({toolCallId: c.toolCallId, capability: c.capability, ok: true, output: {}, sideEffect: 'read' as const, stateChanged: false, changedDomains: [], evidence: [], metrics: {latencyMs: 0, retries: 0, costUsd: 0, idempotentReplay: false}, error: null});
+
+  it("usage over maxModelCostUsd short-circuits to 'failed' (no reply) and records why on the ledger", async () => {
+    let captured: TurnLedger | undefined;
+    const result = await runTurn(testTurnRequest('list slots'), {
+      executor: {dispatch: async () => { throw new Error('unreachable'); }} as never,
+      decider: {propose: () => ({kind: 'done', reply: 'a pricey reply', usage: costly})},
+      onPersist: async l => { captured = l; },
+      clock: {nowMs: () => 0},
+    });
+    expect(result.outcome).toBe('failed');
+    expect(result.reply).toBeUndefined(); // over budget never delivers a reply
+    const record = result.evidence.find(e => e.kind === 'system' && e.statement.includes('budget'));
+    expect(record?.statement).toContain('maxModelCostUsd');
+    // the short-circuit is on the durable ledger: the system evidence row + the accumulated usage
+    expect(captured!.evidence.some(e => e.kind === 'system' && e.statement.includes('maxModelCostUsd'))).toBe(true);
+    expect(captured!.usage.modelCostUsd).toBe(2);
+  });
+
+  it('stops BEFORE buying another model call once accumulated usage is over budget', async () => {
+    let proposals = 0;
+    const result = await runTurn(testTurnRequest('list slots'), {
+      executor: {dispatch: async (c: ToolCall) => ({result: okResult(c)})} as never,
+      decider: {propose: () => {
+        proposals += 1;
+        return {kind: 'tool' as const, call: call('appointment.slot.read', {date: '2026-07-12'}), usage: costly};
+      }},
+      clock: {nowMs: () => 0},
+    });
+    expect(result.outcome).toBe('failed');
+    expect(proposals).toBe(1); // step 1's top-of-loop check tripped before a second proposal
+    expect(result.toolCalls).toHaveLength(1); // step 0's executed call stays on the record
+  });
+
+  it('a turn within its budgets behaves exactly as before — replied, no budget evidence', async () => {
+    const result = await runTurn(testTurnRequest('list slots'), {
+      executor: {dispatch: async () => { throw new Error('unreachable'); }} as never,
+      decider: {propose: () => ({kind: 'done', reply: 'all good', usage: modest})},
+      clock: {nowMs: () => 0},
+    });
+    expect(result.outcome).toBe('replied');
+    expect(result.reply).toBe('all good');
+    expect(result.evidence.some(e => e.kind === 'system')).toBe(false);
+    expect(result.metrics.modelCostUsd).toBe(0.01);
+  });
+});
+
 describe('provider onNoProvider:handoff routes the turn to a human (PE6)', () => {
   it('a handoff-disposition dispatch ends the turn in handoff with error-escalation', async () => {
     let captured: TurnLedger | undefined;

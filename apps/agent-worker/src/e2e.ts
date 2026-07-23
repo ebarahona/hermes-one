@@ -87,6 +87,9 @@ async function main() {
         bundle, c.input, E2E_TENANT,
         {deploymentId: deployed.deploymentId, version: deployed.version},
         principal,
+        // Mirrors the ingest edge's minting (`cnv_<short(from)>`) so a handoff turn persists its
+        // durable handoff_tasks row exactly as the live path does.
+        'cnv_15125559999',
       );
       ref.trace = {traceparent: EDGE_TRACEPARENT};
       const handle = await client.workflow.start('runTriage', {

@@ -52,8 +52,13 @@ export class LocalAesGcmCipher implements CredentialCipher {
     if (keyRef !== `local:${this.keyId}`) {
       throw new Error(`credential wrapped under a different key (${keyRef}) — rotate or supply that key`);
     }
-    const [iv, tag, data] = ciphertext.split(':').map(p => Buffer.from(p, 'base64url'));
-    const decipher = createDecipheriv('aes-256-gcm', this.subkey(tenantId), iv);
+    const parts = ciphertext.split(':');
+    if (parts.length !== 3) throw new Error('credential ciphertext malformed — expected iv:tag:data');
+    const [iv, tag, data] = parts.map(p => Buffer.from(p, 'base64url'));
+    // Full 16-byte GCM tag ONLY: Node accepts truncated (4/8/12-byte) tags, which would let a
+    // DB-level tamperer forge with 2^-32 instead of 2^-128 work. authTagLength pins the decipher too.
+    if (tag.length !== 16) throw new Error(`credential auth tag must be 16 bytes, got ${tag.length}`);
+    const decipher = createDecipheriv('aes-256-gcm', this.subkey(tenantId), iv, {authTagLength: 16});
     decipher.setAuthTag(tag);
     return Buffer.concat([decipher.update(data), decipher.final()]).toString('utf8');
   }

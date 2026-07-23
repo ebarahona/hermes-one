@@ -15,6 +15,14 @@ export interface EmitDecisionRuleArgs {
   outcome: string;      // the rule's routing outcome
   rulePlanId: string;
   occurredAt: string;   // workflow clock (deterministic across replay)
+  /**
+   * Deterministic per-run rule-visit ordinal, maintained IN THE WORKFLOW (replay-stable). Part of the
+   * id material (mirrors the per-turn seq in agent-worker audit-events.ts): without it a plan that
+   * revisits the same rule node with the same outcome reused the id while the integrityHash (which
+   * covers occurredAt — the workflow clock, different per visit) differed → tamper-reject (409,
+   * non-retryable) killed the run.
+   */
+  visitSeq: number;
 }
 
 export function createDecisionActivities(audit: DrizzleAuditSink) {
@@ -36,7 +44,7 @@ export function createDecisionActivities(audit: DrizzleAuditSink) {
         row.tenantId, row.principalId, row.action, row.correlationId, row.turnId, row.conversationId,
         row.subject, row.detail, row.outcome, row.occurredAt,
       ]);
-      const id = `aud_${sha256hex(`${a.correlationId}:decision.rule:${a.rulePlanId}:${a.outcome}`).slice(0, 24)}` as AuditEvent['id'];
+      const id = `aud_${sha256hex(`${a.correlationId}:decision.rule:${a.rulePlanId}:${a.outcome}:${a.visitSeq}`).slice(0, 24)}` as AuditEvent['id'];
       await audit.append({...row, id, integrityHash: `sha256:${sha256hex(canonical)}`});
     },
   };

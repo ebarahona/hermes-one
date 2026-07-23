@@ -84,6 +84,19 @@ describe('SmsChannelTransport.ingest (AUTH-1 verification ladder)', () => {
     await expect(guarded.ingest(rawWebhook, headers)).rejects.toThrow(/replay/);
   });
 
+  it('reserves the nonce for the FULL validity window (2×skew) — a future-dated timestamp cannot outlive it', async () => {
+    const reserved: number[] = [];
+    const nonces: NonceStore = {
+      reserve: async (_key, ttlSeconds) => (reserved.push(ttlSeconds), true),
+    };
+    const guarded = makeTransport({nonces, skewWindowSeconds: 120});
+    // Vendor clock ahead by the full skew: signature stays valid until ts+skew = now+2×skew.
+    const future = String(NOW_S + 120);
+    const {rawWebhook, headers} = raw({From: '+15125559999', To: '+15125550100', Body: 'hi', MessageSid: 'SM2g'}, future);
+    expect(await guarded.ingest(rawWebhook, headers)).not.toBeNull();
+    expect(reserved).toEqual([240]); // 2 * skewWindowSeconds — never just skew
+  });
+
   it('resolves the signing secret through the SecretRef seam (rotation-ready)', async () => {
     let resolved = 0;
     const secrets: SecretProvider = {

@@ -1,7 +1,7 @@
 // Substrate-validation fixtures — real agentback @tool classes exercised by the
 // agent-plane validation (ADR-017/018/021). They stand in for capability
 // adapters so we can prove tool dispatch / envelope / confirm: against the
-// actual pre-1.0 substrate. Tool names follow the platform's
+// actual substrate. Tool names follow the platform's
 // `domain.resource.action` capability convention.
 import {z} from 'zod';
 import {mcpServer, tool} from '@agentback/mcp';

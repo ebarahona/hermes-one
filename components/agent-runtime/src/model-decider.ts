@@ -3,7 +3,8 @@
 // otherwise the turn is done. Provider-legal tool names (no dots) map back to capability names. The
 // executor derives the real idempotency key from the capability contract; the decider supplies a
 // placeholder the turn/executor may override.
-import type {CapabilityName, ToolCall} from '@platform/contracts';
+import {createHash} from 'node:crypto';
+import type {CapabilityName, ToolCall, TurnId} from '@platform/contracts';
 import type {ModelToolSpec, SingleStepModel} from '@platform-internal/model-client';
 import type {Decider} from './single-step-loop.js';
 
@@ -21,6 +22,13 @@ export function createModelDecider(opts: {
   model: SingleStepModel;
   objective: string;
   tools: DeciderTool[];
+  /**
+   * The turn this decider proposes for. toolCallIds are derived deterministically from
+   * (turnId, step) — mirroring the pld_/hof_ recipe in turn.ts — so a Temporal retry of the same
+   * turn re-derives IDENTICAL ids (replay collapses on the tool_executions PK) and two concurrent
+   * turns can never mint the same id. The old `tc_${Date.now()}_${step}` did neither.
+   */
+  turnId: TurnId;
   now?: () => number;
   /**
    * Derives the ToolCall's idempotency key. The caller owns this because the canonical material is
@@ -64,7 +72,10 @@ export function createModelDecider(opts: {
       }
 
       const call: ToolCall = {
-        toolCallId: `tc_${now()}_${step}` as ToolCall['toolCallId'],
+        toolCallId: `tc_${createHash('sha256')
+          .update(`${opts.turnId}:${step}`)
+          .digest('hex')
+          .slice(0, 24)}` as ToolCall['toolCallId'],
         capability: tool.capability,
         input: proposed.arguments,
         idempotencyKey:

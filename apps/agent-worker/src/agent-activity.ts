@@ -404,6 +404,8 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
     model,
     objective: `${request.objective} (inbound: ${request.inbound.text ?? ''})`,
     tools,
+    // toolCallIds derive from (turnId, step) — replay-stable within a turn, disjoint across turns.
+    turnId: request.turnId,
     // Canonical key material: turnId + name + the contract's keyFields (deriveIdempotencyKey;
     // tool-projection.md "Idempotency key"). The decider's own placeholder is capability+args with NO
     // turn — and `te_tenant_idempotency_uq` is UNIQUE per (tenant, key), so two DIFFERENT turns calling

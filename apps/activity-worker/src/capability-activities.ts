@@ -24,6 +24,14 @@ export interface InvokeCapabilityArgs {
   input: Record<string, unknown>;
   tenantId: string;
   correlationId: string;
+  /**
+   * Deterministic per-run invocation ordinal, maintained IN THE WORKFLOW (replay-stable — a Temporal
+   * retry of the SAME invocation carries the same value). Folded into the derived turn identity below:
+   * without it two rule-driven invocations of one capability with equal keyFields in a run derived the
+   * same idempotency key, so the second side effect silently deduped (mirrors the agent plane's
+   * per-visit turnId seq and the decision.rule visitSeq).
+   */
+  invokeSeq: number;
 }
 
 export function createCapabilityActivities(
@@ -41,7 +49,7 @@ export function createCapabilityActivities(
       const contract = lookup(a.capability as CapabilityName);
       if (!contract) throw new Error(`unknown capability: ${a.capability}`);
 
-      const turnId = `trn_${short(a.correlationId, 24)}` as TurnId;
+      const turnId = `trn_${short(`${a.correlationId}:${a.invokeSeq}`, 24)}` as TurnId;
       const idempotencyKey = deriveIdempotencyKey(contract, a.input, turnId);
       const now = new Date().toISOString() as IsoTimestamp;
 

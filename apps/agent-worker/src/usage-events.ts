@@ -1,7 +1,10 @@
 // Derive billable UsageEvents (audit-contracts.md) from a completed turn's usage totals — an edge concern.
 // One event per metered signal: model input/output tokens, model cost, and tool-invocation count. Each
-// dedupeKey (principalId:correlationId:meterKind:sequence) is stable across Temporal retries so re-emission
-// collapses to exactly-once billing (T7). id is deterministic over the dedupeKey (replay-safe).
+// dedupeKey (principalId:turnId:meterKind:sequence — audit-contracts.md pins "correlationId = turnId"
+// at turn scope, and this build's workflow correlationId spans EVERY turn in a run) is stable across
+// Temporal retries so re-emission collapses to exactly-once billing (T7), while a second turn in the
+// same run gets its own keys instead of being deduped away unbilled. id is deterministic over the
+// dedupeKey (replay-safe).
 //
 // FLAGGED (DEFERRED-AND-FLAGGED AU1): the single source of truth for tokens/cost is agentback's metering
 // stream (T7). This build meters the turn's self-reported usage totals as an interim stand-in until that
@@ -25,8 +28,11 @@ export function deriveUsageEvents(ledger: TurnLedger, ctx: MeterInput): UsageEve
 
   return meters.map(m => {
     const dedupeKey = deriveDedupeKey({
+      // The dedupe recipe's correlation component is the TURN (audit-contracts.md: "correlationId =
+      // turnId") — keying on the workflow-wide correlationId made every turn after the first collapse
+      // into the first turn's records (never billed).
+      correlationId: ledger.turnId,
       principalId: ctx.principalId,
-      correlationId: ledger.correlationId,
       meterKind: m.kind,
       sequence: 0, // one aggregate per (turn, meterKind)
     });

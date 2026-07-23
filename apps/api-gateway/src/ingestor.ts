@@ -82,6 +82,10 @@ export async function startFromInbound(
     // deployment version even if a new one is published mid-conversation.
     deployment: {deploymentId: deployment.deploymentId, version: deployment.version},
     principal,
+    // The conversation minted above (and already persisted with the inbound message): threading it
+    // onto the run means any agent turn's handoff outcome persists its durable handoff_tasks row
+    // (conversation_id NOT NULL — a null here silently drops the human task).
+    conversationId,
     // Carry the edge trace context onto the workflow input (OB5) so the run joins the edge trace.
     trace: edgeTraceparent ? {traceparent: edgeTraceparent} : undefined,
     parameters: deps.parametersFor(tenantId),

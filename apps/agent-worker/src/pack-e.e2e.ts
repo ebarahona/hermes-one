@@ -116,6 +116,9 @@ async function main(): Promise<void> {
             rule: install.rule,
             deployment: install.deployment,
             principal,
+            // Mirrors the ingest edge's minting (`cnv_<short(from)>`) so a handoff turn persists its
+            // durable handoff_tasks row exactly as the live path does.
+            conversationId: 'cnv_15125550000',
             parameters: install.parameters,
             input: {intent: c.intent},
           },

@@ -121,7 +121,10 @@ export class SmsChannelTransport implements ChannelTransport {
     }
 
     if (this.cfg.nonces) {
-      const fresh = await this.cfg.nonces.reserve(`sms:${provided}`, skewSeconds);
+      // TTL = 2×skew, not skew: a future-dated timestamp (vendor clock ahead by up to skew) stays
+      // signature-valid until ts+skew — up to 2×skew from now. The nonce must outlive the FULL
+      // remaining validity window or a captured request replays clean after the nonce expires.
+      const fresh = await this.cfg.nonces.reserve(`sms:${provided}`, 2 * skewSeconds);
       if (!fresh) throw new Error('SMS webhook replay detected');
     }
   }

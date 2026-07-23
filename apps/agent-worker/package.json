@@ -52,6 +52,8 @@
     "@platform-internal/activity-worker": "workspace:*",
     "@platform-internal/drizzle": "workspace:*",
     "@platform-internal/workflow-worker": "workspace:*",
-    "@temporalio/client": "^1.20.2"
+    "@temporalio/client": "^1.20.2",
+    "@types/pg": "^8.20.0",
+    "pg": "^8.22.0"
   }
 }

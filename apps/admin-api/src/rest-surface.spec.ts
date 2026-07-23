@@ -69,6 +69,19 @@ describe('admin-api REST surface (Slice 1+2)', () => {
     expect(text).not.toMatch(/schema|stack|route/i);
   });
 
+  it('rejects an unauthenticated /openapi.json with 401 — the spec surface is not public', async () => {
+    const res = await fetch(`${base}/openapi.json`);
+    expect(res.status).toBe(401); // full admin route/schema map — authenticated like any other route
+    const body = (await res.json()) as {error?: {code?: string}};
+    expect(body.error?.code).toBe('unauthorized');
+  });
+
+  it('still serves /openapi.json to an AUTHENTICATED caller (gated, not removed)', async () => {
+    const res = await fetch(`${base}/openapi.json`, {headers: {'x-api-key': API_KEY}});
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as {openapi?: string}).openapi).toBeTruthy();
+  });
+
   it('rejects an invalid api key with 401 (no distinction from absent)', async () => {
     const res = await fetch(`${base}/v1/whoami`, {headers: {'x-api-key': 'not-a-real-key'}});
     const body = (await res.json()) as {error?: {code?: string}};

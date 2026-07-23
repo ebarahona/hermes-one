@@ -3,6 +3,7 @@
 // seam and enriches its unwrapped result. A dispatch hook wraps the WHOLE
 // dispatch, so it is where `evidence` and `metrics` are collected — attached to
 // a per-call collector the executor binds into the request context.
+import {createHash} from 'node:crypto';
 import type {Context} from '@agentback/context';
 import type {McpDispatchHook} from '@agentback/mcp';
 import type {EvidenceRecord, ToolCallId, ToolMetrics, TurnId} from '@platform/contracts';
@@ -36,12 +37,20 @@ export async function collectorFor(
 export function createEnvelopeHook(deps?: {
   now?: () => number;
   isoNow?: () => string;
-  newId?: () => string;
+  newId?: (scope: {turnId: TurnId; toolCallId: ToolCallId; ordinal: number}) => string;
 }): McpDispatchHook {
   const now = deps?.now ?? (() => Date.now());
   const isoNow = deps?.isoNow ?? (() => new Date().toISOString());
-  let seq = 0;
-  const newId = deps?.newId ?? (() => `evd_${++seq}`);
+  // Deterministic, turn-scoped evidence id (mirrors the pld_/hof_ recipe in agent-runtime turn.ts):
+  // derived from (turnId, toolCallId, ordinal-within-call) so a Temporal retry of the same turn
+  // re-derives the IDENTICAL id (replay collapses via evidence_records' ON CONFLICT DO NOTHING) and
+  // two different turns can never mint the same id. The old per-process counter did neither — the
+  // hook is created once per worker, so restarts/replicas restarted the sequence and collided on the
+  // bare global PK.
+  const newId =
+    deps?.newId ??
+    (({turnId, toolCallId, ordinal}: {turnId: TurnId; toolCallId: ToolCallId; ordinal: number}) =>
+      `evd_${createHash('sha256').update(`${turnId}:${toolCallId}:${ordinal}`).digest('hex').slice(0, 24)}`);
 
   return async (info, next) => {
     const collector = await collectorFor(info.ctx);
@@ -51,7 +60,11 @@ export function createEnvelopeHook(deps?: {
       if (collector) {
         collector.metrics.latencyMs = now() - started;
         collector.evidence.push({
-          id: newId() as EvidenceRecord['id'],
+          id: newId({
+            turnId: collector.turnId,
+            toolCallId: collector.toolCallId,
+            ordinal: collector.evidence.length,
+          }) as EvidenceRecord['id'],
           turnId: collector.turnId,
           toolCallId: collector.toolCallId,
           kind: 'tool-output',

@@ -57,14 +57,16 @@ export class DrizzleCredentialRowStore extends TenantAwareRepository implements 
     );
   }
 
+  /** Returns whether an existing row was updated — false means the tuple has no row (the caller
+   *  fail-closes by writing a revoked tombstone; a silent no-op UPDATE would fail OPEN, ADR-026). */
   async setStatus(
     tenantId: TenantId,
     providerId: string,
     capability: CapabilityName,
     status: CredentialRow['status'],
-  ): Promise<void> {
-    await this.withTenant({tenantId}, tx =>
-      tx
+  ): Promise<boolean> {
+    return this.withTenant({tenantId}, async tx => {
+      const updated = await tx
         .update(providerCredentials)
         .set({status})
         .where(
@@ -73,7 +75,9 @@ export class DrizzleCredentialRowStore extends TenantAwareRepository implements 
             eq(providerCredentials.providerId, providerId),
             eq(providerCredentials.capability, capability),
           ),
-        ),
-    );
+        )
+        .returning({credentialId: providerCredentials.credentialId});
+      return updated.length > 0;
+    });
   }
 }

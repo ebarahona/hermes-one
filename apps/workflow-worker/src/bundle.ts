@@ -60,6 +60,11 @@ export interface WorkflowRunRef {
   /** The ACTING principal, minted + scope-resolved at the ingest edge (AUTH-2 — never demo literals;
    *  scopes come from RoleRegistry.resolveScopes per request). Required by agent workflows. */
   principal?: Principal;
+  /** The conversation this run acts within, minted at the ingest edge alongside the persisted inbound
+   *  message (WorkspaceContext.conversationId, tenant-contracts.md). Absent for conversation-less
+   *  starts; a handoff turn without it persists NO durable task row (handoff_tasks.conversation_id
+   *  is NOT NULL), so every conversation-driven start MUST carry it. */
+  conversationId?: string;
   parameters: Record<string, unknown>;
   input: Record<string, unknown>;
   /** W3C trace context from the edge (observability/tracing-metrics-logging.md, OB5). Carried as an
@@ -75,6 +80,7 @@ export function bundleToRef(
   tenantId: string,
   deployment?: DeploymentPin,
   principal?: Principal,
+  conversationId?: string,
 ): WorkflowRunRef {
   return {
     tenantId,
@@ -82,6 +88,7 @@ export function bundleToRef(
     rule: {planId: bundle.rulePlan.planId, contentHash: bundle.rulePlan.contentHash},
     deployment,
     principal,
+    conversationId,
     parameters: bundle.parameters,
     input,
   };

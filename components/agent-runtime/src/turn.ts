@@ -236,8 +236,46 @@ export async function runTurn(request: TurnRequest, deps: TurnDeps): Promise<Tur
     return result;
   };
 
+  // Over-budget short-circuit (agent-runtime-contracts.md "Bounded loop": the loop stops at maxSteps
+  // or deadlineAt; over-budget short-circuits). HandoffReason (handoff-contracts.md) carries no
+  // budget/limit-shaped value, so the conservative spec reading is outcome:'failed' — never a handoff
+  // without a typed reason. An absent bound is unbounded (TurnBudgets requires all three today, so the
+  // typeof guards are defensive).
+  const overBudget = (): string | null => {
+    const {maxInputTokens, maxOutputTokens, maxModelCostUsd} = budgets;
+    if (typeof maxInputTokens === 'number' && usage.inputTokens > maxInputTokens)
+      return `inputTokens ${usage.inputTokens} > maxInputTokens ${maxInputTokens}`;
+    if (typeof maxOutputTokens === 'number' && usage.outputTokens > maxOutputTokens)
+      return `outputTokens ${usage.outputTokens} > maxOutputTokens ${maxOutputTokens}`;
+    if (typeof maxModelCostUsd === 'number' && usage.modelCostUsd > maxModelCostUsd)
+      return `modelCostUsd ${usage.modelCostUsd} > maxModelCostUsd ${maxModelCostUsd}`;
+    return null;
+  };
+
+  // The short-circuit reaches the durable ledger the same way every other stopping cause does —
+  // through finish() — plus a system evidence record naming the exhausted bound (→
+  // runtime.evidence_records). Deterministic id (no random/clock) so a replay re-derives the same row.
+  const finishOverBudget = (why: string): Promise<TurnResult> => {
+    evidence.push({
+      id: `evd_${createHash('sha256').update(`${req.turnId}:budget`).digest('hex').slice(0, 24)}` as EvidenceRecord['id'],
+      turnId: req.turnId,
+      toolCallId: null,
+      kind: 'system',
+      capability: null,
+      statement: `Turn budget exhausted: ${why}`,
+      data: {...usage},
+      source: 'system',
+      trusted: true,
+      observedAt: iso(nowMs()),
+    });
+    return finish('failed');
+  };
+
   for (; step < budgets.maxSteps; step++) {
     if (nowMs() >= deadlineMs) break;
+    // Checked at the TOP of each iteration: usage already over a bound must not buy another model call.
+    const why = overBudget();
+    if (why) return finishOverBudget(why);
 
     const decision = await deps.decider.propose(step, results);
     usage.inputTokens += decision.usage.inputTokens;
@@ -310,6 +348,11 @@ export async function runTurn(request: TurnRequest, deps: TurnDeps): Promise<Tur
     // SELECTIVE REFRESH by changedDomains would re-read the dirty domains here before composing;
     // no read-back capability is wired in this build, so the hook is a documented no-op.
   }
+
+  // Over-budget after the FINAL model call (accumulation the in-loop check cannot see): the spec's
+  // short-circuit covers composition too — a turn over budget never delivers a reply.
+  const why = overBudget();
+  if (why) return finishOverBudget(why);
 
   // COMPOSE (evidence-only, ADR-009).
   const draft = compose(ctx(), req.objective, lastText);

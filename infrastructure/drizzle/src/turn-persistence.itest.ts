@@ -139,6 +139,14 @@ describe('DrizzleTurnPersistence.persistTurnAtomic (live, F3)', () => {
     expect(await count('audit.audit_events')).toBe(2);
     expect(await count('audit.usage_records')).toBe(1);
 
+    // The durable handoff row carries the REAL conversation id threaded from the ingest edge
+    // (conversation_id NOT NULL — the live path drops the row entirely without it).
+    const ho = await owner.query(
+      `SELECT conversation_id, triggering_turn_id, status FROM runtime.handoff_tasks WHERE tenant_id = $1`,
+      [TENANT],
+    );
+    expect(ho.rows).toEqual([{conversation_id: 'cnv_atomic', triggering_turn_id: TURN, status: 'requested'}]);
+
     // Commit-and-publish: one pending outbox row per audit event, deterministic id, payload = the event.
     const obx = await owner.query(
       `SELECT outbox_id, aggregate_type, aggregate_id, event_type, status, payload->>'action' AS action

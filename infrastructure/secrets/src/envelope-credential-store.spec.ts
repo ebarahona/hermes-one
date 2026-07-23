@@ -32,6 +32,7 @@ class MemoryRows implements CredentialRowStore {
   async setStatus(t: TenantId, p: string, c: CapabilityName, status: CredentialRow['status']) {
     const row = this.rows.get(this.k(t, p, c));
     if (row) this.rows.set(this.k(t, p, c), {...row, status});
+    return row !== undefined;
   }
 }
 
@@ -58,6 +59,20 @@ describe('LocalAesGcmCipher', () => {
     flipped[0] ^= 0xff;
     await expect(cipher.decrypt(TNT_A, `${iv}:${tag}:${flipped.toString('base64url')}`, keyRef)).rejects.toThrow();
     await expect(cipher.decrypt(TNT_A, ciphertext, 'local:deadbeefdeadbeef')).rejects.toThrow(/different key/);
+  });
+
+  it('REFUSES a truncated auth tag — full 16-byte GCM tag only, no degraded forgery resistance', async () => {
+    const cipher = new LocalAesGcmCipher(KEY);
+    const {ciphertext, keyRef} = await cipher.encrypt(TNT_A, '{"a":"1"}');
+    const [iv, tag, data] = ciphertext.split(':');
+    const truncated = Buffer.from(tag, 'base64url').subarray(0, 8).toString('base64url');
+    await expect(cipher.decrypt(TNT_A, `${iv}:${truncated}:${data}`, keyRef)).rejects.toThrow(/16 bytes/);
+  });
+
+  it('REFUSES a malformed payload (wrong segment count), typed not TypeError', async () => {
+    const cipher = new LocalAesGcmCipher(KEY);
+    const {ciphertext, keyRef} = await cipher.encrypt(TNT_A, '{"a":"1"}');
+    await expect(cipher.decrypt(TNT_A, ciphertext.replace(/:[^:]*$/, ''), keyRef)).rejects.toThrow(/malformed/);
   });
 
   it('rejects a malformed master key at construction', () => {
@@ -98,6 +113,15 @@ describe('EnvelopeCredentialStore', () => {
     await s.rotate(TNT_A, 'twilio-sms', CAP, {authToken: 'tok2'});
     expect((await s.resolve(TNT_A, 'twilio-sms', CAP)).config).toEqual({authToken: 'tok2'});
   });
+
+  it('revoking a tuple with NO prior row writes a durable tombstone — resolve is revoked, not missing', async () => {
+    const s = store();
+    await s.revoke(TNT_A, 'twilio-sms', CAP);
+    await expect(s.resolve(TNT_A, 'twilio-sms', CAP)).rejects.toThrow(RevokedCredentialsError);
+    // a later rotate re-provisions the tuple exactly like any other row
+    await s.rotate(TNT_A, 'twilio-sms', CAP, {authToken: 'tok3'});
+    expect((await s.resolve(TNT_A, 'twilio-sms', CAP)).config).toEqual({authToken: 'tok3'});
+  });
 });
 
 describe('FallbackCredentialStore (tenant rows over platform defaults)', () => {
@@ -127,6 +151,17 @@ describe('FallbackCredentialStore (tenant rows over platform defaults)', () => {
     await store.rotate(TNT_A, 'twilio-sms', CAP, {from: 'tenant-own'});
     await store.revoke(TNT_A, 'twilio-sms', CAP);
     await expect(store.resolve(TNT_A, 'twilio-sms', CAP)).rejects.toThrow(RevokedCredentialsError);
+  });
+
+  it('revoking a tuple that never had a row STILL kills the platform fallback (tombstone, fail-closed)', async () => {
+    const {store} = layered();
+    // before: the tenant rides the platform bundle
+    expect((await store.resolve(TNT_A, 'twilio-sms', CAP)).config).toEqual({from: 'platform'});
+    await store.revoke(TNT_A, 'twilio-sms', CAP);
+    // after: fail-closed — never the platform bundle again for this tuple
+    await expect(store.resolve(TNT_A, 'twilio-sms', CAP)).rejects.toThrow(RevokedCredentialsError);
+    // an unaffected tenant still rides the platform default
+    expect((await store.resolve(TNT_B, 'twilio-sms', CAP)).config).toEqual({from: 'platform'});
   });
 
   it('an unknown provider stays fail-closed through BOTH layers', async () => {

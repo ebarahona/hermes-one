@@ -32,12 +32,13 @@ export interface CredentialRowStore {
   get(tenantId: TenantId, providerId: string, capability: CapabilityName): Promise<CredentialRow | null>;
   /** Create-or-replace on the (tenant, provider, capability) unique key. */
   upsert(row: CredentialRow): Promise<void>;
+  /** Returns whether an EXISTING row was updated — false when the tuple has no row at all. */
   setStatus(
     tenantId: TenantId,
     providerId: string,
     capability: CapabilityName,
     status: CredentialRow['status'],
-  ): Promise<void>;
+  ): Promise<boolean>;
 }
 
 /** Raised when a credential exists but is revoked — distinct from absence for audit/operators. */
@@ -85,7 +86,7 @@ export class EnvelopeCredentialStore implements ProviderCredentialStore {
   ): Promise<void> {
     const {ciphertext, keyRef} = await this.cipher.encrypt(tenantId, JSON.stringify(config));
     await this.rows.upsert({
-      credentialId: `pvc_${tenantId}_${providerId}_${capability}`.replace(/[^a-zA-Z0-9_]/g, '_'),
+      credentialId: credentialIdFor(tenantId, providerId, capability),
       tenantId,
       providerId,
       capability,
@@ -97,9 +98,33 @@ export class EnvelopeCredentialStore implements ProviderCredentialStore {
   }
 
   async revoke(tenantId: TenantId, providerId: string, capability: CapabilityName): Promise<void> {
-    await this.rows.setStatus(tenantId, providerId, capability, 'revoked');
+    const updated = await this.rows.setStatus(tenantId, providerId, capability, 'revoked');
+    if (updated) return;
+    // No row for the tuple: revocation intent must STILL stick durably (ADR-026 — revoke fail-closes,
+    // never falls through). A bare no-op UPDATE here would leave nothing behind, and a layered store
+    // (FallbackCredentialStore) would keep serving the platform bundle for a tuple an operator
+    // explicitly killed. So write a revoked TOMBSTONE row: the sentinel ciphertext/keyRef satisfy the
+    // schema's NOT NULLs but are never decrypted (resolve fail-closes on status before touching the
+    // cipher), and a later rotate() replaces the tombstone in place like any other row.
+    await this.rows.upsert({
+      credentialId: credentialIdFor(tenantId, providerId, capability),
+      tenantId,
+      providerId,
+      capability,
+      ciphertext: REVOKED_TOMBSTONE,
+      keyRef: REVOKED_TOMBSTONE,
+      status: 'revoked',
+      rotatedAt: this.clock(),
+    });
   }
 }
+
+/** Deterministic row id for the (tenant, provider, capability) tuple — satisfies the 'pvc_%' CHECK. */
+const credentialIdFor = (tenantId: TenantId, providerId: string, capability: CapabilityName): string =>
+  `pvc_${tenantId}_${providerId}_${capability}`.replace(/[^a-zA-Z0-9_]/g, '_');
+
+/** Sentinel for a revoked-with-no-prior-row tombstone — schema-legal, never decrypted. */
+const REVOKED_TOMBSTONE = 'revoked:tombstone';
 
 /**
  * Tenant rows first, platform defaults second — the credential mirror of provider_mappings'

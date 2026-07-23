@@ -81,6 +81,38 @@ describe('ToolResult envelope synthesis (ADR-018)', () => {
     expect(result.error).toBeNull();
   });
 
+  it('derives replay-stable, turn-scoped evidence ids by default (no injected newId)', async () => {
+    // Default hook: id = evd_<sha256(turnId:toolCallId:ordinal)> — no per-process counter.
+    const boot = () => {
+      const app = createAgentPlaneApp({fixtures: true});
+      app.bind('platform.hook.envelope').to(createEnvelopeHook()).tag(MCP_DISPATCH_HOOK_TAG);
+      return app;
+    };
+    await using t = await createTestApp(boot);
+    const server = await t.app.get<MCPServer>(MCPBindings.SERVER);
+    const exec = new PlatformToolExecutor(server, t.app as unknown as Context, metaSource);
+
+    const ctxA = {turnId: 'trn_a'} as unknown as TurnContext;
+    const ctxB = {turnId: 'trn_b'} as unknown as TurnContext;
+
+    // (a) Same turn, same call, re-executed (Temporal retry) → IDENTICAL id: replay collapses.
+    const first = await exec.execute(readCall, ctxA);
+    const again = await exec.execute(readCall, ctxA);
+    expect(first.evidence[0].id).toMatch(/^evd_[0-9a-f]{24}$/);
+    expect(again.evidence[0].id).toBe(first.evidence[0].id);
+
+    // (b) A DIFFERENT turn (any worker/replica) can never mint the same id.
+    const otherTurn = await exec.execute(readCall, ctxB);
+    expect(otherTurn.evidence[0].id).not.toBe(first.evidence[0].id);
+
+    // A different tool call within the same turn is also disjoint.
+    const otherCall = await exec.execute(
+      {...readCall, toolCallId: 'tc_read2' as ToolCall['toolCallId']},
+      ctxA,
+    );
+    expect(otherCall.evidence[0].id).not.toBe(first.evidence[0].id);
+  });
+
   it('maps a dispatch failure to ok:false with an error envelope', async () => {
     await using t = await createTestApp(bootFactory());
     const server = await t.app.get<MCPServer>(MCPBindings.SERVER);

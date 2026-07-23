@@ -14,8 +14,10 @@ import {type AuthenticatedIdentity, PlatformErrorException, type PrincipalMapper
 import {PlatformSequenceGroups} from './sequence-groups.js';
 import {REST_PUBLIC_PATHS} from './rest-bindings.js';
 
-/** Health/openapi routes that need no principal. Overridable via REST_PUBLIC_PATHS. */
-export const DEFAULT_PUBLIC_PATHS: readonly string[] = ['/v1/healthz', '/openapi.json', '/explorer'];
+/** Routes that need no principal — health ONLY (sequence-implementation.md publicRoutes example).
+ *  The OpenAPI spec + explorer expose the full admin route/schema surface, so they authenticate
+ *  like any other route; dev opts them back in via REST_PUBLIC_PATHS. */
+export const DEFAULT_PUBLIC_PATHS: readonly string[] = ['/v1/healthz'];
 
 // The `@platform-internal/auth` binding keys, referenced by string to avoid a layering cycle
 // (auth → loopback-core, never the reverse). Mirror of AuthBindings.{STRATEGY_REGISTRY,PRINCIPAL_MAPPER}.

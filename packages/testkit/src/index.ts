@@ -1,4 +1,4 @@
-// @platform/testkit — package (none plane). Skeleton stub.
+// @platform/testkit — package (none plane). Placeholder module — reserves the workspace slot; scope tracked in docs/DEFERRED-AND-FLAGGED.md.
 
 export const descriptor = {
   name: '@platform/testkit',

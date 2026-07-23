@@ -8,12 +8,18 @@
 
 **State at authoring (2026-07-17):** Tiers 1–3 done · full admin API · AUTH-1→3 · Pack E runs a live
 TOOL-BACKED turn from pure data. Ledger at authoring: 4 🔴 / 51 🟡 / 13 ⚪ — five root causes plus a
-tail. **State after the first execution pass (same day): ZERO 🔴.** Closed/narrowed: S1 S2ⁿ S5 S6 S7
+tail. **State after the first execution pass (same day): zero unconditional 🔴 (S0a is 🔴 only under a multi-instance posture not yet deployed).** Closed/narrowed: S1 S2ⁿ S5 S6 S7
 PE4 PE7 A6 AU2 AU4 CT3 CT2ⁿ T6ⁿ (ⁿ = narrowed, remainder flagged). Phases 0–2 ✅ · Phase 3 core ✅
 (E2/E3 re-scoped on the ledger) · Phase 4 safety net ✅ (replay gate in CI; versioned dispatch
 config-gated). What remains is different in character: ONE user posture decision (the pre-tenant
 read — unblocks E3 + S3 + CT4-relay together), enablement tails needing external things (KMS pick,
 server upgrade), the messaging-convergence bundle (AU3 + S7-residual + P3), and the Phase 5 tail.
+
+**2026-07-22:** a platform-wide review and hardening cycle landed — substrate validation at `put()`,
+compile-time operator verification, deterministic turn identity, turn budget enforcement, durable
+credential revocation, the full replay-nonce window, production-matching evaluation-gate evidence
+stamping, and authentication-gated spec endpoints. The ledger's rows dated 2026-07-22 carry the
+detail; current open totals live in the ledger's header.
 
 ## Phase 0 — Ratify the four blocking decisions ✅ (ADRs 025–028, this commit)
 
@@ -34,13 +40,13 @@ amendments (026, Phase 1).
 ## Phase 1 — The credential spine ✅ (S1 ✅ · S6 ✅ · S7 ✅ · PE7 ✅ 2026-07-17; S2 narrowed to platform secrets; S1a = KMS cipher adapter)
 
 The one build that changes what the product can do: **a second tenant with its own vendor account.**
-Today the credential store is env-backed and tenant-agnostic, its PORT is trapped in the edge plane
-(`components/channels`, so the agent plane structurally cannot import it — root cause of PE7), and
-BOTH planes pass `providerConfig: {}`.
+Before this phase the credential store was env-backed and tenant-agnostic, its PORT homed in the edge
+plane (`components/channels`, so the agent plane structurally could not import it — root cause of
+PE7), and BOTH planes passed `providerConfig: {}`.
 
 1. ✅ **S7 (structural, DONE 2026-07-17):** move the `ProviderCredentialStore` port to `@platform/contracts`
    beside every other port; create `infrastructure/secrets` (plane `none`) — the member the spec
-   already assigns; wire BOTH dead call sites (`agent-activity.ts`, `capability-activities.ts`).
+   already assigns; wire BOTH call sites (`agent-activity.ts`, `capability-activities.ts`).
 2. ✅ **ADR-026 store (DONE 2026-07-17):** `capability.provider_credentials` table (envelope-encrypted, RLS'd, per
    `(tenant, provider, capability)`), `EnvelopeCredentialStore` in `infrastructure/secrets`, a
    dev-mode local cipher so no cloud account is needed to test — cloud KMS is one adapter behind
@@ -53,8 +59,8 @@ BOTH planes pass `providerConfig: {}`.
 
 Two coupled fixes, both about durable truth:
 1. ✅ **Replay-stable time (DONE 2026-07-17):** stamp `occurredAt` in the WORKFLOW (Temporal's deterministic clock),
-   thread through `TurnRequest` — the audit `integrityHash` covers `occurredAt`, which today is
-   wall-clock-fresh per attempt, so tamper-reject (AU2) is UNSAFE until this lands. Contract change
+   thread through `TurnRequest` — the audit `integrityHash` covers `occurredAt`, which was
+   wall-clock-fresh per attempt; tamper-reject (AU2) required this to land first. Contract change
    at the plane boundary; `agent-runtime-contracts.md` governs.
 2. ✅ **Atomic substrate writer (DONE 2026-07-17)** ("F3 for the substrate path"): a port + drizzle impl so
    `DeploymentService.publish` / `DefinitionRegistry.put` commit rows AND outbox events in one
@@ -64,16 +70,17 @@ Two coupled fixes, both about durable truth:
 
 ## Phase 3 — The tenant spine 🔄 (CT3 ✅ · CT2 narrowed 2026-07-17; E2/E3 re-scoped — see ledger)
 
-Multi-tenancy is real in the data layer, fake at the edges: `to → tenant` is a demo function, rule
-params come from demo config, and tenants cannot override providers because nothing reads
-`capability.provider_mappings`. One slice: tenant repos (CT2) + a number→tenant registry (E3) +
-resolver merges the DB override ahead of the contract default (CT3) + the admin PUT for overrides +
-real tenant configuration (E2). Exit criterion: **tenant #2 is an onboarding row, not a deploy.**
+The core shipped: tenant provider overrides are live end-to-end (CT3 — the resolver merges the DB
+override ahead of the contract default, administered via `provider-mapping.controller.ts`).
+Remaining scope: a real number→tenant registry for inbound resolution (E3, currently a demo
+function), tenant rule-param configuration via compile-time extensions (E2), and the CT2 remainder
+(workspaces/onboarding repos). Exit criterion: **tenant #2 is an onboarding row, not a deploy.**
 
 ## Phase 4 — Production durability 🔄 (T6 replay-gate ✅ 2026-07-17, dispatch enablement pending; T1 · P2 · I2 · T5)
 
-`patched()`/Build-ID worker versioning BEFORE anything deploys twice (deploying new workflow code
-currently breaks in-flight executions); per-capability retry classes compiled into plans (T1); the
+`patched()`/Build-ID worker versioning BEFORE anything deploys twice (worker versioning is what
+keeps in-flight executions on the interpreter build they started on); per-capability retry classes
+compiled into plans (T1); the
 Redis-shared circuit breaker when workers go multi-instance (P2); pgbouncer (I2); forced-failure
 live-Temporal tests (T5). This phase is what lets you OPERATE at scale.
 
@@ -90,7 +97,7 @@ P1 (providers/capabilities spec pack — a spec-generation exercise, not a code 
 behavior) · OB6 replay/simulation · the 3 follow-on verticals (after Phases 1–3 make them cheap) ·
 S0a/AUTH-4 (blocked upstream on agentback's sync `ConfirmationStore`).
 
-## Working discipline (learned the hard way — see `feedback_hermes_verification_discipline`)
+## Working discipline
 
 Build → typecheck → plane-lint → test → itest → e2es, IN THAT ORDER (vitest resolves cross-package
 imports to dist). Re-run e2es. Assert the durable ledger, not the workflow path. The spec outranks

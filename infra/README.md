@@ -20,8 +20,9 @@ docker compose -f infra/docker-compose.yml down     # stop (add -v to wipe volum
 | Temporal (gRPC)     | `127.0.0.1:7233`                   | durable orchestration (ADR-014)                 |
 | Temporal UI         | http://localhost:8233              | workflow history / debugging                    |
 | Postgres (platform) | `127.0.0.1:5433`                   | authoritative store (ADR-022) · `hermes/hermes` |
-| Redis               | `127.0.0.1:6380`                   | ephemeral lanes (ADR-006)                       |
-| Qdrant              | http://localhost:6333 (+6334 gRPC) | vectors (ADR-007)                               |
+| Redis               | `127.0.0.1:6380`                   | ephemeral lanes (cache/idempotency/locks)       |
+| Qdrant              | http://localhost:6333 (+6334 gRPC) | vectors (the platform's vector DB)              |
+| OTel collector      | `4317` (OTLP gRPC) · `4318` (HTTP) | telemetry pipeline (`otel-collector`)           |
 | Temporal's Postgres | internal only                      | not exposed to the host                         |
 
 Ports 5433/6380/8233 are chosen to sit beside a default 5432/6379/8080 you may

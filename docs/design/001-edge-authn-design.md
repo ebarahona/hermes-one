@@ -1,16 +1,22 @@
 # Edge Authentication Design (F1 / triage Audit 2)
 
-**Status:** DESIGN — reviewed before build (user-decided 2026-07-14: paper first).
+**Status:** implemented through AUTH-3 bearer (2026-07-15). The "Current reality" table below is the
+pre-build snapshot of 2026-07-14 this design was written against.
+
+> Bare `*.md` file names cite the platform's architecture specification set, which is delivered
+> separately from this repository.
+
+**Original status:** DESIGN — reviewed before build (user-decided 2026-07-14: paper first).
 **Grounds:** `loopback/authentication-strategies.md` (the canonical edge-authn substrate),
 `security/role-matrix.md` (role→scope resolution), `security/secrets-and-key-management.md`
 (`SecretRef`/`SecretProvider`, S1), `security/threat-model-and-test-cases.md` (`forged-webhook`,
-`replayed-side-effect-request`), `contracts/tenant.ts` (`Principal`), ADR-017/019/022,
-`PRODUCTION-READINESS-TRIAGE-2026-07-13.md` F1 + §5 Audit 2.
+`replayed-side-effect-request`), `contracts/tenant.ts` (`Principal`), ADR-017/019/022, and the
+production-readiness triage of 2026-07-13, F1 + §5 Audit 2 (maintained outside this repository).
 
 # Purpose
 
-Turn the security specs into a concrete, phased authn design for hermes-one — replacing the three
-holes triage F1 demonstrated: (a) the webhook edge authenticates only the vendor HMAC with a single
+Turn the security specs into a concrete, phased authn design for hermes-one — closing the three
+gaps triage F1 identified: (a) the webhook edge authenticates only the vendor HMAC with a single
 shared secret and no replay guard; (b) no human/API caller can authenticate at all (no admin surface);
 (c) the live agent-turn principal and scopes are demo literals (`prn_demo`, hardcoded scope list) in
 `apps/workflow-worker/src/turn-request.ts`.
@@ -18,15 +24,15 @@ shared secret and no replay guard; (b) no human/API caller can authenticate at a
 Authentication answers **"who is calling, and for which tenant"** (authentication-strategies.md). It is
 strictly upstream of authorization: strategies produce a `Principal`; the ALREADY-BUILT machinery
 downstream (scope-gated tool derivation via `capabilitiesForEngine`, ADR-019 policy pre/post gates) is
-real and tested — it is currently anchored to fabricated identity. This design replaces the anchor,
-not the machinery. **No authentication strategy ever runs in the agent plane** (ADR-017); the turn
+real and tested — at design time it was anchored to placeholder identity. This design replaces the
+anchor, not the machinery. **No authentication strategy ever runs in the agent plane** (ADR-017); the turn
 receives its principal value-mapped through the serializable `WorkspaceContext`.
 
 # Scope
 
 **In scope:** the channel-webhook edge posture (hardening the existing live path); the admin-api authn
 substrate (designed now, built with the LB4 REST surface — ledger L3); principal/scope assembly at the
-ingest edge (killing the demo literals); role→scope resolution over `tenant.roles`; the `SecretRef`
+ingest edge (replacing the demo literals); role→scope resolution over `tenant.roles`; the `SecretRef`
 seam replacing env-only secrets (S1 path); the confirm-token lifecycle under multi-instance workers.
 
 **Out of scope:** the authorization decision itself (policy voters/gates — built, Tier 1.2); PII
@@ -97,7 +103,7 @@ sequenceDiagram
   WH->>WH: |now - x-timestamp| <= 300s? (else unauthorized)
   WH->>SP: resolve(secret://webhooks/<tenant|provider>/signing)
   WH->>WH: constant-time HMAC(rawBody + '.' + timestamp) == x-signature?
-  WH->>N: reserve('auth:nonce:sms:'+signature, ttl=300)
+  WH->>N: reserve('auth:nonce:sms:'+signature, ttl=2×skew)
   N-->>WH: false → REPLAY → unauthorized
   WH-->>GW: AuthenticatedIdentity{kind:'system', roles:['inbound-source'], scopes:['channel.inbound.ingest']}
   GW->>GW: tenant from To-number (server-derived, never client-asserted)
@@ -110,7 +116,7 @@ sequenceDiagram
 Two principals are deliberate (authentication-strategies.md JSON examples): the **webhook source**
 authenticates as `kind:'system'` scoped to ingest only; the **customer** the conversation acts *for*
 is a `kind:'user'` principal minted from the inbound handle with roles `['customer']` — its scopes are
-what gate the agent's tools. Today's demo literals conflate the two into `prn_demo`.
+what gate the agent's tools. The pre-design demo literals conflated the two into `prn_demo`.
 
 # TypeScript interfaces (what gets transcribed where)
 
@@ -143,7 +149,7 @@ Verbatim transcriptions when built (no new invention):
    swaps the inline `signingSecret` for a `SecretRef` resolved through `SecretProvider`. The strategy
    *shape* (`applies()`/`authenticate()`) wraps this when the auth component lands; the verify logic
    is shared, not duplicated. **Breaking change flag:** adding the timestamp to the signed material
-   changes the signature the fake/e2e vendors compute — one coordinated change, covered by itests.
+   changes the signature the test-double/e2e vendors compute — one coordinated change, covered by itests.
 2. **Roles are the source; scopes are derived per request, never stored or cached**
    (role-matrix.md `resolveScopes` "Never cached"; table-catalog: "No table stores
    `Principal.scopes`" — a role edit must take effect on the next request).

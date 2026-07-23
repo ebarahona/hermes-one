@@ -4,10 +4,13 @@ Durable, in-repo log of the **ratified** architecture decisions the code is
 governed by. Code comments cite these by number (e.g. `(ADR-017)`); this file is
 what those citations resolve to, and it ships with the repo.
 
+> Bare `*.md` file names cite the platform's architecture specification set, which is delivered
+> separately from this repository.
+
 Each entry is a one-paragraph distillation. The canonical, full-length decision
-records live in the architecture set (`01-foundation/006-architecture-decisions.md`);
-this log is the self-contained handoff copy — no reference here depends on a
-document that might not travel with the code.
+records live in the platform's architecture specification set, delivered
+separately; this log is the self-contained handoff copy — no reference here
+depends on a document that might not travel with the code.
 
 > Status: all decisions below are **ratified**. Earlier ADR-001…012 concern the
 > pre-implementation architecture phase and are summarized in the canonical log.
@@ -113,8 +116,8 @@ document that might not travel with the code.
   for indirect-prompt-injection handling (its own contract comment): a
   schema-validated result from a capability the platform authored, gated, and
   invoked is NOT an injection vector, and ADR-009 evidence-only composition
-  grounds ONLY on trusted evidence — stamping tool output untrusted strips the
-  agent of the facts it just fetched and silently skips the post-gate.
+  grounds ONLY on trusted evidence — stamping tool output untrusted would remove
+  the facts the agent just fetched from grounding and skip the post-gate.
   `tool-output` evidence is `source:'authoritative', trusted:true` on every
   path; `CapabilityInvoker` (which stamped provider/false) aligns. Retrieved/
   free-text content stays untrusted. If a vendor field ever flows into a prompt,

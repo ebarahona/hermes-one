@@ -1,4 +1,4 @@
-// @platform-internal/capability-registry — component (agent plane). Skeleton stub.
+// @platform-internal/capability-registry — component (agent plane). Placeholder module — reserves the workspace slot; scope tracked in docs/DEFERRED-AND-FLAGGED.md.
 
 export const descriptor = {
   name: '@platform-internal/capability-registry',

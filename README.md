@@ -17,7 +17,7 @@ evaluation. Governing decisions live in `docs/adr/`; the build sequence in `docs
   provider, and the result is durably recorded. A new vertical is a new pack file, not a deploy.
 - **Bring-your-own-vendor multi-tenancy.** A tenant can rank its **own provider** first
   (`capability.provider_mappings`, admin-managed) and supply its **own credentials**
-  (envelope-encrypted per tenant, rotated with a single API call) — zero deploys, proven live:
+  (envelope-encrypted per tenant, rotated with a single `rotate()` call) — zero deploys, proven live:
   one credential rotation changes the next agent turn's provider behavior.
 - **A full admin control plane.** OIDC + API-key auth on a fail-closed LoopBack 4 sequence;
   role-resolved, tenant-scoped, RLS-enforced routes for tenants, users, roles, definitions,
@@ -48,7 +48,7 @@ see `docs/SPIKE-FINDINGS.md`.
 
 | Area              | Role                                                 | Scope                  |
 | ----------------- | ---------------------------------------------------- | ---------------------- |
-| `apps/`           | deployable processes (one DI container each)         | `@platform-internal/*` |
+| `apps/`           | deployable processes (one composition root each; admin-web is a reserved placeholder for the admin console) | `@platform-internal/*` |
 | `packages/`       | pure libraries — schemas, compilers, plan types      | `@platform/*`          |
 | `components/`     | DI-wired engines (depend on ports, not adapters)     | `@platform-internal/*` |
 | `infrastructure/` | I/O adapters (the only place with I/O)               | `@platform-internal/*` |

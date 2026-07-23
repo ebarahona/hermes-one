@@ -26,26 +26,28 @@ code is ever compiled into the platform.
   node → a real bounded agent turn completes (`path=[triage,assist,end]`).
   Run note: the e2e now also requires `HERMES_CREDENTIALS_MASTER_KEY` (ADR-026 envelope store).
 - **Slice 3 (done, 2026-07-17) — TOOL-BACKED, verified live:** the dispatcher no longer answers from persona
-  alone. `appointment.slot.read` (the specs' canonical platform capability — this pack previously invented
-  `electrical.slot.read`, which no seeded role granted) is projected into a real agentback `@tool` whose body
+  alone. `appointment.slot.read` (the specs' canonical platform capability — this pack previously carried
+  the non-canonical `electrical.slot.read`, which no seeded role granted) is projected into a real agentback `@tool` whose body
   resolves the ranked `ProviderAdapter`, and `InternalSchedulerProvider` (`infrastructure/scheduler`) serves
   it. A scheduling intent drives the LLM to call the tool → real provider → real slots, recorded in
   `runtime.tool_executions` with `metrics.providerId=internal-scheduler`. An emergency intent correctly
-  declines the tool and answers on safety. The **triage rule now decides**: it shipped with literal branches
-  that compiled but discriminated nothing; it now reads the `intent` fact, with hazard terms ordered before
+  declines the tool and answers on safety. The **triage rule reads the real `intent` fact** (2026-07-17,
+  replacing the earlier placeholder literal branches), with hazard terms ordered before
   scheduling terms so a caller reporting both is triaged as the emergency (`pack-e-rule.spec.ts`).
+- **PE6 (done, 2026-07-17):** a capability whose `onNoProvider` is `handoff` now routes the turn to a
+  real handoff — the failed dispatch ends the turn in `handoff` with `error-escalation` on the durable
+  ledger (`single-step-turn.spec.ts`).
 
 ## What is still open for this vertical
 
-Tracked in `hermes-one/docs/DEFERRED-AND-FLAGGED.md` (PE1, PE5–PE7):
-- **The per-vertical doc set is not authored** (`domain-model.md`, `workflow-catalog.md`, … per
-  `docs/implementation/verticals/000-future-verticals-workplan.md`).
+Tracked in [`../../docs/DEFERRED-AND-FLAGGED.md`](../../docs/DEFERRED-AND-FLAGGED.md) (PE1, PE5):
+- **The per-vertical doc set is not authored** (`domain-model.md`, `workflow-catalog.md`, … per the
+  vertical workplan in the platform's architecture specification set, delivered separately).
 - **PE5** — the scheduler provider is a config-driven **stand-in**: slots come from
   `ProviderExecutionContext.config.slotTemplates` (now resolved from the tenant's OWN
   envelope-encrypted credential row — ADR-026, landed 2026-07-17; the e2e proves a tenant `rotate()`
   changes live slot output with zero deploys). A real vendor scheduler binds behind the same
   `ProviderAdapter` port; the credential seam it needed is DONE.
-- **PE6** — a capability whose `onNoProvider` is `handoff` is not routed to an actual handoff.
 - No `VerticalPackController` REST install (the pack installs via `installVerticalPack` / the admin API).
 
 ## Installing another vertical

@@ -35,6 +35,62 @@ function collectOps(expr: RuleExpression, into: Set<string>): void {
   }
 }
 
+/**
+ * Stage 4 type check + stage 7 bounds (policy-engine-runtime.md): assert `spec.pure === true`
+ * (POLICY_OPERATOR_NOT_PURE), check arity and the return type where a boolean is required — the root
+ * of a `when` and every and/or/not child — (POLICY_TYPE_MISMATCH), and bound nesting by
+ * maxExpressionDepth (POLICY_EXPRESSION_TOO_DEEP). Unknown operators are reported by the pinning
+ * pass below (single error site).
+ */
+function checkExpression(
+  expr: RuleExpression,
+  registry: OperatorRegistry,
+  depth: number,
+  maxDepth: number,
+  booleanContext: boolean,
+): void {
+  if (depth > maxDepth) {
+    throw new PolicyCompileError(
+      `POLICY_EXPRESSION_TOO_DEEP: expression nests deeper than maxExpressionDepth ${maxDepth}`,
+    );
+  }
+  switch (expr.type) {
+    case 'op': {
+      const resolved = registry.resolve(expr.op);
+      if (resolved) {
+        const spec = resolved.spec;
+        if (!spec.pure) {
+          throw new PolicyCompileError(
+            `POLICY_OPERATOR_NOT_PURE: operator '${expr.op}' declares spec.pure=false; policies may only use pure operators`,
+          );
+        }
+        if (spec.arity !== 'variadic' && expr.args.length !== spec.arity) {
+          throw new PolicyCompileError(
+            `POLICY_TYPE_MISMATCH: operator '${expr.op}' expects ${spec.arity} argument(s), got ${expr.args.length}`,
+          );
+        }
+        if (booleanContext && spec.returns !== 'boolean' && spec.returns !== 'unknown') {
+          throw new PolicyCompileError(
+            `POLICY_TYPE_MISMATCH: operator '${expr.op}' returns '${spec.returns}' where a boolean is required`,
+          );
+        }
+      }
+      expr.args.forEach(a => checkExpression(a, registry, depth + 1, maxDepth, false));
+      break;
+    }
+    case 'and':
+      expr.all.forEach(a => checkExpression(a, registry, depth + 1, maxDepth, true));
+      break;
+    case 'or':
+      expr.any.forEach(a => checkExpression(a, registry, depth + 1, maxDepth, true));
+      break;
+    case 'not':
+      checkExpression(expr.expr, registry, depth + 1, maxDepth, true);
+      break;
+    // literal / fact / param carry no operators and terminate the walk
+  }
+}
+
 /** Stage 5 (policy-engine-runtime.md constrainSites): voter effect ∈ {allow,deny}; repair postGate-only;
  * defer/approval/handoff preGate-only. */
 function constrainSites(rule: PolicyRule): void {
@@ -61,6 +117,8 @@ export interface CompileOptions {
   compilerVersion: SemVer;
   planId: PlanId;
   compiledAt: IsoTimestamp;
+  /** Compile-time nesting bound (PolicyCompilerConfig.maxExpressionDepth, default 32). */
+  maxExpressionDepth?: number;
 }
 
 export function compilePolicy(
@@ -70,6 +128,12 @@ export function compilePolicy(
   const def = PolicyDefinition.parse(definition);
 
   for (const rule of def.body.rules) constrainSites(rule);
+
+  // Type-check + bound every rule predicate (purity, arity, boolean return, depth).
+  const maxDepth = opts.maxExpressionDepth ?? 32;
+  for (const rule of def.body.rules) {
+    checkExpression(rule.when, opts.registry, 1, maxDepth, true);
+  }
 
   // Pin every referenced operator by its registry version (replay determinism).
   const opNames = new Set<string>();

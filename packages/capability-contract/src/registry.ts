@@ -20,10 +20,15 @@ export class InMemoryCapabilityRegistry implements CapabilityRegistry {
   private readonly byNameVersion = new Map<string, CapabilityContract>();
 
   constructor(contracts: CapabilityContract[] = []) {
-    for (const c of contracts) void this.register(c);
+    for (const c of contracts) this.validateAndStore(c);
   }
 
   async register(cap: CapabilityContract): Promise<void> {
+    this.validateAndStore(cap);
+  }
+
+  /** Synchronous validation core: seeding must throw in the constructor, never as an unhandled rejection. */
+  private validateAndStore(cap: CapabilityContract): void {
     const parsed = CapabilityContract.parse(cap); // name grammar, base fields, enums
     if (MUTATING.has(parsed.sideEffect) && !parsed.idempotency.required) {
       throw this.invalid(

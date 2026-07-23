@@ -101,6 +101,7 @@ describe('PUT /v1/definitions/{id} (live)', () => {
   it('rejects an invalid capability body → 422 (registry validation)', async () => {
     const res = await put(KEY_WRITE, 'def_itest_badbody', putReq(TENANT, {body: {name: 'x'}}));
     expect(res.status).toBe(422);
+    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe('validation_failed');
   });
 
   it('rejects a principal without definition.write → 403', async () => {

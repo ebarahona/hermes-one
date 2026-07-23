@@ -109,6 +109,12 @@ describe('InMemoryCapabilityRegistry', () => {
       /changedDomains/,
     );
   });
+
+  it('seeding with an invalid contract throws synchronously (no unhandled rejection)', () => {
+    expect(
+      () => new InMemoryCapabilityRegistry([makeCap({idempotency: {required: false, keyFields: [], ttlSeconds: 86400}})]),
+    ).toThrow(/idempotency/);
+  });
 });
 
 describe('ProviderResolver — ranked, eligible, healthy', () => {

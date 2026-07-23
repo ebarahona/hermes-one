@@ -4,7 +4,11 @@
 // are validate-and-pin only (ADR-016). Idempotent by contentHash: a byte-identical re-put dedupes to the
 // same planId (planId is derived deterministically from the contentHash, which excludes volatile fields).
 import {
+  AgentEngineContract,
+  CapabilityContract,
   FAMILY_OF,
+  PlatformErrorException,
+  SchemaRef,
   type CompiledPlanBase,
   type ContentHash,
   type Definition,
@@ -55,6 +59,20 @@ export interface DefinitionRegistryDeps {
 const planIdFromHash = (h: ContentHash): PlanId =>
   `pln_${h.replace('sha256:', '').slice(0, 24)}` as PlanId;
 
+/** Zod failure → the typed validation error the admin API projects to 422 (error contracts). */
+const validationFailed = (
+  message: string,
+  issues: {path: (string | number | symbol)[]; message: string}[],
+): PlatformErrorException =>
+  new PlatformErrorException({
+    category: 'validation',
+    code: 'validation_failed',
+    message,
+    issues: issues.map(i => ({path: `/${i.path.map(String).join('/')}`, message: i.message})),
+    retryable: false,
+    httpStatus: 422,
+  });
+
 export class DefinitionRegistry {
   constructor(private readonly deps: DefinitionRegistryDeps) {}
 
@@ -66,6 +84,14 @@ export class DefinitionRegistry {
       throw new Error('DefinitionRegistry.put requires a tenant-scoped definition (tenantId set)');
     }
     const scope = {tenantId};
+    // Assert the SchemaRef grammar `<name>.<type>/vN` before the family branch (substrate-lifecycle.md).
+    const schemaRef = SchemaRef.safeParse(def.schemaRef);
+    if (!schemaRef.success) {
+      throw validationFailed(
+        `definition '${def.definitionId}' has an invalid schemaRef '${String(def.schemaRef)}' (expected "<name>.<type>/vN")`,
+        [{path: ['schemaRef'], message: 'expected "<name>.<type>/vN"'}],
+      );
+    }
     const family = FAMILY_OF[def.kind];
     const at = this.deps.now();
 
@@ -127,10 +153,19 @@ export class DefinitionRegistry {
     };
     // agent-engine keeps its config under `body` (AgentEngineContract); capability spreads its fields
     // at the top level (CapabilityContract) — the two contract-schema shapes differ (agent-runtime /
-    // capability-contracts.md).
-    const contract = (def.kind === 'agent-engine'
-      ? {...base, body: def.body}
-      : {...base, ...(def.body as Record<string, unknown>)}) as unknown as ValidatedContractBase;
+    // capability-contracts.md). Validate against the canonical versioned Zod schema — "validate only
+    // (Zod, no compiler)" (substrate-lifecycle.md, ADR-016); a failing body never reaches the store.
+    const parsed =
+      def.kind === 'agent-engine'
+        ? AgentEngineContract.safeParse({...base, body: def.body})
+        : CapabilityContract.safeParse({...base, ...(def.body as Record<string, unknown>)});
+    if (!parsed.success) {
+      throw validationFailed(
+        `${def.kind} contract body failed schema validation`,
+        parsed.error.issues,
+      );
+    }
+    const contract: ValidatedContractBase = parsed.data;
 
     // definition.published fires for kind:'capability' ONLY (events/domain-events.md's trigger
     // column); it rides putDefinition's transaction and is skipped on an idempotent re-put.

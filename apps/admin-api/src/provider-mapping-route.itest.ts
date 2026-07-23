@@ -49,7 +49,9 @@ const putDefinitionReq = {
   tenantId: TENANT,
   kind: 'capability',
   name: CAP_NAME,
-  schemaRef: `${CAP_NAME}.capability/v1`,
+  // SchemaRef's name segment is a hyphenated slug (ADR-016 grammar), distinct from the dotted
+  // capability name — e.g. the spec's `sms-send.capability/v1` for capability `sms.message.send`.
+  schemaRef: 'itest-pm-mapping.capability/v1',
   version: '1.0.0',
   body: capabilityBody,
 };

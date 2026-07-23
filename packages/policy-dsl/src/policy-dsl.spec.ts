@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {builtinRegistry} from '@platform/expression-core';
+import {BUILTIN_OPERATORS, builtinRegistry, InMemoryOperatorRegistry} from '@platform/expression-core';
 import type {
   DefinitionId,
   IsoTimestamp,
@@ -7,6 +7,7 @@ import type {
   PolicyDefinition,
   PolicyEvaluationContext,
   Principal,
+  RuleOperator,
   SemVer,
 } from '@platform/contracts';
 import {compilePolicy, PolicyCompileError, ExpressionPolicyRuntime} from './index.js';
@@ -66,6 +67,37 @@ describe('compilePolicy', () => {
     ]);
     expect(() => compile(repairPre)).toThrow(/repair/);
     expect(() => compile(deferPost)).toThrow(/preGate-only/);
+  });
+
+  it('rejects a wrong-arity expression → POLICY_TYPE_MISMATCH (policy-engine-runtime.md)', () => {
+    const bad = basePolicy([
+      {id: 'g', site: 'preGate', appliesTo: [], when: {type: 'op', op: 'equals', args: [{type: 'fact', path: 'a'}]}, effect: 'deny', reason: 'x'},
+    ]);
+    expect(() => compile(bad)).toThrow(/POLICY_TYPE_MISMATCH/);
+  });
+
+  it('rejects an impure operator → POLICY_OPERATOR_NOT_PURE (spec.pure asserted at compile)', () => {
+    const impure: RuleOperator = {
+      spec: {op: 'clock.now', arity: 0, version: V1, returns: 'boolean', pure: false as unknown as true},
+      evaluate: () => true,
+    };
+    const tainted = new InMemoryOperatorRegistry(V1, [...BUILTIN_OPERATORS, impure]);
+    const bad = basePolicy([
+      {id: 'g', site: 'preGate', appliesTo: [], when: {type: 'op', op: 'clock.now', args: []}, effect: 'deny', reason: 'x'},
+    ]);
+    expect(() =>
+      compilePolicy(bad, {registry: tainted, compilerVersion: V1, planId: 'pln_pol' as PlanId, compiledAt: AT}),
+    ).toThrow(/POLICY_OPERATOR_NOT_PURE/);
+  });
+
+  it('bounds expression nesting → POLICY_EXPRESSION_TOO_DEEP (maxExpressionDepth)', () => {
+    let when: PolicyDefinition['body']['rules'][0]['when'] = {type: 'fact', path: 'flag'};
+    for (let i = 0; i < 5; i++) when = {type: 'not', expr: when};
+    const deep = basePolicy([{id: 'g', site: 'preGate', appliesTo: [], when, effect: 'deny', reason: 'x'}]);
+    expect(() =>
+      compilePolicy(deep, {registry: reg, compilerVersion: V1, planId: 'pln_pol' as PlanId, compiledAt: AT, maxExpressionDepth: 4}),
+    ).toThrow(/POLICY_EXPRESSION_TOO_DEEP/);
+    expect(() => compile(deep)).not.toThrow(); // the default bound (32) still accepts it
   });
 });
 

@@ -24,8 +24,8 @@ shared secret and no replay guard; (b) no human/API caller can authenticate at a
 Authentication answers **"who is calling, and for which tenant"** (authentication-strategies.md). It is
 strictly upstream of authorization: strategies produce a `Principal`; the ALREADY-BUILT machinery
 downstream (scope-gated tool derivation via `capabilitiesForEngine`, ADR-019 policy pre/post gates) is
-real and tested — at design time it was anchored to placeholder identity. This design replaces the
-anchor, not the machinery. **No authentication strategy ever runs in the agent plane** (ADR-017); the turn
+real and tested. This design supplies the identity that machinery consumes, and changes nothing
+downstream of it. **No authentication strategy ever runs in the agent plane** (ADR-017); the turn
 receives its principal value-mapped through the serializable `WorkspaceContext`.
 
 # Scope

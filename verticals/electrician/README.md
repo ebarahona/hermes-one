@@ -25,14 +25,13 @@ code is ever compiled into the platform.
   LLM — the generic host interprets `electrician-intake` → the triage rule routes to the dispatcher agent
   node → a real bounded agent turn completes (`path=[triage,assist,end]`).
   Run note: the e2e now also requires `HERMES_CREDENTIALS_MASTER_KEY` (ADR-026 envelope store).
-- **Slice 3 (done, 2026-07-17) — TOOL-BACKED, verified live:** the dispatcher no longer answers from persona
-  alone. `appointment.slot.read` (the specs' canonical platform capability — this pack previously carried
-  the non-canonical `electrical.slot.read`, which no seeded role granted) is projected into a real agentback `@tool` whose body
-  resolves the ranked `ProviderAdapter`, and `InternalSchedulerProvider` (`infrastructure/scheduler`) serves
-  it. A scheduling intent drives the LLM to call the tool → real provider → real slots, recorded in
-  `runtime.tool_executions` with `metrics.providerId=internal-scheduler`. An emergency intent correctly
-  declines the tool and answers on safety. The **triage rule reads the real `intent` fact** (2026-07-17,
-  replacing the earlier placeholder literal branches), with hazard terms ordered before
+- **Slice 3 (done, 2026-07-17) — TOOL-BACKED, verified live:** the dispatcher answers from real data.
+  `appointment.slot.read` — the platform's canonical scheduling capability — is projected into a real
+  agentback `@tool` whose body resolves the ranked `ProviderAdapter`, and `InternalSchedulerProvider`
+  (`infrastructure/scheduler`) serves it. A scheduling intent drives the LLM to call the tool → real
+  provider → real slots, recorded in `runtime.tool_executions` with
+  `metrics.providerId=internal-scheduler`. An emergency intent correctly declines the tool and answers
+  on safety. The **triage rule reads the real `intent` fact**, with hazard terms ordered before
   scheduling terms so a caller reporting both is triaged as the emergency (`pack-e-rule.spec.ts`).
 - **PE6 (done, 2026-07-17):** a capability whose `onNoProvider` is `handoff` now routes the turn to a
   real handoff — the failed dispatch ends the turn in `handoff` with `error-escalation` on the durable

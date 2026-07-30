@@ -6,7 +6,8 @@ A deterministic Temporal workflow rail with bounded agent nodes inside it. The w
 orchestration; the agent owns bounded reasoning; **the model proposes, the runtime disposes** —
 every tool call passes a policy gate, every side effect is idempotent, every read and write is
 tenant-scoped by row-level security, and every turn is durably recorded for replay, audit, and
-evaluation. Governing decisions live in `docs/adr/`; the build sequence in `docs/BUILD-PLAN.md`.
+evaluation. The reasoning behind these choices is in **`docs/WHY-THIS-ARCHITECTURE.md`**; governing
+decisions live in `docs/adr/`; the build sequence in `docs/BUILD-PLAN.md`.
 
 ## Capabilities
 
@@ -48,7 +49,7 @@ see `docs/SPIKE-FINDINGS.md`.
 
 | Area              | Role                                                 | Scope                  |
 | ----------------- | ---------------------------------------------------- | ---------------------- |
-| `apps/`           | deployable processes (one composition root each; admin-web is a reserved placeholder for the admin console) | `@platform-internal/*` |
+| `apps/`           | deployable processes, one composition root each (`admin-web` is reserved for the admin console, which drops onto the existing admin API) | `@platform-internal/*` |
 | `packages/`       | pure libraries — schemas, compilers, plan types      | `@platform/*`          |
 | `components/`     | DI-wired engines (depend on ports, not adapters)     | `@platform-internal/*` |
 | `infrastructure/` | I/O adapters (the only place with I/O)               | `@platform-internal/*` |
@@ -73,7 +74,12 @@ pnpm -F @platform-internal/workflow-worker replay-gate   # interpreter nondeterm
 node apps/workflow-worker/dist/e2e.js   # missed-call flow on real Temporal
 node apps/api-gateway/dist/e2e.js       # signed webhook → workflow (replay-attack rejected live)
 node apps/agent-worker/dist/e2e.js      # 3-plane triage with a live LLM (local model at :8080)
-node apps/agent-worker/dist/pack-e.e2e.js  # the electrician vertical, end to end, tool-backed
+
+# the electrician vertical, end to end, tool-backed. Needs HERMES_CREDENTIALS_MASTER_KEY in the
+# environment (ADR-026 envelope store): the run resolves the tenant's OWN credentials and fails
+# closed rather than falling back to platform defaults.
+set -a; . ./.env; set +a
+node apps/agent-worker/dist/pack-e.e2e.js
 ```
 
 ## Engineering discipline

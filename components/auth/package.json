@@ -18,10 +18,6 @@
     "role": "component",
     "plane": "edge",
     "published": false,
-    "sourceDocs": [
-      "loopback/authentication-strategies",
-      "loopback/authorization-voters"
-    ],
     "governedBy": [
       "ADR-017",
       "ADR-019",

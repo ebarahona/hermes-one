@@ -1,7 +1,7 @@
 // DeploymentService (platform.definition.deploymentService): validate a manifest, assign the next
 // per-tenant version, atomically supersede the prior active deployment and insert the new one, and
 // resolve pinned plans for runtimes (Redis cache-through + mandatory contentHash verify via the store).
-// Full behaviour per deployment-manifest.md; resolveVersion serves replay + audit (a specific
+// resolveVersion serves replay + audit (a specific
 // historical deployment, immutable — superseded rows resolve fine).
 import {
   FAMILY_OF,
@@ -55,7 +55,7 @@ export interface DeploymentServiceDeps {
   deployments: DeploymentWritePort;
   now: () => string;
   /**
-   * Optional regression gate (observability/evaluation-and-cost-analytics.md): consulted with the CANDIDATE
+   * Optional regression gate (evaluation gate): consulted with the CANDIDATE
    * deployment ref after manifest validation and BEFORE the atomic supersede+insert. Returning `pass:false`
    * ABORTS the publish (no deployment is written). Injected so this package stays decoupled from the
    * agent-plane eval runner / scalability gate — the composition wires the real check.
@@ -154,7 +154,7 @@ export class DeploymentService {
     return this.deps.store.resolveActiveDeploymentCached(tenantId);
   }
 
-  /** A specific historical deployment (immutable) — used by replay + audit (deployment-manifest.md). */
+  /** A specific historical deployment (immutable) — used by replay + audit. */
   resolveVersion(tenantId: TenantId, version: SemVer): Promise<Deployment> {
     return this.deps.store.resolveDeploymentByVersion(tenantId, version);
   }

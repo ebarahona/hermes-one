@@ -1,4 +1,4 @@
-// UserController — the tenant user/principal resource (api/admin-api.md §UserController):
+// UserController — the tenant user/principal resource (admin API contract):
 //   POST /v1/tenants/{tenantId}/users   scope: tenant.user.create   tenant-scoped write
 //   GET  /v1/tenants/{tenantId}/users   scope: tenant.user.read      tenant-scoped read
 // Read/write through the RLS-enforced DrizzleUserRepository (own tenant only). Fail-closed on scope
@@ -18,7 +18,7 @@ import {type ErrorIssue, PlatformErrorException, type Principal, type Scope, typ
 const CREATE_USER = 'tenant.user.create' as Scope;
 const READ_USER = 'tenant.user.read' as Scope;
 
-/** admin-api.md CreateUserRequest — the mutable subset (server derives principalId/status/timestamps). */
+/** CreateUserRequest — the mutable subset (server derives principalId/status/timestamps). */
 const CreateUserRequest = z.object({
   kind: z.enum(['user', 'service', 'system']),
   displayName: z.string().optional(),

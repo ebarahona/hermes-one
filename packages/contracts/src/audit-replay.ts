@@ -1,8 +1,8 @@
 // @platform/contracts — src/audit-replay.ts
-// The READ side of the audit trail (observability/audit-and-replay.md): the composed incident timeline
+// The READ side of the audit trail (audit and replay): the composed incident timeline
 // (audit_events ⋈ tool_executions ⋈ policy_decisions ⋈ evidence_records by tenant+correlation) + the two
-// replay modes. Transcribed VERBATIM from the spec.
-// NOTE: the spec imports WorkflowId from substrate, but no such brand exists there yet — the (deferred)
+// replay modes.
+// NOTE: the contract references WorkflowId from substrate, but no such brand exists there yet — the (deferred)
 // ReplayService/SimulationService interfaces below type workflowId as `string` and flag the gap. Only
 // AuditTimelineEntry/AuditQueryService are implemented in this build; replay/simulation need Temporal
 // replay + mock-provider workers (deferred, see docs/DEFERRED-AND-FLAGGED.md).
@@ -27,7 +27,7 @@ export const AuditTimelineEntry = z.object({
   turnId: TurnId.nullable(),
   /** The underlying typed row, when decryptable; null for a 'tombstone' entry. */
   detail: z.union([AuditEvent, PolicyDecision, EvidenceRecord, ToolResult]).nullable(),
-  /** Present only when kind='tombstone' (data-retention-jobs.md crypto-shred). */
+  /** Present only when kind='tombstone' (retention-job crypto-shred). */
   tombstoneReason: z.enum(['crypto-shredded', 'retention-purged']).optional(),
 });
 export type AuditTimelineEntry = z.infer<typeof AuditTimelineEntry>;
@@ -40,13 +40,13 @@ export interface AuditQueryService {
 }
 
 /* -------------------------------- Replay --------------------------------- */
-// DEFERRED impl: needs Temporal history replay + a mock-provider simulation worker (audit-and-replay.md).
+// DEFERRED impl: needs Temporal history replay + a mock-provider simulation worker.
 
 export const ReplayMode = z.enum(['history-only', 'simulation']);
 export type ReplayMode = z.infer<typeof ReplayMode>;
 
 export interface WorkflowStateSnapshot {
-  readonly workflowId: string; // spec: WorkflowId brand (not yet in substrate) — flagged
+  readonly workflowId: string; // WorkflowId brand (not yet in substrate) — flagged
   readonly runId: string;
   readonly currentNodeId: string | null;
   readonly dirtyDomains: string[];
@@ -54,7 +54,7 @@ export interface WorkflowStateSnapshot {
 }
 
 /** Read-only. Never executes an activity function — replays recorded ActivityTaskCompleted results
- *  (worker-versioning-and-replay.md). A NonDeterminismError is surfaced, never swallowed. */
+ *  (worker versioning and replay). A NonDeterminismError is surfaced, never swallowed. */
 export interface ReplayService {
   replayWorkflow(workflowId: string, runId: string): Promise<WorkflowStateSnapshot>;
 }

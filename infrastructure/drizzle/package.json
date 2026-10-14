@@ -18,13 +18,6 @@
     "role": "infrastructure",
     "plane": "none",
     "published": false,
-    "sourceDocs": [
-      "08-data/081",
-      "substrate/compiled-plan-store",
-      "database/row-level-security",
-      "database/table-catalog",
-      "loopback/repository-patterns"
-    ],
     "governedBy": [
       "ADR-014",
       "ADR-016",

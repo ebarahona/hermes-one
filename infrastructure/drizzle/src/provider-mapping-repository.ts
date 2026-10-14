@@ -1,5 +1,5 @@
 // DrizzleProviderMappingRepository — the tenant OVERRIDE surface over capability.provider_mappings
-// (migration 0023, RLS strict via 0024; api/capability-and-provider-api.md ProviderMappingController).
+// (migration 0023, RLS strict via 0024).
 // Absence of a row = "use the contract default"; `findContractDefault` reads that default straight off
 // the content-hashed capability contract via the substrate.capability_registrations view (published,
 // latest by updated_at) — the view isn't modeled in the Drizzle schema (not DDL, not in the drift gate),

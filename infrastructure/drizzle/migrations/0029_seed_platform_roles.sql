@@ -1,7 +1,7 @@
--- Seed the platform-defined default roles (security/role-matrix.md §Tenant role matrix — the rows a
+-- Seed the platform-defined default roles (the rows a
 -- tenant may shadow or extend; tenant_id IS NULL = visible to every tenant via the nullable-tenant RLS
--- policy). Idempotent on the platform partial-unique (roles_platform_name_uq). Scope strings are the
--- role-matrix examples; the full leaf catalog is security/permission-catalog.md (grows with capabilities).
+-- policy). Idempotent on the platform partial-unique (roles_platform_name_uq). Scope strings are
+-- representative examples; the full leaf catalog grows with capabilities.
 INSERT INTO tenant.roles (role_id, tenant_id, name, scopes, description) VALUES
   ('rol_platform_customer', NULL, 'customer',
    '{appointment.slot.read,appointment.booking.create}',

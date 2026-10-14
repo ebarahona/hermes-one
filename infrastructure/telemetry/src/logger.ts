@@ -1,4 +1,4 @@
-// Structured JSON logging (tracing-metrics-logging.md): one LogRecord = one JSON line, tagged with the
+// Structured JSON logging: one LogRecord = one JSON line, tagged with the
 // ObservabilityCorrelationContext so traces/metrics/logs join without a correlation table. RedactingLogger
 // runs every record through a Redactor before it reaches the sink — PII never leaves raw.
 import {type LogLevel, type LogRecord, type Logger, type Redactor} from '@platform/contracts';

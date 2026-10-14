@@ -1,4 +1,4 @@
-// The shared ESM entry contract, transcribed from loopback/application-bootstrap.md: every main.ts
+// The shared ESM entry contract: every main.ts
 // calls bootstrap() with its own CompositionRoot; identical everywhere. reflect-metadata MUST be the
 // first import in the process (ADR-022) — this module imports it, and every main.ts imports this
 // module first.

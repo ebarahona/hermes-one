@@ -1,4 +1,4 @@
-// Metrics catalogue impls (tracing-metrics-logging.md): a Meter accumulates counters + histogram samples
+// Metrics catalogue impls: a Meter accumulates counters + histogram samples
 // tagged by dimension. `InMemoryMeter` snapshots for tests / a future /metrics scrape; `LoggingMeter`
 // emits each metric event as a structured log line (visible in dev) via the same Logger the platform uses.
 // The OTel-backed Meter (real export + histogram aggregation) is the prod swap — deferred (OB5).
@@ -63,7 +63,7 @@ export class LoggingMeter implements Meter {
   }
 }
 
-/** The platform SLO catalogue — the ONLY source consulted for alerting (verbatim from the spec's example). */
+/** The platform SLO catalogue — the ONLY source consulted for alerting (mirrors the contract's example). */
 export const DEFAULT_SLO_TARGETS: readonly SloTarget[] = [
   {metric: 'agent.turn.latency_ms', objective: 'p95', targetMs: 8000, windowDays: 7},
   {metric: 'agent.tool.latency_ms', objective: 'p99', targetMs: 3000, windowDays: 7},

@@ -1,11 +1,11 @@
 // CostAnalyticsService (edge plane): a READ-ONLY rollup over the already-deduped UsageRecord stream.
-// `summarize` is a thin pass-through to UsageMeter.summarize() (audit-contracts.md) — the platform never
+// `summarize` is a thin pass-through to UsageMeter.summarize() — the platform never
 // runs a second counter (T7). `reconcile` COMPARES the platform totals against agentback's own metering
 // export and reports per-meter drift; it never writes back or corrects UsageRecord.
 //
 // FLAGGED: agentback's metering export is not wired in this build — the composition root injects an
 // `agentbackExport` function; a stub that mirrors the platform totals yields status 'ok'. The real export
-// integration (T7 reconciliation, observability/147) is the follow-up.
+// integration (T7 reconciliation) is the follow-up.
 import {
   ReconciliationReport,
   type CostAnalyticsService,

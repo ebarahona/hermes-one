@@ -9,6 +9,5 @@ export const descriptor = {
   role: 'infrastructure',
   plane: 'none',
   published: false,
-  sourceDocs: ['17-deployment/179'],
   governedBy: [],
 } as const;

@@ -1,4 +1,4 @@
-// EvaluationRunner + RegressionGate (observability/evaluation-and-cost-analytics.md). The runner plays a
+// EvaluationRunner + RegressionGate. The runner plays a
 // golden case's scripted turns through the injected simulate seam (TurnSimulationService bound to the
 // case's deployment deps), scores each assertion against the resulting TurnResult/ledger, and returns an
 // EvaluationResult (dryRun:true). The RegressionGate blocks a deployment publish on any 'required'-severity

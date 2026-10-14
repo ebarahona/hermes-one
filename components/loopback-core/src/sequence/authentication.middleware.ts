@@ -1,4 +1,4 @@
-// FailClosedAuthenticationMiddleware — the `authentication` slot (sequence-implementation.md), which
+// FailClosedAuthenticationMiddleware — the `authentication` slot, which
 // writes PlatformBindings.REQUEST_PRINCIPAL and runs BEFORE `findRoute`/`parseParams` (the
 // "authorize-before-validate" law: an unauthenticated caller or unknown route never reaches routing
 // or schema validation, so error shapes never leak the request contract and an unknown path returns
@@ -14,7 +14,7 @@ import {type AuthenticatedIdentity, PlatformErrorException, type PrincipalMapper
 import {PlatformSequenceGroups} from './sequence-groups.js';
 import {REST_PUBLIC_PATHS} from './rest-bindings.js';
 
-/** Routes that need no principal — health ONLY (sequence-implementation.md publicRoutes example).
+/** Routes that need no principal — health ONLY.
  *  The OpenAPI spec + explorer expose the full admin route/schema surface, so they authenticate
  *  like any other route; dev opts them back in via REST_PUBLIC_PATHS. */
 export const DEFAULT_PUBLIC_PATHS: readonly string[] = ['/v1/healthz'];

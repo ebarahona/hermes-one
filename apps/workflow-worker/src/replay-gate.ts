@@ -1,4 +1,4 @@
-// The replay-test gate (temporal/worker-versioning-and-replay.md, ADR-029): every captured history
+// The replay-test gate (ADR-029): every captured history
 // must replay against the CANDIDATE interpreter without a nondeterminism error before that build may
 // ship. This is the fleet-wide safety net ADR-014 makes both possible and necessary — there is ONE
 // interpreter, so one gate protects every workflow, and there is no per-workflow blast radius to

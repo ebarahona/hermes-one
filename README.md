@@ -84,8 +84,8 @@ node apps/agent-worker/dist/pack-e.e2e.js
 
 ## Engineering discipline
 
-Every intentional deferral and spec delta is recorded in `docs/DEFERRED-AND-FLAGGED.md` — nothing
-is silently improvised. Specs are the source of truth; where a library or a second spec genuinely
+Every intentional deferral and design deviation is recorded in `docs/DEFERRED-AND-FLAGGED.md` — nothing
+is silently improvised. The design is the source of truth; where a library or a second design constraint genuinely
 conflicts, the conflict is ratified as an ADR (`docs/adr/`), never resolved ad hoc. CI runs the
 typecheck, the plane-isolation lint, the unit and integration suites, and the interpreter replay
 gate on every push.

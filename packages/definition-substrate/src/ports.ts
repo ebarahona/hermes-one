@@ -19,7 +19,7 @@ export interface PlanStorePort {
   getValidatedContractByHash(contentHash: ContentHash): Promise<ValidatedContractBase | null>;
   resolvePlanCached(tenantId: TenantId, planId: PlanId, contentHash: ContentHash): Promise<CompiledPlanBase>;
   resolveActiveDeploymentCached(tenantId: TenantId): Promise<Deployment>;
-  /** Resolve-by-pinned-ref (deployment-manifest.md `resolveVersion`) — superseded rows resolve fine. */
+  /** Resolve-by-pinned-ref (`resolveVersion`) — superseded rows resolve fine. */
   resolveDeployment(tenantId: TenantId, deploymentId: string): Promise<Deployment>;
   resolveDeploymentByVersion(tenantId: TenantId, version: string): Promise<Deployment>;
   invalidateActiveDeployment(tenantId: TenantId): Promise<void>;

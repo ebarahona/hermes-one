@@ -1,8 +1,8 @@
 // The env-backed ProviderCredentialStore stand-in, MOVED here from components/channels (ledger S7):
 // the port was trapped in an edge-plane component (@loopback/* deps), which made it structurally
 // unimportable from the agent plane (ADR-017 / plane-lint) — the root cause of PE7. The PORT now
-// lives in @platform/contracts beside the other ports; this member (the one the spec assigns,
-// security/secrets-and-key-management.md) hosts implementations, plane `none` so BOTH planes wire it.
+// lives in @platform/contracts beside the other ports; this member (the secrets member)
+// hosts implementations, plane `none` so BOTH planes wire it.
 //
 // Tenant scoping is still a stand-in here (one bundle per provider, from the environment at the
 // composition root). The per-tenant envelope-encrypted store is ADR-026's build (ledger S1/S6) —

@@ -29,7 +29,7 @@ export const ErrorCode = z.enum([
   'version_conflict',
   'rate_limited',
   'quota_exceeded',
-  'payment_required', // 402 — the code agentback 065 omits (finding)
+  'payment_required', // 402 — the code agentback's error set omits
   'provider_unavailable',
   'provider_rejected', // vendor business rejection (handler-error class)
   'infrastructure_error', // retryable (transport-core infrastructure-error)

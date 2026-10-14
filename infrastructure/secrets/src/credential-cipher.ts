@@ -1,6 +1,6 @@
 // The envelope-encryption seam for tenant provider credentials (ADR-026). The cipher is a PORT so
 // the wrapping key's home is a composition-root choice: LocalAesGcmCipher (below) for dev/test and
-// single-box deploys; a cloud-KMS adapter (per-tenant CMK, security/secrets-and-key-management.md's
+// single-box deploys; a cloud-KMS adapter (per-tenant CMK, via
 // TenantMasterKeyRef) is the production swap — SAME port, no store change. Plaintext bundles exist
 // only in memory between decrypt and ProviderExecutionContext.config; they never touch a column,
 // a log, or a definition body.

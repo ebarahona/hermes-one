@@ -18,10 +18,6 @@
     "role": "app",
     "plane": "edge",
     "published": false,
-    "sourceDocs": [
-      "02-core-architecture/010",
-      "12-provider-adapters/120"
-    ],
     "governedBy": []
   },
   "dependencies": {

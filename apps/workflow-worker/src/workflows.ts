@@ -63,7 +63,7 @@ interface AgentActivities {
   agentTurn(a: TurnRequest, trace?: TraceHeader): Promise<TurnResult>;
 }
 
-// Retry classes per temporal/retry-policy-registry.md — every activity resolves to exactly one of
+// Retry classes per the retry-policy registry — every activity resolves to exactly one of
 // the six canonical profiles; no ad-hoc per-activity retry tuning:
 // - plan loads / rule evaluation / audit emission are `internal-db` (state-loading / audit-persistence);
 // - the capability node's send is capability-execution resolved by the capability's SideEffectClass —
@@ -71,7 +71,7 @@ interface AgentActivities {
 //   `non-idempotent-guarded-write`, maximumAttempts:1: Temporal never auto-retries a vendor send;
 //   the workflow decides any redo with a fresh idempotencyKey. Per-capability dynamic class dispatch
 //   (multiple capabilities with differing side effects) needs the sideEffect in the compiled plan — flagged;
-// - the agent turn is `model-call` (attempt-once, 120s + 20s heartbeat — 059 §9).
+// - the agent turn is `model-call` (attempt-once, 120s + 20s heartbeat).
 const {loadWorkflowPlan, loadRulePlan, evaluateRule, emitDecisionRule} =
   proxyActivities<EdgeActivities>({
     taskQueue: ACTIVITY_QUEUE,
@@ -165,7 +165,7 @@ export async function runTriage(ref: WorkflowRunRef) {
     // TurnRequest and returning a TurnResult (ADR-017); the workflow maps it to the interpreter's shape.
     runAgentTurn: async (engine, objective, input) => {
       // Trace propagation (OB5): extract the child trace via the WorkflowTraceInterceptor seam and carry
-      // it as an explicit sidecar arg to the turn activity (the spec's "traceparent on ActivityOptions").
+      // it as an explicit sidecar arg to the turn activity ("traceparent on ActivityOptions").
       const {childTrace} = new PassThroughWorkflowTrace().onWorkflowExecute({trace: ref.trace});
       const result = await agentTurn(
         // startedAt = WORKFLOW time (Temporal's sandbox Date is deterministic on replay/reset), so a

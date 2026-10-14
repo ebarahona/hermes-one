@@ -5,7 +5,7 @@ import {
   pgSchema, text, integer, timestamp, jsonb, index, uniqueIndex, primaryKey,
 } from 'drizzle-orm/pg-core';
 
-export const substrate = pgSchema('substrate'); // new core schema alongside 081's list
+export const substrate = pgSchema('substrate'); // new core schema alongside the existing schemas
 
 /* ------------------------------------------------------------------ *
  * definitions — one row per DefinitionId. The mutable "current version"
@@ -106,7 +106,7 @@ export const validatedContracts = substrate.table(
 
 /* ------------------------------------------------------------------ *
  * deployments — one row per DeploymentId. version is per-tenant
- * monotonic (deployment-manifest.md). Immutable once inserted; only
+ * monotonic. Immutable once inserted; only
  * `status` transitions (active → superseded | rolledback).
  * ------------------------------------------------------------------ */
 export const deployments = substrate.table(

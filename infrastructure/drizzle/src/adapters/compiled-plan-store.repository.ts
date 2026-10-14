@@ -4,8 +4,8 @@
 // validated_contracts are content-addressed (no RLS); deployments/definitions are tenant-scoped (RLS),
 // so their reads go through withTenant.
 //
-// Open Questions (spec gaps, flagged not resolved):
-// - repository-patterns.md binds adapters as @injectable() behind a PersistenceComponent; this store is
+// Open Questions (flagged, not resolved):
+// - The base repository pattern binds adapters as @injectable() behind a PersistenceComponent; this store is
 //   wired via a composition-root factory (createCompiledPlanStore), matching the existing worker
 //   composition roots. The @loopback/context binding belongs with the loopback-core component wiring.
 // - CompiledPlanStore.getDeploymentWithMembers(deploymentId) takes no tenant scope, but deployments is
@@ -59,7 +59,7 @@ export interface CompiledPlanStore {
   resolveActiveDeploymentCached(tenantId: TenantId): Promise<Deployment>;
 
   /**
-   * Resolve-by-pinned-ref (deployment-manifest.md `resolveVersion`, D1): the EXACT deployment a
+   * Resolve-by-pinned-ref (`resolveVersion`, D1): the EXACT deployment a
    * conversation was pinned to, regardless of later publishes — superseded rows resolve fine
    * (immutable manifest; status is a pointer state). Tenant-scoped (RLS), no cache pointer needed:
    * the id/version IS the pin, and members re-join every resolve like the active path.

@@ -2,7 +2,7 @@
 // AUTH-1). Resolves `secret://env/<path...>` by mapping the path onto an environment variable name:
 // segments are uppercased, dashes/dots become underscores, segments join with '_'
 // (e.g. `secret://env/sms-webhook-signing` → SMS_WEBHOOK_SIGNING). The cloud secret-manager
-// implementation (security/secrets-and-key-management.md — AWS/GCP/Vault, TTL cache, rotation
+// implementation (AWS/GCP/Vault, TTL cache, rotation
 // policies) swaps in behind the same port; this backend is flagged as dev-only (S1/S2).
 import type {ResolvedSecret, SecretProvider, SecretRef} from '@platform/contracts';
 

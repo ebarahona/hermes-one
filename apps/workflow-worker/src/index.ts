@@ -25,6 +25,5 @@ export const descriptor = {
   role: 'app',
   plane: 'edge',
   published: false,
-  sourceDocs: ['03-workflow-runtime/043', '17-deployment/170'],
   governedBy: ['ADR-014'],
 } as const;

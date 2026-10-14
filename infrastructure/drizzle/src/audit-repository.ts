@@ -1,9 +1,9 @@
 // Tenant-scoped, append-only writer for audit.audit_events (RLS 'strict') — the store behind
-// platform.audit.sink (audit-contracts.md). Implements the canonical AuditSink port.
+// platform.audit.sink. Implements the canonical AuditSink port.
 //
-// APPEND SEMANTICS (audit-contracts.md: "Append-only; throws if `id`/`integrityHash` already exists
-// (idempotent on replay)" + "`append` rejects a duplicate id/hash, making replay idempotent AND
-// MUTATION DETECTABLE"). One rule, keyed on the hash:
+// APPEND SEMANTICS (append-only; throws if `id`/`integrityHash` already exists
+// (idempotent on replay); `append` rejects a duplicate id/hash, making replay idempotent AND
+// MUTATION DETECTABLE). One rule, keyed on the hash:
 //   same id + same integrityHash  → a genuine replay (workflow reset / re-execution) → no-op;
 //   same id + DIFFERENT hash      → the id is being reused for different content → THROW.
 // SAFE ONLY because every producer derives occurredAt from a replay-stable clock: the edge decision

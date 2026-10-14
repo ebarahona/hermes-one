@@ -69,7 +69,7 @@ describe('compilePolicy', () => {
     expect(() => compile(deferPost)).toThrow(/preGate-only/);
   });
 
-  it('rejects a wrong-arity expression → POLICY_TYPE_MISMATCH (policy-engine-runtime.md)', () => {
+  it('rejects a wrong-arity expression → POLICY_TYPE_MISMATCH', () => {
     const bad = basePolicy([
       {id: 'g', site: 'preGate', appliesTo: [], when: {type: 'op', op: 'equals', args: [{type: 'fact', path: 'a'}]}, effect: 'deny', reason: 'x'},
     ]);

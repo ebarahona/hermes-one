@@ -122,5 +122,5 @@ Every claim above is exercised by the suite that runs on each push, plus manual 
 | End-to-end with a live model | 3-plane triage · the electrician vertical, tool-backed |
 | Typecheck · plane isolation | 0 errors · no cross-plane imports |
 
-`docs/DEFERRED-AND-FLAGGED.md` records the planned increments and every ratified spec decision, so
+`docs/DEFERRED-AND-FLAGGED.md` records the planned increments and every ratified design decision, so
 the boundary between what is delivered and what is scheduled is explicit rather than implied.

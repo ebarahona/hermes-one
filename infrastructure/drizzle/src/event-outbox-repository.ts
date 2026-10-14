@@ -1,18 +1,18 @@
 // event.event_outbox writer + publisher read-side — the transactional-outbox "commit-and-publish"
-// store (events/event-envelope.md `EventOutboxRepository`, database/table-catalog.md). `enqueue`
+// store (`EventOutboxRepository`). `enqueue`
 // joins the CALLER's open tenant transaction (never opens its own) so the outbox row commits
 // atomically with the domain row it fans out from. Idempotent on outbox_id: the caller derives a
 // deterministic id from the aggregate (e.g. `obx_<audit id>`), so a Temporal activity replay
 // collapses to one row.
 //
-// Publish semantics (event-envelope.md): the publisher polls `status='pending' ORDER BY sequence
-// LIMIT N FOR UPDATE SKIP LOCKED` (row-level-security.md forbids LISTEN/NOTIFY under transaction
+// Publish semantics: the publisher polls `status='pending' ORDER BY sequence
+// LIMIT N FOR UPDATE SKIP LOCKED` (LISTEN/NOTIFY is not used under transaction
 // pooling); a failed publish increments `attempts` and stays `pending` until `maxAttempts`, then
 // flips to `failed` and is excluded from polling. At-least-once: a crash after PUBLISH but before
 // COMMIT republishes — consumers dedupe on the envelope's deterministic `idempotencyKey`.
 //
 // FLAGGED: the poll is PER-TENANT (withTenant → RLS) because the cross-tenant relay role
-// (`platform-admin`) is an UNRESOLVED spec question (row-level-security.md Open Questions) — this
+// (`platform-admin`) is an UNRESOLVED question — this
 // build never invents a bypass-capable role. The tenant list is injected (config stand-in; the real
 // source is the tenant registry, blocked on CT1).
 import {and, asc, eq, sql} from 'drizzle-orm';

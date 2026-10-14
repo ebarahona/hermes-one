@@ -1,12 +1,12 @@
-// Atomic turn persistence (triage F3): ONE tenant-scoped transaction commits the whole durable record
+// Atomic turn persistence (single transaction): ONE tenant-scoped transaction commits the whole durable record
 // of a completed agent turn — the turn ledger (tool_executions / evidence_records / policy_decisions),
 // the initial handoff_tasks request, the audit trail, the usage records, AND one event.event_outbox row
-// per audit event ("commit-and-publish", events/event-envelope.md: the outbox row is written in the SAME
+// per audit event ("commit-and-publish": the outbox row is written in the SAME
 // transaction as the domain row it fans out from). A crash mid-persist leaves NOTHING: no ledger without
 // its audit trail, no audit row whose domain event never enters the outbox. Every insert is idempotent
 // (ON CONFLICT DO NOTHING on PK / dedupe key) so a Temporal activity retry collapses to the same rows.
 //
-// Billing fan-out (events/billing-events.md): a `usage.record.recorded` outbox row rides the SAME
+// Billing fan-out: a `usage.record.recorded` outbox row rides the SAME
 // transaction as each usage insert — enqueued ONLY when `inserted:true` (an exactly-once-billing
 // replay collapses to no insert → no duplicate event). `billing.period.summarized` (the rollup job's
 // event) is still deferred — no rollup producer exists yet.

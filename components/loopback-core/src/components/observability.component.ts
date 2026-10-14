@@ -1,4 +1,4 @@
-// ObservabilityComponent (edge): binds the telemetry ports (loopback/component-registry.md).
+// ObservabilityComponent (edge): binds the telemetry ports.
 // The dev/stdout implementations from @platform-internal/telemetry today; the OTel SDK swap (tracer +
 // real exporter) is OB5 — TRACER is deliberately not bound until it exists (flagged in bindings.ts).
 import {Binding, type Component} from '@loopback/core';

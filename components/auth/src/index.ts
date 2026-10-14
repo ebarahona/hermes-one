@@ -1,4 +1,4 @@
-// @platform-internal/auth — edge component (AUTH-3, loopback/authentication-strategies.md).
+// @platform-internal/auth — edge component (AUTH-3).
 // The edge authentication plane: strategy registry (extension point), principal mapper, and the
 // api-key strategy + its config/seed-backed store. Wired into the LB4 REST sequence's authentication
 // slot (loopback-core). oidc/bearer + Redis session/JWKS verifiers layer in next (Slice 4).
@@ -7,7 +7,6 @@ export const descriptor = {
   role: 'component',
   plane: 'edge',
   published: false,
-  sourceDocs: ['loopback/authentication-strategies', 'loopback/authorization-voters'],
   governedBy: ['ADR-017', 'ADR-019', 'ADR-022'],
 } as const;
 

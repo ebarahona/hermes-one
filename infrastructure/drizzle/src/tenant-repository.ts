@@ -1,7 +1,7 @@
 // DrizzleTenantRepository — the tenant-scoped read/update surface over `tenant.tenants`
-// (api/admin-api.md §TenantController GET/PATCH; database/table-catalog.md). Self-scoping via
+// Self-scoping via
 // withTenant (the tenants RLS policy keys on tenant_id = app.tenant_id — a principal only sees/updates
-// its OWN tenant row). Returns the canonical TenantContext (tenant-contracts.md). Cross-tenant
+// its OWN tenant row). Returns the canonical TenantContext. Cross-tenant
 // create/list is a platform-operator surface (deferred on the relay-role posture) — not here.
 import {eq, sql} from 'drizzle-orm';
 import {PlatformErrorException, TenantContext, type AuditEvent, type TenantId, type TenantStatus} from '@platform/contracts';
@@ -10,7 +10,7 @@ import {insertAuditEvent} from './audit-repository.js';
 import {enqueueOutboxRow, deriveOutboxId} from './event-outbox-repository.js';
 import {tenants} from './schema/tenant.schema.js';
 
-/** A partial update (admin-api.md UpdateTenantRequest — only these fields are mutable here). */
+/** A partial update (only these fields are mutable here). */
 export interface TenantPatch {
   displayName?: string;
   status?: TenantStatus;

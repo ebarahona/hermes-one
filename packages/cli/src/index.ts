@@ -5,6 +5,5 @@ export const descriptor = {
   role: 'package',
   plane: 'none',
   published: true,
-  sourceDocs: ['15-sdk-cli/152'],
   governedBy: [],
 } as const;

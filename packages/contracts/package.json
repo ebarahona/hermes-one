@@ -27,9 +27,6 @@
     "role": "package",
     "plane": "none",
     "published": true,
-    "sourceDocs": [
-      "06-agentback/062"
-    ],
     "governedBy": [
       "ADR-020"
     ]

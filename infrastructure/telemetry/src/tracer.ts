@@ -1,12 +1,12 @@
-// Distributed-tracing impl (observability/tracing-metrics-logging.md, OB5). The platform's spans cross
+// Distributed-tracing impl (OB5). The platform's spans cross
 // three hops OTel does not bridge automatically — edge (LB4) → Temporal (workflow/activity) → agentback
 // (turn/tool) — so propagation is EXPLICIT: every span exposes its own W3C `traceparent`, and a child
 // span is parented by passing that string, never by relying on ambient async-hooks context (which does
-// not survive a Temporal serialization boundary / the deterministic sandbox — spec §Implementation Notes).
+// not survive a Temporal serialization boundary / the deterministic sandbox).
 //
-// JIT (flagged): the spec names the binding `platform.telemetry.tracer: Tracer` but gives no TS method
+// JIT (flagged): the contract names the binding `platform.telemetry.tracer: Tracer` but gives no TS method
 // shape for `Tracer` (only the trace-header + interceptor interfaces). This `Tracer`/`SpanScope` port is
-// authored JIT to the canonical binding key + the span tree the doc specifies (names/attributes), the same
+// authored JIT to the canonical binding key + the span tree (names/attributes), the same
 // way `Logger`/`Meter` were. The `traceparent`-only parenting model is the faithful realization of the
 // doc's "explicit-header, never ambient" propagation contract.
 import {
@@ -33,7 +33,7 @@ import {OTLPTraceExporter} from '@opentelemetry/exporter-trace-otlp-http';
 import {ATTR_SERVICE_NAME} from '@opentelemetry/semantic-conventions';
 import type {TraceHeader} from '@platform/contracts';
 
-/** Span attribute values the platform sets (the spec's examples: strings, booleans). */
+/** Span attribute values the platform sets (strings, booleans). */
 export type SpanAttributes = Record<string, string | number | boolean>;
 
 /** A started span. `traceparent` is THIS span's W3C header — inject it into the next hop to make its
@@ -48,7 +48,7 @@ export interface SpanScope {
 /** platform.telemetry.tracer — the explicit-propagation tracer port (JIT to the binding key). */
 export interface Tracer {
   /** Start a span. `parentTraceparent` (if a valid W3C header) makes this a child of that span's trace;
-   *  absent/invalid → a new root trace. Attributes are set at start (the doc's span-attribute examples). */
+   *  absent/invalid → a new root trace. Attributes are set at start. */
   startSpan(name: string, opts?: {parentTraceparent?: string; attributes?: SpanAttributes}): SpanScope;
 }
 

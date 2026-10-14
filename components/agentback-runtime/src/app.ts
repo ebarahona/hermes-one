@@ -8,7 +8,7 @@ export interface AgentPlaneAppOptions {
   /**
    * Register the SpikeBookingTools validation FIXTURES (canned data). OFF by default: the live turn
    * projects its pinned CapabilityContracts into provider-backed tools (CapabilityToolProjector,
-   * tool-projection.md), so a statically-registered fixture answering to the same capability name
+   * the tool projector), so a statically-registered fixture answering to the same capability name
    * could serve canned data as if it were provider evidence. Only the spike specs that validate the
    * agentback substrate itself (T1–T5) turn this on.
    */

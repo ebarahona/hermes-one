@@ -23,10 +23,6 @@
     "role": "infrastructure",
     "plane": "none",
     "published": false,
-    "sourceDocs": [
-      "03-workflow-runtime/043",
-      "temporal/retry-policy-registry"
-    ],
     "governedBy": []
   }
 }

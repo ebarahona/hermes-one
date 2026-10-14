@@ -1,10 +1,10 @@
-// Substrate lifecycle audit events (events/domain-events.md): `definition.published` (fires for
+// Substrate lifecycle audit events (domain events): `definition.published` (fires for
 // kind:'capability' definitions — the catalog's own trigger column) and `deployment.published`
 // (DeploymentService.publish). Both are OUTBOX-BACKED with aggregate.type 'audit_event': the audit
 // row IS the domain event, and the write port commits row + audit + outbox in ONE transaction
 // (commit-and-publish — the same F3 rule persistTurnAtomic enforces for turns).
 //
-// Identity recipe (audit-contracts.md): the id is deterministic over the event's addressing PLUS its
+// Identity recipe: the id is deterministic over the event's addressing PLUS its
 // occurredAt — an audit event records an ACT, and two publishes of the same def@version at different
 // times are two acts (two rows), while a true replay (same stamped clock, e.g. a retried transaction)
 // re-derives the identical event and collapses. Deriving the id WITHOUT the timestamp made a
@@ -43,7 +43,7 @@ export function definitionPublishedEvent(args: {
     correlationId: `${args.definitionId}@${args.version}`,
     turnId: null,
     conversationId: null,
-    subject: args.name, // the capability NAME — the spec's payload is the CapabilityContract summary
+    subject: args.name, // the capability NAME — the payload is the CapabilityContract summary
     detail: {definitionId: args.definitionId, version: args.version, contentHash: args.contentHash},
     outcome: 'success',
     occurredAt: args.occurredAt,

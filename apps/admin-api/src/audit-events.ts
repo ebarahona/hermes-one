@@ -1,8 +1,8 @@
-// Admin-surface audit events. `tenant.config.changed` (events/domain-events.md: outbox-backed,
+// Admin-surface audit events. `tenant.config.changed` (outbox-backed,
 // aggregate 'audit_event', trigger: tenant feature-flag/quota-profile edit) rides the tenant UPDATE's
 // own transaction via the repository's events parameter — commit-and-publish, the same F3 rule as the
 // substrate writer. Identity recipe: same canonical integrityHash material as every other producer
-// (audit-contracts.md, "sha256 of the row minus id"); the id covers the ACT — correlationId is the
+// ("sha256 of the row minus id"); the id covers the ACT — correlationId is the
 // REQUEST's correlation id (unique per request), so each PATCH is its own audit row and a same-request
 // transactional retry collapses.
 import {createHash} from 'node:crypto';

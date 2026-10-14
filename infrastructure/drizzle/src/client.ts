@@ -57,8 +57,8 @@ export function createMigratorDb(url: string): PlatformDbHandle {
 }
 
 /**
- * The persistence-boot RLS self-check (row-level-security.md: "run once at persistence boot; boot
- * aborts otherwise"). Call from EVERY composition root that opens a request-time pool — a
+ * The persistence-boot RLS self-check (run once at persistence boot; boot
+ * aborts otherwise). Call from EVERY composition root that opens a request-time pool — a
  * misconfigured production login (superuser / BYPASSRLS) fails startup instead of silently running
  * with RLS as a no-op.
  */
@@ -170,7 +170,7 @@ export interface RoleRegistryHandle {
   close(): Promise<void>;
 }
 
-/** Convenience composition: pg (as platform_app) → the role→scope registry (role-matrix.md). */
+/** Convenience composition: pg (as platform_app) → the role→scope registry. */
 export function createRoleRegistry(pgUrl: string, opts: {appRole?: string} = {}): RoleRegistryHandle {
   const {db, pool} = createPlatformDb(pgUrl, {appRole: opts.appRole});
   return {repo: new DrizzleRoleRegistry(db), close: () => pool.end()};

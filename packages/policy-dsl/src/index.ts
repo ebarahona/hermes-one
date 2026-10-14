@@ -9,6 +9,5 @@ export const descriptor = {
   role: 'package',
   plane: 'none',
   published: true,
-  sourceDocs: ['13-security/132', 'security/policy-engine-runtime', 'contracts/policy-contracts'],
   governedBy: ['ADR-015', 'ADR-016', 'ADR-019'],
 } as const;

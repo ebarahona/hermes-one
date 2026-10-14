@@ -1,11 +1,11 @@
 // @platform/contracts — src/audit.ts
-// Audit + usage-metering contracts. Transcribed VERBATIM from docs/implementation/contracts/audit-contracts.md.
+// Audit + usage-metering contracts.
 // AuditEvent is the append-only, immutable, tamper-evident record of every material action (integrityHash =
 // content hash of the row minus id). UsageEvent/UsageRecord carry principalId + a dedupeKey so at-least-once
 // emission (Temporal retries / actor replays) can't double-count into billing (findings T7). Metering has one
 // source of truth per signal (agentback stream for tokens/cost, OTel spans, Temporal history) — this is the
 // aggregation shape, not a parallel counter.
-// NOTE: the spec's import list includes ChangedDomain (unused by these types); omitted to satisfy
+// NOTE: ChangedDomain is not imported (unused by these types); omitted to satisfy
 // noUnusedLocals. z.record uses the codebase's 2-arg form (zod version).
 import {z} from 'zod';
 import {
@@ -42,7 +42,7 @@ export const AuditEvent = z.object({
   tenantId: TenantId,
   principalId: PrincipalId, // WHO — always present (T7)
   action: AuditAction,
-  /** Causal chain — correlationId = turnId at turn scope (14-observability/140). */
+  /** Causal chain — correlationId = turnId at turn scope. */
   correlationId: z.string().min(1),
   turnId: TurnId.nullable(),
   conversationId: ConversationId.nullable(),

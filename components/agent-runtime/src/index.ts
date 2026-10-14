@@ -20,6 +20,5 @@ export const descriptor = {
   role: 'component',
   plane: 'agent',
   published: false,
-  sourceDocs: ['04-agent-runtime/050', '057', 'contracts/agent-runtime-contracts'],
   governedBy: ['ADR-009', 'ADR-018', 'ADR-019', 'ADR-021'],
 } as const;

@@ -37,7 +37,7 @@ export const HermesConfig = z.object({
   // provider (persist-only). Present with creds → the real VendorSmsProvider is registered ahead of it.
   // The creds enter here from the environment (like llm.apiKey) and are handed to the credential-store
   // seam at the composition root — never into a definition body. Real per-tenant resolution is the
-  // security/secrets-and-key-management.md KMS store (flagged in credential-store.ts).
+  // KMS-backed store (flagged in credential-store.ts).
   sms: z
     .object({
       vendor: z.literal('twilio'),
@@ -52,22 +52,22 @@ export const HermesConfig = z.object({
   // roots layer the envelope store (per-tenant rows) over the static env bundle; absent → static
   // only. The key is 32 bytes hex and NEVER leaves the composition root.
   credentials: z.object({masterKey: z.string().regex(/^[0-9a-f]{64}$/i)}).optional(),
-  // Transactional-outbox publisher (events/event-envelope.md EventEnvelopeConfig). The loop drains
+  // Transactional-outbox publisher. The loop drains
   // per tenant under RLS — the tenant list is a config stand-in until the tenant registry exists
-  // (CT1/CT2; the cross-tenant relay role is an unresolved spec question). Empty tenants → loop off.
+  // (CT1/CT2; the cross-tenant relay role is an unresolved question). Empty tenants → loop off.
   outbox: z.object({
     pollIntervalMs: z.coerce.number().int().min(100),
     maxAttempts: z.coerce.number().int().min(1),
     channelPattern: z.string().min(1),
     tenants: z.array(z.string().min(1)),
   }),
-  // Edge REST surface (loopback/application-bootstrap.md — admin-api/api-gateway listen port). The
+  // Edge REST surface (admin-api/api-gateway listen port). The
   // LB4 RestApplication root binds this into `rest: {port}`. Version prefix + pagination live with the
-  // api layer (rest-api-reference.md EdgeApiConfig) — this only carries where the process listens.
+  // api layer — this only carries where the process listens.
   api: z.object({
     port: z.coerce.number().int().min(1).max(65535), // admin-api HTTP listen port
   }),
-  // OpenTelemetry distributed tracing (observability/tracing-metrics-logging.md, OB5). `mode` selects the
+  // OpenTelemetry distributed tracing (OB5). `mode` selects the
   // span exporter: off → NoopTracer (unit/dev quiet); console → stdout (dev); otlp → ship to a collector
   // (prod). `endpoint` is the OTLP/HTTP traces URL used when mode==='otlp'. Structured logs + metrics
   // already emit regardless; this drives the trace pillar only.

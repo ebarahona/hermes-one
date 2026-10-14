@@ -1,4 +1,4 @@
-// TenantController — the tenant self-service surface (api/admin-api.md §TenantController):
+// TenantController — the tenant self-service surface (admin API contract):
 //   GET   /v1/tenants/{tenantId}   scope: platform.tenant.read     tenant-scoped read
 //   PATCH /v1/tenants/{tenantId}   scope: platform.tenant.update    tenant-scoped write
 // Reads/updates the caller's OWN tenant row through the RLS-enforced DrizzleTenantRepository. The
@@ -25,7 +25,7 @@ import {
 const READ_TENANT = 'platform.tenant.read' as Scope;
 const UPDATE_TENANT = 'platform.tenant.update' as Scope;
 
-/** admin-api.md UpdateTenantRequest — the mutable subset of a tenant. */
+/** UpdateTenantRequest — the mutable subset of a tenant. */
 const UpdateTenantRequest = z.object({
   displayName: z.string().max(200).optional(),
   status: TenantStatus.optional(),

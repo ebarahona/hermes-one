@@ -65,7 +65,7 @@ function fakes() {
   return {registry, stored};
 }
 
-describe('DefinitionRegistry.put — contract-schema validation (substrate-lifecycle.md)', () => {
+describe('DefinitionRegistry.put — contract-schema validation', () => {
   it('publishes a valid capability body (planId null, ValidatedContractBase stored)', async () => {
     const {registry, stored} = fakes();
     const res = await registry.put(authored('def_cap_ok', 'capability', 'appointment-slot-read', capabilityBody), ACTOR);

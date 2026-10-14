@@ -1,7 +1,7 @@
 // @platform-internal/api-gateway — app (edge plane).
 // The inbound channel webhook ingress: verify → normalize → persist → start workflow.
 //
-// MIGRATED onto the LB4 composition layer (F6/T1 Phase 2a, loopback/application-bootstrap.md): the
+// MIGRATED onto the LB4 composition layer (Phase 2a): the
 // composition root builds a PlatformApplication (Observability + Persistence over ONE shared pool),
 // resolves the store/messages/roles/redis from the container, and `app.start()` runs the lifecycle
 // observers — including the fail-closed RLS boot gate. The HTTP ingress itself stays a thin
@@ -96,6 +96,5 @@ export const descriptor = {
   role: 'app',
   plane: 'edge',
   published: false,
-  sourceDocs: ['api/workflow-and-conversation-api', 'contracts/provider-contracts', 'loopback/application-bootstrap'],
   governedBy: ['ADR-014', 'ADR-017', 'ADR-022'],
 } as const;

@@ -2,8 +2,8 @@
 // `hermes-workflow` task queue. Edge effects run on activity-worker, the agent
 // turn on agent-worker. Connects to local Temporal (127.0.0.1:7233).
 //
-// MIGRATED onto the LB4 composition layer (F6/T1 Phase 2a): the spec's MINIMAL root
-// (application-bootstrap.md `WorkflowWorkerRoot`) — a bare @loopback Context, NOT a RestApplication:
+// MIGRATED onto the LB4 composition layer (Phase 2a): the MINIMAL root
+// (`WorkflowWorkerRoot`) — a bare @loopback Context, NOT a RestApplication:
 // no components, no repositories, no Redis/Qdrant, only config. Workflow code must stay
 // deterministic/replay-safe (ADR-014), so nothing that does I/O is ever bound here.
 import 'reflect-metadata';
@@ -17,7 +17,7 @@ import {WORKFLOW_QUEUE} from './queues.js';
 
 export {WORKFLOW_QUEUE} from './queues.js';
 
-/** The spec's minimal, pure root (ADR-014): only config + the Temporal worker. */
+/** The minimal, pure root (ADR-014): only config + the Temporal worker. */
 export class WorkflowWorkerRoot implements CompositionRoot<Context> {
   private worker: Worker | undefined;
 

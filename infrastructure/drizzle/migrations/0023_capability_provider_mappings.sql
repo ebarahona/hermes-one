@@ -1,6 +1,6 @@
 -- The `capability` schema + provider_mappings: tenant-specific overrides of a capability's default
 -- ProviderMapping (the default ships inside the content-hashed capability contract). Absence of a row =
--- use the contract default. Columns verbatim from database/table-catalog.md.
+-- use the contract default.
 CREATE SCHEMA IF NOT EXISTS capability;
 
 CREATE TABLE capability.provider_mappings (

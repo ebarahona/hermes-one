@@ -1,5 +1,5 @@
 // CapabilityRegistryComponent (edge): binds the capability plane — registry, provider registry,
-// resolver, invoker (loopback/component-registry.md). Consumes the `providerAdapters` extension
+// resolver, invoker. Consumes the `providerAdapters` extension
 // point: provider adapters are contributed by other components / the composition root as bindings
 // tagged `{extensionFor: 'platform.extensions.providerAdapters'}` (the real LB4 extension-point
 // idiom) and discovered here at first resolution — no name→provider Map, no hardcoded list.

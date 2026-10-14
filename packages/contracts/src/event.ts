@@ -1,7 +1,5 @@
 // @platform/contracts — src/event.ts
-// The event envelope + transactional-outbox contracts, transcribed VERBATIM from
-// events/event-envelope.md. The spec authors this file itself ("NEW FILE — not yet part of the
-// ratified Pack A contracts/ set; authored here to fill the gap flagged by database/postgres-schema.md").
+// The event envelope + transactional-outbox contracts, defined here.
 // Zod-v4 delta (flagged, same as analytics.ts): `z.record` requires an explicit key schema.
 import {z} from 'zod';
 import {TenantId, IsoTimestamp, SemVer} from './substrate.js';
@@ -22,7 +20,7 @@ export type EventType = z.infer<typeof EventType>;
 
 export const EventAggregateRef = z.object({
   /** Free-form (matches `event.event_outbox.aggregate_type`, an untyped `text` column — extensible,
-   *  not a closed enum). Documented values in use: `events/domain-events.md`, `events/billing-events.md`. */
+   *  not a closed enum). Documented values in use: the domain-event and billing-event catalogs. */
   type: z.string().min(1),
   id: z.string().min(1),
 });
@@ -35,7 +33,7 @@ export const EventTrace = z.object({
 export type EventTrace = z.infer<typeof EventTrace>;
 
 /**
- * The one wire/storage shape every published platform event uses. Aligned with `audit-contracts.md`:
+ * The one wire/storage shape every published platform event uses. Aligned with the audit contracts:
  * `correlationId` mirrors `AuditEvent.correlationId`/`UsageEvent.correlationId` (= turnId at turn
  * scope); the envelope's own `idempotencyKey` generalizes `UsageRecord.dedupeKey` to any aggregate.
  */
@@ -46,21 +44,21 @@ export const EventEnvelope = z.object({
   schemaVersion: SemVer,
   tenantId: TenantId,
   aggregate: EventAggregateRef,
-  /** Causal chain root — correlationId = turnId at turn scope (audit-contracts.md convention). */
+  /** Causal chain root — correlationId = turnId at turn scope (audit-contract convention). */
   correlationId: z.string().min(1),
   /** The event/command that directly produced this one; null for a root cause. */
   causationId: z.string().min(1).nullable(),
   occurredAt: IsoTimestamp,
   /** Stable across republish/redelivery — consumer's at-least-once dedupe key. */
   idempotencyKey: z.string().min(1),
-  /** Typed per `type` — see events/domain-events.md and events/billing-events.md for the catalog. */
+  /** Typed per `type` — see the domain-event and billing-event catalogs. */
   payload: z.record(z.string(), z.unknown()),
   trace: EventTrace.optional(),
 });
 export type EventEnvelope = z.infer<typeof EventEnvelope>;
 
 /* --------------------------- Outbox storage shape ------------------------ */
-// Mirrors `event.event_outbox` column-for-column (database/table-catalog.md — reused, not redefined).
+// Mirrors `event.event_outbox` column-for-column (reused, not redefined).
 
 export interface EventOutboxRow {
   outboxId: string; // 'obx_...', storage-only PK

@@ -36,7 +36,7 @@ function collectOps(expr: RuleExpression, into: Set<string>): void {
 }
 
 /**
- * Stage 4 type check + stage 7 bounds (policy-engine-runtime.md): assert `spec.pure === true`
+ * Stage 4 type check + stage 7 bounds: assert `spec.pure === true`
  * (POLICY_OPERATOR_NOT_PURE), check arity and the return type where a boolean is required — the root
  * of a `when` and every and/or/not child — (POLICY_TYPE_MISMATCH), and bound nesting by
  * maxExpressionDepth (POLICY_EXPRESSION_TOO_DEEP). Unknown operators are reported by the pinning
@@ -91,7 +91,7 @@ function checkExpression(
   }
 }
 
-/** Stage 5 (policy-engine-runtime.md constrainSites): voter effect ∈ {allow,deny}; repair postGate-only;
+/** Stage 5 (constrainSites): voter effect ∈ {allow,deny}; repair postGate-only;
  * defer/approval/handoff preGate-only. */
 function constrainSites(rule: PolicyRule): void {
   if (rule.site === 'voter' && rule.effect !== 'allow' && rule.effect !== 'deny') {

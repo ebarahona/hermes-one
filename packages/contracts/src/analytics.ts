@@ -1,13 +1,11 @@
 // @platform/contracts — src/analytics.ts
-// Cost/token analytics + scalability KPI contracts. Transcribed VERBATIM from
-// docs/implementation/observability/evaluation-and-cost-analytics.md (the cost + scalability portion).
+// Cost/token analytics + scalability KPI contracts.
 // CostAnalyticsService is a read-only rollup over the already-deduped UsageRecord stream (T7) —
 // summarize() is a pass-through to UsageMeter.summarize() (never a second counter); reconcile() only
 // COMPARES against agentback's own metering export and reports drift. The scalability KPIs make the
-// three scalability levers (docs/scalability-one-pager.md) measurable — a deterministic-hit-rate drop is
-// a scalability bug, not a prose target.
+// three scalability levers measurable — a deterministic-hit-rate drop is a scalability bug, not a prose target.
 // NOTE: the eval-framework types (GoldenConversationCase/EvaluationRun/RegressionGate) live in the eval
-// slice (they need audit-and-replay.md's SimulationService) — transcribed there when built.
+// slice (they need the SimulationService) — defined there when built.
 import {z} from 'zod';
 import {TenantId, IsoTimestamp} from './substrate.js';
 import {MeterKind} from './audit.js';
@@ -21,7 +19,7 @@ export const ReconciliationReport = z.object({
   /**
    * Per-meterKind delta between UsageRecord.summarize() and agentback's own export. Empty when 'ok';
    * only drifting meters appear. Keyed by MeterKind via `z.partialRecord` — an enum-keyed record that
-   * is NOT exhaustive (the spec's `z.record(MeterKind, …)` would require every key present under Zod v4;
+   * is NOT exhaustive (a `z.record(MeterKind, …)` would require every key present under Zod v4;
    * `partialRecord` keeps the MeterKind key type while allowing the partial/empty maps this report needs).
    */
   deltas: z.partialRecord(MeterKind, z.object({platformTotal: z.number(), agentbackTotal: z.number(), diffPct: z.number()})),
@@ -31,7 +29,7 @@ export const ReconciliationReport = z.object({
 export type ReconciliationReport = z.infer<typeof ReconciliationReport>;
 
 export interface CostAnalyticsService {
-  /** Thin pass-through to UsageMeter.summarize() (audit-contracts.md) — no independent aggregation. */
+  /** Thin pass-through to UsageMeter.summarize() — no independent aggregation. */
   summarize(tenantId: TenantId, period: string): Promise<Record<MeterKind, number>>;
   /** Read-only drift check against agentback's own metering export. Never writes/corrects UsageRecord. */
   reconcile(tenantId: TenantId, period: string): Promise<ReconciliationReport>;
@@ -39,7 +37,7 @@ export interface CostAnalyticsService {
 
 /* ---------------------- Scalability KPIs (dashboards + gates) -------------- */
 // Sourced read-only from the deduped UsageRecord/metering stream + turn counters; worker-occupancy-in-wait
-// from Temporal/OTel metrics (tracing-metrics-logging.md). None is a datastore metric.
+// from Temporal/OTel metrics. None is a datastore metric.
 
 export const ScalabilityKpi = z.enum([
   'deterministic_hit_rate',   // fraction of decisions resolved with ZERO LLM call — the load-shed lever

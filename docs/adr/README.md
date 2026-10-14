@@ -1,19 +1,13 @@
 # Architecture Decision Records — hermes-one
 
-Durable, in-repo log of the **ratified** architecture decisions the code is
+The project's decision record: the **ratified** architecture decisions the code is
 governed by. Code comments cite these by number (e.g. `(ADR-017)`); this file is
-what those citations resolve to, and it ships with the repo.
+what those citations resolve to.
 
-> Bare `*.md` file names cite the platform's architecture specification set, which is delivered
-> separately from this repository.
+Each entry is a one-paragraph distillation.
 
-Each entry is a one-paragraph distillation. The canonical, full-length decision
-records live in the platform's architecture specification set, delivered
-separately; this log is the self-contained handoff copy — no reference here
-depends on a document that might not travel with the code.
-
-> Status: all decisions below are **ratified**. Earlier ADR-001…012 concern the
-> pre-implementation architecture phase and are summarized in the canonical log.
+> Status: all decisions below are **ratified**. ADR-001…012 cover the earlier
+> pre-implementation architecture phase and are not reproduced here.
 
 ---
 
@@ -76,11 +70,11 @@ depends on a document that might not travel with the code.
   own their data; independent scaling per traffic tier.
 
 - **ADR-025 — One SecretProvider; references never name vendors.** The
-  `security/secrets-and-key-management.md` port is canonical: `SecretRef` is
+  secrets-and-key-management port is canonical: `SecretRef` is
   `secret://<store>/<path>` where the first segment is a logical STORE, never a
   backend vendor; `resolve()` returns `ResolvedSecret`; caching is TTL-bounded
   with `invalidate()` (rotation is a cache-drop, never a process restart).
-  `infrastructure/secrets-registry.md` is SUPERSEDED for the port/grammar (its
+  The earlier secrets-registry design is SUPERSEDED for the port/grammar (its
   ops/runbook content stands). `SecretManagerConfig.backend` stays unpinned
   config chosen at the composition root — embedding a vendor in every stored
   reference would make swapping backends a platform-wide rewrite and forecloses
@@ -99,12 +93,12 @@ depends on a document that might not travel with the code.
   capability)` returns the credential RECORD (decrypt happens behind the port;
   only one component touches key material); the orphaned `configKey` is DELETED
   from contracts — the tuple is the identifier. Resolves ledger S6; amends
-  `table-catalog.md` (new table) and `secrets-and-key-management.md` (chain
+  the table catalog (new table) and the secrets-and-key-management design (chain
   ownership).
 
-- **ADR-027 — role-matrix.md governs role scopes; seeded defaults never carry
-  wildcards.** The security pack owns the role model; `migrations-and-seed.md`'s
-  divergent `customer` seed (`appointment.booking.*`) is corrected to the
+- **ADR-027 — The role matrix governs role scopes; seeded defaults never carry
+  wildcards.** The security pack owns the role model; the
+  migrations-and-seed design's divergent `customer` seed (`appointment.booking.*`) is corrected to the
   role-matrix scopes. A wildcard in a SEEDED DEFAULT role silently auto-grants
   every future capability in that namespace (a new `appointment.booking.refund`
   would flow to every customer) — least-privilege requires enumerated leaf
@@ -124,17 +118,17 @@ depends on a document that might not travel with the code.
   split trust by FIELD, not by flipping the envelope. Resolves ledger A6.
 
 - **ADR-029 — Worker versioning pins the Worker-Deployments generation; the
-  replay gate is generation-independent and lands first.** `temporal/
-  worker-versioning-and-replay.md` mandates Build-ID versioning + `patched()`
+  replay gate is generation-independent and lands first.** the
+  worker-versioning-and-replay design mandates Build-ID versioning + `patched()`
   for risky interpreter changes + a hard replay-test gate, but leaves the
-  Temporal API generation UNPINNED (its Open Question #1). Our installed SDK
+  Temporal API generation UNPINNED (an open question in that design). Our installed SDK
   (@temporalio 1.20.2) deprecates the legacy `buildId`/`useVersioning` shape;
   the successor is `workerDeploymentOptions` ({version: {buildId,
   deploymentName}, useWorkerVersioning, defaultVersioningBehavior}) — and
-  `PINNED` behavior is exactly the spec's requirement (open executions stay on
+  `PINNED` behavior is exactly the design's requirement (open executions stay on
   the build they started on). Building new infrastructure on a deprecated API
   contradicts this platform's charter, so: (1) the generation is PINNED to
-  Worker Deployments; the spec's `BuildIdRegistry` compatible-with model maps
+  Worker Deployments; the design's `BuildIdRegistry` compatible-with model maps
   onto deployment versions; (2) `executeCompiledWorkflow` runs PINNED —
   interpreter code (`buildId`) and plan data (`contentHash`) stay orthogonal
   axes (ADR-014); (3) the REPLAY GATE — replay captured histories against the

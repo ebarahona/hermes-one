@@ -1,5 +1,4 @@
-// AuthStrategyRegistry — transcribed VERBATIM from authentication-strategies.md §"TypeScript
-// Interfaces" (components/auth/src/auth-strategy.registry.ts): first strategy whose applies()
+// AuthStrategyRegistry — first strategy whose applies()
 // matches; fail-closed if none. Discovered via the LB4 extension point.
 import {extensionPoint, extensions, type Getter} from '@loopback/core';
 import type {Request} from '@loopback/rest';

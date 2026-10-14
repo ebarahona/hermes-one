@@ -1,4 +1,4 @@
-// Derive the platform metrics catalogue (tracing-metrics-logging.md) from a completed turn's ledger +
+// Derive the platform metrics catalogue from a completed turn's ledger +
 // wall latency — an edge concern (the agent plane produces the data; the edge records the metrics).
 // TURN_COUNT/latency, per-tool invocation count + latency, per-gate decision count — the SLO signals
 // (turn p95, tool p99, error rates) that audit/usage rows don't carry.

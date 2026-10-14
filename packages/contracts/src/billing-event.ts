@@ -1,8 +1,7 @@
 // @platform/contracts — src/billing-event.ts
-// Billing event fan-out, transcribed VERBATIM from events/billing-events.md (spec path
-// `events/src/billing-events.ts` — hosted in contracts with the rest of the event family, same
-// path-delta flag as event.ts). References @platform/contracts types; introduces no new metering
-// model (T7: the UsageMeter stays the single billing source; these are its fan-out envelopes).
+// Billing event fan-out, hosted in contracts with the rest of the event family.
+// References @platform/contracts types; introduces no new metering model (T7: the UsageMeter stays
+// the single billing source; these are its fan-out envelopes).
 import {z} from 'zod';
 import {MeterKind, UsageRecord} from './audit.js';
 import {TenantId} from './substrate.js';
@@ -15,7 +14,7 @@ export const BillingEventType = z.enum([
 export type BillingEventType = z.infer<typeof BillingEventType>;
 
 /** Payload for `billing.period.summarized` — the exact shape `UsageMeter.summarize()` already returns,
- *  wrapped with the tenant/period it was computed for (audit-contracts.md defines the method; this is
+ *  wrapped with the tenant/period it was computed for (the audit contract defines the method; this is
  *  just its event envelope). */
 export const BillingPeriodSummary = z.object({
   tenantId: TenantId,

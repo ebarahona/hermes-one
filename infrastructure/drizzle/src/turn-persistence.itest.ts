@@ -159,7 +159,7 @@ describe('DrizzleTurnPersistence.persistTurnAtomic (live, F3)', () => {
       event_type: 'tool.invoked', status: 'pending', action: 'tool.invoked',
     });
 
-    // Billing fan-out (billing-events.md): the inserted UsageRecord rides the SAME txn as
+    // Billing fan-out: the inserted UsageRecord rides the SAME txn as
     // `usage.record.recorded`, keyed by its dedupeKey.
     const billing = await owner.query(
       `SELECT aggregate_id, event_type, status, payload->>'meterKind' AS meter

@@ -64,7 +64,7 @@ describe('DrizzleAuditSink (live)', () => {
     expect(c.rows[0].n).toBe(2);
   });
 
-  // audit-contracts.md: "append rejects a duplicate id/hash, making replay idempotent AND MUTATION
+  // The audit contract: "append rejects a duplicate id/hash, making replay idempotent AND MUTATION
   // DETECTABLE". Re-appending an existing id with DIFFERENT content is not a replay — it is the trail
   // being rewritten, and an append-only, tamper-evident store must refuse it rather than silently
   // drop it (which a bare ON CONFLICT DO NOTHING did). Safe now that every producer's occurredAt is

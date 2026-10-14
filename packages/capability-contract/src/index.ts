@@ -20,6 +20,5 @@ export const descriptor = {
   role: 'package',
   plane: 'none',
   published: true,
-  sourceDocs: ['07-capabilities/072', 'contracts/capability-contracts', 'contracts/provider-contracts'],
   governedBy: ['ADR-010', 'ADR-016', 'ADR-018', 'ADR-020'],
 } as const;

@@ -1,29 +1,29 @@
-// CapabilityToolProjector (agentback/tool-projection.md) — the seam that makes a pinned
+// CapabilityToolProjector — the seam that makes a pinned
 // CapabilityContract reachable as a real agentback @tool whose body resolves the ranked
 // ProviderAdapter and calls it. Agent plane only.
 //
 // "One tool per pinned capability; body is generic. The projector does NOT author bespoke tool bodies
 // for provider-neutral capabilities — the @tool method resolves the ranked provider adapter and calls
-// it. Only a genuinely new provider-neutral capability ships code (ADR-013)." (tool-projection.md)
+// it. Only a genuinely new provider-neutral capability ships code (ADR-013)."
 //
 // The tool body returns the provider's UNWRAPPED output; the ToolResult envelope is synthesized
 // upstream by PlatformToolExecutor from the contract metadata + dispatch hook (ADR-018). Wrapping it
 // here would double-envelope.
 //
-// TWO LIBRARY/SPEC DELTAS (flagged, not improvised — see DEFERRED-AND-FLAGGED):
-//  1. The spec's sequence calls `registerTool(name, opts)` on the agentback app. agentback 0.7.1 has
+// TWO LIBRARY DELTAS (flagged, not improvised — see DEFERRED-AND-FLAGGED):
+//  1. The projection design calls `registerTool(name, opts)` on the agentback app. agentback 0.7.1 has
 //     no such API: `@tool` is a plain legacy decorator that writes ToolMetadata into reflect-metadata
 //     under 'mcp:tool', and `MCPServer.callTool` resolves by exact `===` on `meta.name`. The faithful
 //     realization is to apply the shipped decorator programmatically and hand the resulting
 //     ToolBinding to `callTool` via `CallToolOptions.binding`.
-//  2. The spec projects the whole manifest once "at deployment activation". This worker is a
+//  2. The projection design projects the whole manifest once "at deployment activation". This worker is a
 //     multi-tenant singleton, so an app-level registry keyed by tool NAME cannot hold two tenants'
-//     different contracts for the same capability (the spec's own ToolProjectionReport.conflicts
+//     different contracts for the same capability (ToolProjectionReport.conflicts
 //     anticipates the collision but not the multi-tenant case). We project PER TURN into bindings
 //     that close over that turn's contracts + provider plane — no shared mutable registration, no
 //     cross-tenant collision. `MCPServer.resolveMember` documents the unbound-ctor path this relies
 //     on: "a discovered tool always has a tagged binding, so this is only reached for a class invoked
-//     without one — instantiate with no DI". This is the spec's own "Lazy per-turn projection"
+//     without one — instantiate with no DI". This is the "Lazy per-turn projection"
 //     (Future Extensions), adopted early out of multi-tenant necessity.
 import {tool} from '@agentback/mcp';
 import type {ToolBinding} from '@agentback/mcp';
@@ -111,7 +111,7 @@ export interface ProjectionContext {
   providerConfigFor: (capability: CapabilityName, providerId: string) => Promise<Readonly<Record<string, string>>>;
   /**
    * Derived from the capability's IdempotencySpec — `turnId + name + keyFields` values
-   * (deriveIdempotencyKey; tool-projection.md "Idempotency key"). It takes the INPUT because the
+   * (deriveIdempotencyKey). It takes the INPUT because the
    * keyFields are read out of it: without them, two calls to one capability with different arguments
    * in the same turn would share a key, and a keyed provider (e.g. messaging.reply.send deriving its
    * messageId from the key) would treat the second as a replay of the first.
@@ -120,8 +120,8 @@ export interface ProjectionContext {
   /**
    * Reports which adapter actually served a dispatch. The generic body resolves the ranked provider
    * privately, so without this the synthesized ToolResult could not name it — and `metrics.providerId`
-   * is part of the canonical ToolResult (agent-runtime-contracts.md; the `internal-scheduler` metrics
-   * example in table-catalog.md / tool-projection.md).
+   * is part of the canonical ToolResult (the `internal-scheduler` metrics
+   * example).
    */
   onProviderResolved?: (capability: CapabilityName, providerId: string) => void;
 }
@@ -133,7 +133,7 @@ export class CapabilityToolProjector {
 
   /**
    * Map one contract to its agentback `@tool` options (pure). `scope` carries the contract's
-   * requiredScope onto the tool so `tools/list` visibility is correct (tool-projection.md).
+   * requiredScope onto the tool so `tools/list` visibility is correct.
    *
    * NOTE: setting `scope` does NOT by itself enforce authorization — agentback's `@authorize` voters
    * are separate metadata this projector does not apply. The scope gate that actually protects the
@@ -193,7 +193,7 @@ export class CapabilityToolProjector {
       const resolve = this.resolve;
       Object.defineProperty(ProjectedCapabilities.prototype, method, {
         value: async function (input: Record<string, unknown>): Promise<unknown> {
-          // The generic body (tool-projection.md): resolve the ranked adapter, call it, return the
+          // The generic body: resolve the ranked adapter, call it, return the
           // UNWRAPPED output. A NoProviderError carries its `code` + onNoProvider out to the executor,
           // which normalizes it into ToolResult.error (routing the 'handoff' disposition to an actual
           // handoff is NOT yet wired — flagged, see DEFERRED-AND-FLAGGED PE6).

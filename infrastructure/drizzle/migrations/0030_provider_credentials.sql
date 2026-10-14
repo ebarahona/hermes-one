@@ -3,8 +3,7 @@
 -- entries: per-secret pricing/quotas are O(tenants × providers) on the dispatch hot path, while rows
 -- cost storage, cache the unwrap, and rotate as an UPDATE. The `ciphertext` is the encrypted JSON
 -- bundle; `key_ref` names the wrapping key (local:<id> in dev, a KMS CMK ref in prod) — plaintext
--- credentials NEVER touch a column. Amends database/table-catalog.md (flagged there by
--- security/secrets-and-key-management.md's own Open Questions as the registry-sync item).
+-- credentials NEVER touch a column.
 CREATE TABLE capability.provider_credentials (
   credential_id text PRIMARY KEY,
   tenant_id     text NOT NULL,

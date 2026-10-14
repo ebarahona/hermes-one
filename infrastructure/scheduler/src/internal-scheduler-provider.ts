@@ -1,10 +1,9 @@
-// @platform-internal/scheduler — internal-scheduler provider (none plane). Named by the specs' own
-// canonical examples (database/table-catalog.md:644, admin/agent-engine-and-capability-editors.md:316)
-// and realizes the platform capability appointment.slot.read. There is no appointment/slot table in the
+// @platform-internal/scheduler — internal-scheduler provider (none plane). Named by the platform's
+// canonical examples and realizes the platform capability appointment.slot.read. There is no appointment/slot table in the
 // canonical 21-table catalog, so this is the ADR-013 "genuinely new platform capability" code exception —
 // a real deployment resolves slots from the tenant's own scheduler vendor behind this same
 // ProviderAdapter port. Until that vendor adapter exists, slots are read straight off
-// ProviderExecutionContext.config (the spec's provider configKey seam) — never a platform table.
+// ProviderExecutionContext.config (the provider configKey seam) — never a platform table.
 import {
   PlatformErrorException,
   type CapabilityName,

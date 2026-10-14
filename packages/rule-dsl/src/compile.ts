@@ -36,7 +36,7 @@ function collectOps(expr: RuleExpression, into: Set<string>): void {
 }
 
 /**
- * Compile-time operator checks (rule-compiler.md): assert `spec.pure === true`, check arity against
+ * Compile-time operator checks: assert `spec.pure === true`, check arity against
  * the argument count, check the return type where a boolean is required (root of a `when` and every
  * and/or/not child), and bound nesting by maxExpressionDepth. Unknown operators are reported by the
  * pinning pass below (single error site).

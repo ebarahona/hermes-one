@@ -1,8 +1,6 @@
 // @platform/contracts — src/role.ts
-// Role definitions + the role→scope resolution port, transcribed VERBATIM from
-// security/role-matrix.md (the spec itself marks this file "NEW — flagged in Open Questions, not yet
-// registered"). Roles are the SOURCE; scopes are derived per request and never stored on a principal
-// row or cached (ADR-019 "scopes are the one visibility source"; table-catalog: no table stores
+// Role definitions + the role→scope resolution port, defined here. Roles are the SOURCE; scopes are derived per request and never
+// stored on a principal row or cached (ADR-019 "scopes are the one visibility source"; no table stores
 // Principal.scopes — a role edit takes effect on the next request).
 import {z} from 'zod';
 import {TenantId, IsoTimestamp} from './substrate.js';
@@ -11,7 +9,7 @@ import {Scope} from './tenant.js';
 export const RoleId = z.string().min(1).brand('RoleId'); // 'rol_...'
 export type RoleId = z.infer<typeof RoleId>;
 
-/** Mirrors `tenant.roles` (database/table-catalog.md) exactly — no drift. */
+/** Mirrors `tenant.roles` exactly — no drift. */
 export const RoleDefinition = z.object({
   roleId: RoleId,
   /** null = platform-defined, available to every tenant (mirrors substrate.definitions nullable-tenant). */
@@ -26,7 +24,7 @@ export const RoleDefinition = z.object({
 export type RoleDefinition = z.infer<typeof RoleDefinition>;
 
 export type RoleCreateInput = Omit<RoleDefinition, 'roleId' | 'createdAt' | 'updatedAt'>;
-/** `name` excluded — rename is forbidden (role-matrix.md Implementation Notes). */
+/** `name` excluded — rename is forbidden (role matrix). */
 export type RoleUpdateInput = Partial<Pick<RoleDefinition, 'scopes' | 'description'>>;
 
 /**

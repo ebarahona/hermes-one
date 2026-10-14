@@ -1,4 +1,4 @@
-// OidcStrategy — the human admin bearer-JWT path (authentication-strategies.md §"OIDC human login",
+// OidcStrategy — the human admin bearer-JWT path (OIDC human login,
 // bearer id_token branch). applies() when a Bearer token is present AND oidc is configured; otherwise
 // INERT (so an api-key-only / stackless deployment is unaffected). authenticate() verifies the token
 // via the JwtVerifier (JWKS, iss/aud/exp pinned), then mints a `user` Principal: tenant from the
@@ -25,7 +25,7 @@ import type {AuthStrategy, AuthConfig} from './contracts.js';
 import {unauthorizedError} from './contracts.js';
 import {AuthBindings} from './auth.bindings.js';
 
-/** amr → AuthStrength (131 §3): any multi-factor ref ⇒ mfa, else single. */
+/** amr → AuthStrength: any multi-factor ref ⇒ mfa, else single. */
 const MFA_REFS = new Set(['mfa', 'otp', 'hwk', 'totp', 'sms']);
 function strengthFromAmr(amr: readonly string[]): AuthStrength {
   return amr.some(a => MFA_REFS.has(a)) ? 'mfa' : 'single';

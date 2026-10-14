@@ -1,5 +1,4 @@
-// Component-boundary + plane-purity + app-boot tests (loopback/component-registry.md Testing
-// Strategy). Deep resolution of datasource bindings (pool/redis construction) is covered by the
+// Component-boundary + plane-purity + app-boot tests. Deep resolution of datasource bindings (pool/redis construction) is covered by the
 // live itests/e2es — here we assert the BINDING GRAPH: every key a component claims is bound after
 // app.component(X), keys are plane-pure, and the pure services resolve.
 import {describe, expect, it} from 'vitest';
@@ -45,7 +44,7 @@ function boot(): PlatformApplication {
   return app;
 }
 
-describe('component boundary (050 §6)', () => {
+describe('component boundary', () => {
   it('every key a component claims in bindsKeys is actually bound after registration', () => {
     const app = boot();
     for (const C of COMPONENTS) {

@@ -5,6 +5,5 @@ export const descriptor = {
   role: 'component',
   plane: 'agent',
   published: false,
-  sourceDocs: ['07-capabilities/071', '074'],
   governedBy: ['ADR-010'],
 } as const;

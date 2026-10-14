@@ -1,10 +1,9 @@
 // The platform REST sequence vocabulary — one shared group namespace for both mechanisms the
-// sequence decomposes into (sequence-implementation.md §Architecture, cited 050 §4):
+// sequence decomposes into:
 //   1. REST middleware — @injectable(asMiddleware({group, upstreamGroups, downstreamGroups})),
 //      run around the built-in findRoute → parseParams → invokeMethod → sendResponse actions.
 //   2. Global interceptors — @injectable(asGlobalInterceptor(group)), wrapping ONLY the controller
 //      method invocation.
-// Transcribed VERBATIM from sequence-implementation.md ("The two canonical order constants").
 export const PlatformSequenceGroups = {
   CORRELATION: 'correlation',
   TRACING: 'tracing',
@@ -19,7 +18,7 @@ export const PlatformSequenceGroups = {
   AUDIT: 'audit',
 } as const;
 
-// The platform stages, in run order, that must sit BEFORE routing (`findRoute`) — the spec's
+// The platform stages, in run order, that must sit BEFORE routing (`findRoute`) — the
 // "authorize-before-validate" law: an unauthenticated/unauthorized caller (or an unknown route)
 // never reaches route matching or schema validation, so error shapes never leak the request contract
 // and an unknown path returns 401, not 404. LB4's built-in default instead runs `authentication`

@@ -1,7 +1,6 @@
 // The `event` schema: the transactional outbox backing "commit-and-publish". An outbox row is written in
 // the SAME transaction as the domain row it fans out from; a separate publisher polls status='pending'
-// and dispatches to Redis pub/sub or a broker, then marks 'published'. RLS-protected (strict). Verbatim
-// from database/table-catalog.md.
+// and dispatches to Redis pub/sub or a broker, then marks 'published'. RLS-protected (strict).
 import {pgSchema, text, timestamp, jsonb, integer, bigserial, index, uniqueIndex} from 'drizzle-orm/pg-core';
 
 export const event = pgSchema('event');

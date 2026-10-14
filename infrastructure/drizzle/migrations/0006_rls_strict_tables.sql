@@ -1,5 +1,5 @@
 -- Strict tenant isolation: an unset/blank app.tenant_id GUC yields a NULL predicate → 0 rows,
--- writes rejected. FORCE applies the policy even to the table owner. (constraints.md 'strict')
+-- writes rejected. FORCE applies the policy even to the table owner.
 -- deployment_members carries no own tenant_id column (matches the DeploymentMember contract); its
 -- isolation is enforced by always joining through deployments, never a bare SELECT.
 ALTER TABLE substrate.deployments ENABLE ROW LEVEL SECURITY;

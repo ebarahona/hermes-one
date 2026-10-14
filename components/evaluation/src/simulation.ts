@@ -2,9 +2,9 @@
 // through the SAME single-step loop real turns use (`runTurn`, the ONE turn implementation — no divergent
 // path, per ADR-021) with injected deps (mock providers/decider for CI, or real ones). It is dryRun: the
 // `onPersist` sink captures the TurnLedger IN MEMORY and NEVER writes to the audit/usage/ledger tables, so
-// evaluation traffic can't contaminate real data (audit-and-replay.md simulation quarantine).
+// evaluation traffic can't contaminate real data.
 //
-// FLAGGED: the spec's SimulationService.simulateWorkflow runs the WHOLE workflow through a Temporal
+// FLAGGED: the design's SimulationService.simulateWorkflow runs the WHOLE workflow through a Temporal
 // mock-provider worker on a separate task queue; this is a turn-level, in-process cut that reuses the real
 // turn loop. The workflow-level Temporal simulation (+ the workflowId-loading signature) is deferred
 // (DEFERRED-AND-FLAGGED OB6).

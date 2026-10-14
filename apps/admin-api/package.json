@@ -18,12 +18,6 @@
     "role": "app",
     "plane": "edge",
     "published": false,
-    "sourceDocs": [
-      "loopback/application-bootstrap",
-      "loopback/sequence-implementation",
-      "api/admin-api",
-      "api/rest-api-reference"
-    ],
     "governedBy": [
       "ADR-017",
       "ADR-022"

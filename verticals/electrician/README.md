@@ -40,8 +40,8 @@ code is ever compiled into the platform.
 ## What is still open for this vertical
 
 Tracked in [`../../docs/DEFERRED-AND-FLAGGED.md`](../../docs/DEFERRED-AND-FLAGGED.md) (PE1, PE5):
-- **The per-vertical doc set is not authored** (`domain-model.md`, `workflow-catalog.md`, … per the
-  vertical workplan in the platform's architecture specification set, delivered separately).
+- **The per-vertical doc set is not yet authored** (domain model, workflow catalog, and related
+  documents).
 - **PE5** — the scheduler provider is a config-driven **stand-in**: slots come from
   `ProviderExecutionContext.config.slotTemplates` (now resolved from the tenant's OWN
   envelope-encrypted credential row — ADR-026, landed 2026-07-17; the e2e proves a tenant `rotate()`

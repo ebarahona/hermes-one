@@ -11,6 +11,5 @@ export const descriptor = {
   role: 'infrastructure',
   plane: 'none',
   published: false,
-  sourceDocs: ['contracts/provider-contracts', 'agentback/tool-projection'],
   governedBy: ['ADR-013'],
 } as const;

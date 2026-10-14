@@ -1,4 +1,4 @@
-// DeploymentController — the tenant's deployment surface (api/admin-api.md §DeploymentController):
+// DeploymentController — the tenant's deployment surface (admin API contract):
 //   GET  /v1/deployments/active?tenantId=…        scope: deployment.read
 //   GET  /v1/deployments/{tenantId}/{version}      scope: deployment.read
 //   POST /v1/deployments/preview                   scope: deployment.publish  (validate, no write)
@@ -30,7 +30,7 @@ import {
 const READ_DEPLOYMENTS = 'deployment.read' as Scope;
 const PUBLISH_DEPLOYMENTS = 'deployment.publish' as Scope;
 
-/** A manifest pick — the fields of a DeploymentMember (admin-api.md PickDto). */
+/** A manifest pick — the fields of a DeploymentMember (PickDto). */
 const PickDto = z.object({
   kind: z.enum(['workflow', 'rule', 'policy', 'capability', 'agent-engine']),
   definitionId: z.string(),

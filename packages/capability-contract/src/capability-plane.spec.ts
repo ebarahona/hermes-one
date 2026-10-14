@@ -203,7 +203,7 @@ describe('CapabilityInvoker — resolves + executes + envelopes', () => {
   });
 
   // CT3: the tenant's provider_mappings override outranks the contract default at INVOCATION time —
-  // and absence of an override row means the contract default (table-catalog.md).
+  // and absence of an override row means the contract default.
   it('a tenant provider-mapping override wins over the contract default; absence falls back', async () => {
     const providers = new ProviderRegistry([fakeProvider('twilio'), fakeProvider('bandwidth')]);
     // Contract default ranks twilio first (makeCap). The override flips the ranking to bandwidth.

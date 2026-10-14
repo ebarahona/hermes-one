@@ -1,27 +1,22 @@
-# Edge Authentication Design (F1 / triage Audit 2)
+# Edge Authentication Design
 
 **Status:** implemented through AUTH-3 bearer (2026-07-15). The "Current reality" table below is the
 pre-build snapshot of 2026-07-14 this design was written against.
 
-> Bare `*.md` file names cite the platform's architecture specification set, which is delivered
-> separately from this repository.
-
 **Original status:** DESIGN — reviewed before build (user-decided 2026-07-14: paper first).
-**Grounds:** `loopback/authentication-strategies.md` (the canonical edge-authn substrate),
-`security/role-matrix.md` (role→scope resolution), `security/secrets-and-key-management.md`
-(`SecretRef`/`SecretProvider`, S1), `security/threat-model-and-test-cases.md` (`forged-webhook`,
-`replayed-side-effect-request`), `contracts/tenant.ts` (`Principal`), ADR-017/019/022, and the
-production-readiness triage of 2026-07-13, F1 + §5 Audit 2 (maintained outside this repository).
+**Grounds:** the edge-authn substrate (authentication strategies), role→scope resolution (role matrix),
+`SecretRef`/`SecretProvider` (S1), the threat cases `forged-webhook` and `replayed-side-effect-request`,
+`contracts/tenant.ts` (`Principal`), and ADR-017/019/022.
 
 # Purpose
 
-Turn the security specs into a concrete, phased authn design for hermes-one — closing the three
-gaps triage F1 identified: (a) the webhook edge authenticates only the vendor HMAC with a single
+Turn the security requirements into a concrete, phased authn design for hermes-one — closing the three
+gaps identified in the production-readiness review: (a) the webhook edge authenticates only the vendor HMAC with a single
 shared secret and no replay guard; (b) no human/API caller can authenticate at all (no admin surface);
 (c) the live agent-turn principal and scopes are demo literals (`prn_demo`, hardcoded scope list) in
 `apps/workflow-worker/src/turn-request.ts`.
 
-Authentication answers **"who is calling, and for which tenant"** (authentication-strategies.md). It is
+Authentication answers **"who is calling, and for which tenant"** (authentication strategies). It is
 strictly upstream of authorization: strategies produce a `Principal`; the ALREADY-BUILT machinery
 downstream (scope-gated tool derivation via `capabilitiesForEngine`, ADR-019 policy pre/post gates) is
 real and tested. This design supplies the identity that machinery consumes, and changes nothing
@@ -36,12 +31,12 @@ ingest edge (replacing the demo literals); role→scope resolution over `tenant.
 seam replacing env-only secrets (S1 path); the confirm-token lifecycle under multi-instance workers.
 
 **Out of scope:** the authorization decision itself (policy voters/gates — built, Tier 1.2); PII
-field encryption (`encrypted-field-registry.md`); SAML; the ABAC attribute catalog beyond what
+field encryption (encrypted-field registry); SAML; the ABAC attribute catalog beyond what
 `Principal.attributes` already carries.
 
-# Current reality → spec gap
+# Current reality → target gap
 
-| Area | Today (verified in code) | Spec target |
+| Area | Today (verified in code) | Target |
 |---|---|---|
 | Webhook authn | HMAC-SHA256 over raw body, `timingSafeEqual` (`sms-transport.ts`) — but ONE shared secret, no timestamp in signed material, no skew window, no replay guard | `signed-webhook` strategy: constant-time HMAC over raw body **+ timestamp**, bounded skew, Redis `NonceStore` replay guard, per-provider `secret://` ref |
 | Tenant binding | `tenantByNumber` demo map (To-number → tenant) | server-derived DID/number registry (tenant registry, CT2) — the *derivation direction* is already correct (never client-asserted) |
@@ -113,7 +108,7 @@ sequenceDiagram
   GW->>GW: WorkspaceContext{principal: prn_customer_<h(from)>, deployment: PINNED ref}
 ```
 
-Two principals are deliberate (authentication-strategies.md JSON examples): the **webhook source**
+Two principals are deliberate (per the authentication-strategies examples): the **webhook source**
 authenticates as `kind:'system'` scoped to ingest only; the **customer** the conversation acts *for*
 is a `kind:'user'` principal minted from the inbound handle with roles `['customer']` — its scopes are
 what gate the agent's tools. The pre-design demo literals conflated the two into `prn_demo`.
@@ -124,15 +119,15 @@ Verbatim transcriptions when built (no new invention):
 
 - `@platform/contracts/src/role.ts` — `RoleId`, `RoleDefinition` (mirrors `tenant.roles`
   column-for-column), `RoleCreateInput`/`RoleUpdateInput`, `RoleRegistry` port
-  (role-matrix.md — the spec itself marks this file "NEW, flagged").
+  (role matrix; new in this design).
 - `@platform/contracts/src/auth.ts` — `AuthMethod`, `AuthStrength`, `SessionMeta`,
   `AuthenticatedIdentity`, `VerifiedClaims`, `ApiKeyRecord`, `WorkloadClaims`, `StoredSession`
-  (authentication-strategies.md §TypeScript). The `AuthStrategy` interface itself lives in the auth
+  (authentication strategies). The `AuthStrategy` interface itself lives in the auth
   component (it references `@loopback/rest`'s `Request` — contracts stay container-free, same split
   as `PlatformBindings`).
 - `@platform/contracts/src/secret.ts` — `SecretRef` grammar
   (`^secret:\/\/[a-z0-9][a-z0-9._-]*(\/[a-z0-9][a-z0-9._-]*)+$`) + `SecretProvider` port
-  (secrets-and-key-management.md).
+  (secrets and key management).
 - `@platform-internal/auth` (NEW edge component, `components/auth`) — `AuthStrategyRegistry`
   (`@extensionPoint('platform.extensions.authStrategies')`, extension type `auth.strategy`,
   first-match-by-`applies()`, fail-closed when none), `PrincipalMapper` (the single writer of
@@ -151,8 +146,8 @@ Verbatim transcriptions when built (no new invention):
    is shared, not duplicated. **Breaking change flag:** adding the timestamp to the signed material
    changes the signature the test-double/e2e vendors compute — one coordinated change, covered by itests.
 2. **Roles are the source; scopes are derived per request, never stored or cached**
-   (role-matrix.md `resolveScopes` "Never cached"; table-catalog: "No table stores
-   `Principal.scopes`" — a role edit must take effect on the next request).
+   (role matrix `resolveScopes`: never cached; no table stores
+   `Principal.scopes` — a role edit must take effect on the next request).
 3. **Scope assembly happens at the EDGE (ingestor), not in the workflow.** The workflow sandbox
    cannot do I/O; `buildAgentTurnRequest` stays pure. The ingestor resolves scopes + mints the
    customer principal into `WorkspaceContext` alongside the deployment pin it already writes (D1
@@ -164,13 +159,13 @@ Verbatim transcriptions when built (no new invention):
    strategies: `oidc` (humans; JWKS-verified; Redis sessions; issuer/audience/claims from
    `platform.auth.config`) + `api-key` (service accounts; sha-256-hashed lookup, constant-time).
    `oauth2` and `service-identity` (mTLS/SPIFFE) are documented later phases. Strategy order:
-   `signed-webhook → api-key → oidc` (cheap-shape first; per spec's `strategyOrder` config).
+   `signed-webhook → api-key → oidc` (cheap-shape first; per the `strategyOrder` config).
 6. **Confirm tokens move to Redis.** The agentback `ConfirmationStore` is in-memory (spike finding);
    under multi-instance agent-workers a confirm issued by one instance must be redeemable on another.
-   A Redis-backed store keyed by token with the spec's input-fingerprint binding (threat
+   A Redis-backed store keyed by token with input-fingerprint binding (threat
    `replayed-side-effect-request`: a replayed confirm with a mismatched fingerprint is rejected) and
    a short TTL. Depends on agentback exposing the store as an injectable seam — verify against 0.7.1;
-   if it is not injectable, flag upstream (library-vs-spec gap, do not fork).
+   if it is not injectable, flag upstream (library-vs-design gap, do not fork).
 
 # Configuration
 
@@ -224,7 +219,7 @@ Verbatim transcriptions when built (no new invention):
 | role-edit freshness (itest) | scope removed from role → next request's principal lacks it (no cache) |
 | scope-gate integration (e2e) | customer principal WITHOUT `appointment.slot.read` → the tool is not derived; turn cannot call it |
 | principal isolation (unit) | webhook `system` principal carries ONLY `channel.inbound.ingest` — it can never reach the agent turn as the acting principal |
-| unauthorized redaction (unit) | 401 body carries no claim/schema detail (spec: no leakage) |
+| unauthorized redaction (unit) | 401 body carries no claim/schema detail (no leakage) |
 
 # Acceptance criteria
 
@@ -244,16 +239,16 @@ Verbatim transcriptions when built (no new invention):
 - **CT1 (🔴, gating AUTH-2's user join):** `tenant.tenants`/`tenant.users` PK type (uuid) vs the text
   `tnt_`/`prn_` brand the whole system keys on. **Recommendation: text branded ids everywhere**
   (migrate the two uuid columns) — every GUC, RLS policy, contract, and existing row already speaks
-  the brand; uuid buys nothing here. Needs sign-off as it contradicts `repository-patterns.md`'s
+  the brand; uuid buys nothing here. Needs sign-off as it contradicts the repository-patterns
   column type.
 - **API-key storage:** `ApiKeyRecord` needs a table (hashed key, tenant, principal, scopes, status,
   expiry). Candidates: a `tenant.api_keys` table (new catalog row — needs a table-catalog amendment)
   vs overloading `tenant.users.attributes`. Recommendation: a real table, amended into the catalog —
   overloading attributes hides a credential store from RLS review.
-- **OIDC IdP:** config-driven issuer list per the spec; which IdP the first deployment uses is an ops
+- **OIDC IdP:** config-driven issuer list; which IdP the first deployment uses is an ops
   decision, not a code one.
-- **Platform-admin cross-tenant posture:** `role-matrix.md` defines `platform-admin` with cross-tenant
-  scopes, but the RLS relay-role question (row-level-security.md Open Questions — same tension as the
+- **Platform-admin cross-tenant posture:** the role matrix defines `platform-admin` with cross-tenant
+  scopes, but the RLS relay-role question (the row-level-security open question — same tension as the
   outbox publisher) is still unresolved upstream. Admin cross-tenant reads stay blocked on it.
 - **DID/number → tenant registry:** stays the demo map until the tenant registry lands (CT2); the
   registry table (`tenant.workspaces` or a new `tenant.numbers`) needs a catalog decision.

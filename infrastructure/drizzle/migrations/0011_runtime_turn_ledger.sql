@@ -1,7 +1,7 @@
 -- Durable turn persistence (Tier 2): the runtime.* ledger a completed agent turn writes — the tool-call
 -- replay/audit record, its grounded evidence, and every policy gate decision. Tables + indexes + enum
--- checks + request-time grants; RLS is applied in 0012. Columns transcribed verbatim from
--- database/table-catalog.md (runtime.tool_executions / evidence_records / policy_decisions).
+-- checks + request-time grants; RLS is applied in 0012. Columns cover
+-- runtime.tool_executions / evidence_records / policy_decisions.
 
 CREATE TABLE runtime.tool_executions (
   tool_call_id     text PRIMARY KEY,

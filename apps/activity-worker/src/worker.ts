@@ -2,7 +2,7 @@
 // `hermes-activity` task queue. Runs no workflows. Connects to local Temporal
 // (127.0.0.1:7233, default namespace).
 //
-// MIGRATED onto the LB4 composition layer (F6/T1, loopback/application-bootstrap.md): the
+// MIGRATED onto the LB4 composition layer (Phase 2a): the
 // composition root builds a PlatformApplication, registers the component subset from the per-app
 // bootstrap matrix (Observability, Persistence, CapabilityRegistry, RuleRuntime — TenantCore /
 // Memory / Channel components are Phase 2), contributes the provider adapters to the
@@ -53,7 +53,7 @@ export function createActivityWorkerApp(cfg: HermesConfig): PlatformApplication 
   const app = new PlatformApplication();
   app.bind(PlatformBindings.CONFIG.key).to(cfg); // constant value — scope-independent
 
-  // Per the bootstrap matrix (application-bootstrap.md): Observability, Persistence,
+  // Per the bootstrap matrix: Observability, Persistence,
   // CapabilityRegistry, RuleRuntime, Channel. The ChannelComponent contributes the provider adapters
   // to the capability extension point (internal message-log always; the SMS vendor when configured).
   app.component(ObservabilityComponent);
@@ -82,8 +82,8 @@ export async function createActivityWorker(): Promise<Worker> {
   const audit = (await app.get(PlatformBindings.AUDIT_SINK)) as DrizzleAuditSink;
   const ruleRuntime = await app.get(PlatformBindings.RULE_RUNTIME);
 
-  // Transactional-outbox publisher (events/event-envelope.md): opt-in via HERMES_OUTBOX_TENANTS
-  // (per-tenant RLS drain; the cross-tenant relay role is an unresolved spec question — flagged).
+  // Transactional-outbox publisher (event envelope): opt-in via HERMES_OUTBOX_TENANTS
+  // (per-tenant RLS drain; the cross-tenant relay role is an open question — flagged).
   if (cfg.outbox.tenants.length > 0) {
     const outbox = (await app.get(PlatformBindings.EVENT_OUTBOX_REPOSITORY)) as DrizzleEventOutboxRepository;
     const redis = await app.get(PlatformBindings.REDIS);
@@ -103,7 +103,7 @@ export async function createActivityWorker(): Promise<Worker> {
     namespace: cfg.temporal.namespace,
     // withPlatformFailures: a thrown PlatformErrorException reaches Temporal as the stable typed
     // ApplicationFailure so the retry-policy registry's nonRetryableErrorTypes can match it
-    // (retry-policy-registry.md acceptance criterion 8).
+    // (retry-policy registry).
     activities: withPlatformFailures({
       ...createRuleActivities(ruleRuntime),
       ...createPlanActivities(plans),

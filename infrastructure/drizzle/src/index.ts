@@ -129,6 +129,5 @@ export const descriptor = {
   role: 'infrastructure',
   plane: 'none',
   published: false,
-  sourceDocs: ['08-data/081', 'substrate/compiled-plan-store', 'database/row-level-security'],
   governedBy: ['ADR-014', 'ADR-016', 'ADR-022'],
 } as const;

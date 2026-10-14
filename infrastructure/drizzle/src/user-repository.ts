@@ -1,5 +1,5 @@
 // DrizzleUserRepository — the tenant-scoped user/principal-at-rest surface over `tenant.users`
-// (api/admin-api.md §UserController; database/table-catalog.md). Backs `user|service|system`
+// Backs `user|service|system`
 // principals (agent principals are never persisted). Self-scoping via withTenant (RLS keys on
 // tenant_id). A per-tenant unique (email / externalHandle / auth-identity) collision → 409 conflict.
 import {randomUUID} from 'node:crypto';
@@ -10,7 +10,7 @@ import {users} from './schema/tenant.schema.js';
 
 export type UserKind = 'user' | 'service' | 'system';
 
-/** CreateUserRequest minus server-derived columns (admin-api.md). */
+/** CreateUserRequest minus server-derived columns. */
 export interface UserCreateInput {
   kind: UserKind;
   displayName?: string;
@@ -20,7 +20,7 @@ export interface UserCreateInput {
   attributes?: Record<string, string | number | boolean | null>;
 }
 
-/** UserDto (admin-api.md) — the public projection of a user row. */
+/** UserDto — the public projection of a user row. */
 export interface UserDto {
   principalId: string;
   tenantId: string;

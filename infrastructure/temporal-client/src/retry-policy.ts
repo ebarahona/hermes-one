@@ -1,14 +1,12 @@
-// @platform-internal/temporal-client — the canonical Temporal retry-policy registry, transcribed
-// VERBATIM from `temporal/retry-policy-registry.md`. Exactly six named ActivityOptions profiles;
+// @platform-internal/temporal-client — the canonical Temporal retry-policy registry.
+// Exactly six named ActivityOptions profiles;
 // every activity the interpreter schedules resolves to exactly one. Every class's
 // `nonRetryableErrorTypes` is the SAME generated list — retryability is a property of the error,
-// not the activity (error-contracts.md).
+// not the activity.
 //
-// Spec deltas (flagged, not improvised — see DEFERRED-AND-FLAGGED.md):
-// - The spec places this module at `packages/agent-platform-internal/temporal/src/retry-policy.ts`;
-//   this repo's Temporal infrastructure member is `infrastructure/temporal-client` — actual repo
-//   layout followed (same pattern as policy-dsl vs the spec's policy-compiler/policy-runtime names).
-// - `WorkflowActivityMetadata` is owned by `loopback/binding-tag-registry.md` (`@platform-internal/tags`),
+// Layout notes (flagged — see docs/DEFERRED-AND-FLAGGED.md):
+// - This repo's Temporal infrastructure member is `infrastructure/temporal-client`.
+// - `WorkflowActivityMetadata` is owned by the binding-tag registry (`@platform-internal/tags`),
 //   a package that does not exist yet (the LoopBack composition layer is unbuilt) — the minimal
 //   override slot is declared locally below until that layer lands.
 // Imports canonical contracts only; introduces no new @platform/contracts types.
@@ -19,7 +17,7 @@ import {RETRYABLE_BY_CATEGORY} from '@platform/contracts';
 import type {SideEffectClass} from '@platform/contracts';
 
 /**
- * Minimal local slot for the per-activity override (`binding-tag-registry.md`'s
+ * Minimal local slot for the per-activity override (the binding-tag registry's
  * `WorkflowActivityMetadata`) — flagged: lives here until `@platform-internal/tags` exists.
  */
 export interface WorkflowActivityMetadata {
@@ -35,19 +33,19 @@ export interface WorkflowActivityMetadata {
 
 /**
  * The six canonical retry-policy classes. Every activity the interpreter schedules resolves to
- * exactly one. No activity is configured outside this set (`043 §8`).
+ * exactly one. No activity is configured outside this set.
  */
 export const RetryPolicyClass = z.enum([
   'read-only-provider', // pure reads: retrieval, provider GETs, none/read capabilities
   'idempotent-write', // write capabilities with a store/vendor that honors the idempotency key
   'non-idempotent-guarded-write', // external/payment capabilities the vendor may still duplicate
-  'model-call', // the bounded agent-turn activity (059)
-  'human-task-dispatch', // human task / handoff creation (060)
+  'model-call', // the bounded agent-turn activity
+  'human-task-dispatch', // human task / handoff creation
   'internal-db', // platform-internal Postgres/Redis I/O (plan load, fact gather, audit, projection)
 ]);
 export type RetryPolicyClass = z.infer<typeof RetryPolicyClass>;
 
-/* ------------------------- Activity categories (045 §3) ----------------- */
+/* ------------------------- Activity categories ---------------- */
 
 export const ActivityCategory = z.enum([
   'capability-execution',
@@ -61,7 +59,7 @@ export const ActivityCategory = z.enum([
 ]);
 export type ActivityCategory = z.infer<typeof ActivityCategory>;
 
-/** Fixed mapping for the seven categories whose retry class does not vary by call (045 §3). */
+/** Fixed mapping for the seven categories whose retry class does not vary by call. */
 export const ACTIVITY_CATEGORY_TO_RETRY_POLICY_CLASS: Record<
   Exclude<ActivityCategory, 'capability-execution'>,
   RetryPolicyClass
@@ -77,10 +75,10 @@ export const ACTIVITY_CATEGORY_TO_RETRY_POLICY_CLASS: Record<
 
 /**
  * `capability-execution` is the one category resolved dynamically, from the capability's own
- * `SideEffectClass` (`capability-contracts.md`), because side effects vary per capability, not per
+ * `SideEffectClass` (from the capability contract), because side effects vary per capability, not per
  * category. `none`/`read` are always safe to retry generously; `write` retries safely because
  * `IdempotencySpec.required` is mandatory for it; `external`/`payment` are only *best-effort*
- * idempotent at the vendor and are therefore guarded (see Implementation Notes).
+ * idempotent at the vendor and are therefore guarded (see the per-class rationale below).
  */
 export function retryPolicyClassForCapability(sideEffect: SideEffectClass): RetryPolicyClass {
   switch (sideEffect) {
@@ -118,14 +116,13 @@ export const ERROR_CODE_TO_APPLICATION_FAILURE_TYPE: Record<ErrorCode, string> =
   infrastructure_error: 'InfrastructureError', // already Error-suffixed — not doubled
   deadline_exceeded: 'DeadlineExceededError',
   confirmation_required: 'ConfirmationRequiredError',
-  policy_blocked: 'PolicyBlockedError', // matches 043 §8's illustrative example literally
+  policy_blocked: 'PolicyBlockedError',
   tenant_not_resolved: 'TenantNotResolvedError',
   internal_error: 'InternalError', // already Error-suffixed — not doubled
 };
 
 /**
- * TRANSCRIBED VERBATIM from `error-contracts.md`'s canonical `CATEGORY_BY_CODE` (authored there
- * 2026-07-17, T3): which `ErrorCategory` each `ErrorCode` belongs to — the complement to
+ * Canonical `CATEGORY_BY_CODE` (T3): which `ErrorCategory` each `ErrorCode` belongs to — the complement to
  * `RETRYABLE_BY_CATEGORY`/`HTTP_STATUS_BY_CODE`. The retry registry needs a code's retryability, which
  * is a property of its category, so it consumes this lookup.
  */
@@ -144,9 +141,9 @@ export const CATEGORY_BY_CODE: Record<ErrorCode, ErrorCategory> = {
   provider_rejected: 'provider',
   infrastructure_error: 'infrastructure',
   deadline_exceeded: 'timeout',
-  confirmation_required: 'policy', // agentback confirm: refusal, reconciled with policy 'approval' (error-contracts.md notes)
+  confirmation_required: 'policy', // agentback confirm: refusal, reconciled with policy 'approval'
   policy_blocked: 'policy',
-  tenant_not_resolved: 'authorization', // NAMING-CANON.md §5, fail-closed tenant scope is an authorization failure
+  tenant_not_resolved: 'authorization', // fail-closed tenant scope is an authorization failure
   internal_error: 'internal',
 };
 
@@ -167,7 +164,7 @@ export function toApplicationFailure(error: PlatformError): ApplicationFailure {
     message: error.message,
     type: ERROR_CODE_TO_APPLICATION_FAILURE_TYPE[error.code],
     nonRetryable: !error.retryable,
-    details: [error], // PlatformError round-trips whole via ApplicationFailure.details (error-contracts.md)
+    details: [error], // PlatformError round-trips whole via ApplicationFailure.details
   });
 }
 
@@ -192,7 +189,7 @@ export type RetryPolicySpec = z.infer<typeof RetryPolicySpec>;
 export const ActivityOptionsSpec = z.object({
   startToCloseTimeout: DurationString,
   scheduleToCloseTimeout: DurationString.optional(),
-  /** Required for long-running categories (045 §5); omitted where the call is always short. */
+  /** Required for long-running categories; omitted where the call is always short. */
   heartbeatTimeout: DurationString.optional(),
   retry: RetryPolicySpec,
   /** Why this class is shaped the way it is — surfaced in the JSON dump for operability. */
@@ -225,7 +222,7 @@ export const RETRY_POLICY_REGISTRY: Record<RetryPolicyClass, ActivityOptionsSpec
       nonRetryableErrorTypes: [...NON_RETRYABLE_ERROR_TYPES],
     },
     rationale:
-      'IdempotencySpec.required is mandatory for sideEffect:write (capability-contracts.md) — replay with the same key is safe, so Temporal may spend more attempts.',
+      'IdempotencySpec.required is mandatory for sideEffect:write — replay with the same key is safe, so Temporal may spend more attempts.',
   },
   'non-idempotent-guarded-write': {
     startToCloseTimeout: '30s',
@@ -238,7 +235,7 @@ export const RETRY_POLICY_REGISTRY: Record<RetryPolicyClass, ActivityOptionsSpec
       nonRetryableErrorTypes: [...NON_RETRYABLE_ERROR_TYPES],
     },
     rationale:
-      "external/payment capabilities carry a best-effort idempotency key but the vendor may not honor it (open question, capability-contracts.md data #6) — Temporal must not auto-retry; the workflow decides redo with a fresh idempotencyKey.",
+      "external/payment capabilities carry a best-effort idempotency key but the vendor may not honor it (open question) — Temporal must not auto-retry; the workflow decides redo with a fresh idempotencyKey.",
   },
   'model-call': {
     startToCloseTimeout: '120s',
@@ -252,7 +249,7 @@ export const RETRY_POLICY_REGISTRY: Record<RetryPolicyClass, ActivityOptionsSpec
       nonRetryableErrorTypes: [...NON_RETRYABLE_ERROR_TYPES],
     },
     rationale:
-      'A non-deterministic turn (model call + tool side effects) must not be blindly re-run by Temporal (059 §9, TurnRuntimeConfig.sideEffectActivityMaxAttempts const 1) — the workflow routes to handoff or a resume branch.',
+      'A non-deterministic turn (model call + tool side effects) must not be blindly re-run by Temporal (TurnRuntimeConfig.sideEffectActivityMaxAttempts const 1) — the workflow routes to handoff or a resume branch.',
   },
   'human-task-dispatch': {
     startToCloseTimeout: '15s',
@@ -265,7 +262,7 @@ export const RETRY_POLICY_REGISTRY: Record<RetryPolicyClass, ActivityOptionsSpec
       nonRetryableErrorTypes: [...NON_RETRYABLE_ERROR_TYPES],
     },
     rationale:
-      "Handoff-queue backends may be briefly unavailable; a wider retry budget with a generous scheduleToCloseTimeout avoids a dropped handoff (060) — the activity must derive its own stable dedupe key since HandoffRequest (060 §2) does not carry one (see Open Questions).",
+      "Handoff-queue backends may be briefly unavailable; a wider retry budget with a generous scheduleToCloseTimeout avoids a dropped handoff — the activity must derive its own stable dedupe key since HandoffRequest does not carry one.",
   },
   'internal-db': {
     startToCloseTimeout: '10s',

@@ -1,5 +1,5 @@
 // @platform-internal/evaluation — component (agent plane).
-// The golden-conversation evaluation framework (observability/evaluation-and-cost-analytics.md): plays
+// The golden-conversation evaluation framework: plays
 // cases through the ONE turn loop against mock providers (dryRun), scores assertions, gates deployment
 // publish on required-case regressions. The workflow-level Temporal simulation is deferred (see
 // docs/DEFERRED-AND-FLAGGED.md OB6).
@@ -30,6 +30,5 @@ export const descriptor = {
   role: 'component',
   plane: 'agent',
   published: false,
-  sourceDocs: ['observability/evaluation-and-cost-analytics'],
   governedBy: ['ADR-021'],
 } as const;

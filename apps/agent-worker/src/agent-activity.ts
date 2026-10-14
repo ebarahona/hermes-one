@@ -97,9 +97,9 @@ const toolNameOf = (cap: string) => cap.replace(/\./g, '_');
 
 /**
  * The tool executor with an `agent.tool.<capability>` span per dispatch — a child of the turn span,
- * carrying the spec's attributes (tenant.id, turn.id, tool.capability, tool.side_effect, tool.ok). It
+ * carrying the attributes (tenant.id, turn.id, tool.capability, tool.side_effect, tool.ok). It
  * subclasses `PlatformToolExecutor` (the turn loop dispatches via that concrete type) and wraps its
- * `dispatch`, so both `dispatch` and the inherited `execute` are traced. (tracing-metrics-logging.md —
+ * `dispatch`, so both `dispatch` and the inherited `execute` are traced. (
  * the `agent.tool.*` leaves of the span tree.)
  */
 class TracingToolExecutor extends PlatformToolExecutor {
@@ -134,7 +134,7 @@ class TracingToolExecutor extends PlatformToolExecutor {
   }
 }
 
-// The `model-call` retry class sets heartbeatTimeout:'20s' (retry-policy-registry.md) — a turn that
+// The `model-call` retry class sets heartbeatTimeout:'20s' (retry-policy registry) — a turn that
 // runs long (slow model, several tool steps) must emit liveness or Temporal kills the attempt. No-op
 // outside an activity context (unit tests / direct calls).
 function startHeartbeat(intervalMs = 5_000): () => void {
@@ -165,7 +165,7 @@ let booted: Promise<Booted> | undefined;
 function boot(): Promise<Booted> {
   return (booted ??= (async () => {
     const cfg = loadConfig();
-    // RLS boot self-check (row-level-security.md): a bypass-capable login fails startup, not silently.
+    // RLS boot self-check (RLS): a bypass-capable login fails startup, not silently.
     await assertRlsPostureAtBoot(cfg.stores.authoritative.url);
     const app = createAgentPlaneApp();
     app.bind('platform.hook.envelope').to(createEnvelopeHook()).tag(MCP_DISPATCH_HOOK_TAG);
@@ -176,7 +176,7 @@ function boot(): Promise<Booted> {
     const {repo: persistence} = createTurnPersistence(cfg.stores.authoritative.url);
     // OTel tracing (OB5): one provider per worker process; spans export to the configured exporter.
     const tracing = initTracing(tracingConfigFor(cfg.otel, 'hermes-agent-worker'));
-    // The PROVIDER PLANE in the agent plane (tool-projection.md). Before this the agent plane had no
+    // The PROVIDER PLANE in the agent plane (tool projection). Before this the agent plane had no
     // ProviderRegistry at all and dispatched to the SpikeBookingTools fixtures; now a pinned capability
     // projects to a tool whose generic body resolves the ranked adapter here. Adapters are plane-neutral
     // (@platform-internal/*, no @loopback/*) so the agent plane may import them (ADR-017 / plane-lint).
@@ -324,7 +324,7 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
   const metaSource = metaSourceFrom(n => byName.get(n));
 
   // Project THIS turn's pinned capabilities into agentback tools whose generic body reaches the ranked
-  // provider (tool-projection.md). Per-turn rather than once-per-deployment: this worker is a
+  // provider (tool projection). Per-turn rather than once-per-deployment: this worker is a
   // multi-tenant singleton, so app-level registration keyed by tool NAME could not hold two tenants'
   // contracts for the same capability. A contract the projector cannot faithfully rebuild is SKIPPED
   // (never degraded to a weaker validator) and logged — the model then simply never sees that tool.
@@ -350,8 +350,8 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
     // closed): the record's decrypted bundle becomes ProviderExecutionContext.config.
     providerConfigFor: async (capability, providerId) =>
       (await credentials.resolve(tenantId, providerId, capability)).config,
-    // Canonical material: turnId + name + the contract's keyFields values (deriveIdempotencyKey;
-    // tool-projection.md "Idempotency key"). keyFields come from the INPUT, so two calls to one
+    // Canonical material: turnId + name + the contract's keyFields values (deriveIdempotencyKey).
+    // keyFields come from the INPUT, so two calls to one
     // capability with different arguments in a turn get distinct keys.
     idempotencyKeyFor: (capability, input) => {
       const contract = byName.get(capability);
@@ -406,8 +406,8 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
     tools,
     // toolCallIds derive from (turnId, step) — replay-stable within a turn, disjoint across turns.
     turnId: request.turnId,
-    // Canonical key material: turnId + name + the contract's keyFields (deriveIdempotencyKey;
-    // tool-projection.md "Idempotency key"). The decider's own placeholder is capability+args with NO
+    // Canonical key material: turnId + name + the contract's keyFields (deriveIdempotencyKey).
+    // The decider's own placeholder is capability+args with NO
     // turn — and `te_tenant_idempotency_uq` is UNIQUE per (tenant, key), so two DIFFERENT turns calling
     // one capability with equal args collapsed to a single ledger row (the later turn's execution was
     // silently dropped by ON CONFLICT DO NOTHING while its audit trail still logged tool.invoked).

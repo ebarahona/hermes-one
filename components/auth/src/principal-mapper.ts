@@ -1,7 +1,7 @@
-// DefaultPrincipalMapper — the SINGLE writer of `platform.request.principal`
-// (authentication-strategies.md §"Implementation Notes" "One Principal writer"). Strategies return
+// DefaultPrincipalMapper — the SINGLE writer of `platform.request.principal`.
+// Strategies return
 // values; only the mapper touches the request Context. Request-scoped so `bindPrincipal` binds into
-// the live request context (injected via @inject.context()). The spec gives the interface only; this
+// the live request context (injected via @inject.context()). The design gives the interface only; this
 // impl is authored JIT to it.
 import {inject, injectable, BindingScope, type Context} from '@loopback/core';
 import {

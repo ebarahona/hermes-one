@@ -8,6 +8,5 @@ export const descriptor = {
   role: 'app',
   plane: 'agent',
   published: false,
-  sourceDocs: ['04-agent-runtime/059', '17-deployment/170'],
   governedBy: ['ADR-021'],
 } as const;

@@ -1,4 +1,4 @@
-// RoleController — the tenant role resource (api/admin-api.md §RoleController):
+// RoleController — the tenant role resource (admin API contract):
 //   GET  /v1/tenants/{tenantId}/roles   scope: tenant.role.read     tenant-scoped read
 //   POST /v1/tenants/{tenantId}/roles   scope: tenant.role.create   tenant-scoped write
 // Both read/write through the tenant-scoped, RLS-enforced DrizzleRoleRegistry (opens the tenant GUC
@@ -15,7 +15,7 @@ import {type ErrorIssue, PlatformErrorException, type Principal, type RoleRegist
 const READ_ROLES = 'tenant.role.read' as Scope;
 const CREATE_ROLES = 'tenant.role.create' as Scope;
 
-/** Request body (admin-api.md §RoleController `CreateRoleRequest`). tenantId is NEVER taken from the
+/** Request body (`CreateRoleRequest`). tenantId is NEVER taken from the
  *  body — it is the trusted principal's tenant. */
 const CreateRoleRequest = z.object({
   name: z.string().min(1),
@@ -23,7 +23,7 @@ const CreateRoleRequest = z.object({
   description: z.string().optional(),
 });
 
-/** Response shape (admin-api.md §RoleController — plain array, no pagination). */
+/** Response shape (plain array, no pagination). */
 export interface RoleDto {
   roleId: string;
   name: string;

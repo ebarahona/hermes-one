@@ -1,5 +1,5 @@
 // SubstrateComponent (edge): binds the definition-substrate SERVICES over the already-bound content-
-// addressed store + tenant-scoped repos (substrate-lifecycle.md). DeploymentService (Slice 6, reads)
+// addressed store + tenant-scoped repos. DeploymentService (Slice 6, reads)
 // + DefinitionRegistry (Slice 8, put — authoring, with the logic-DSL compilers wired). Retires part
 // of ledger L1 (services were only ad-hoc-constructed in apps/workflow-worker/src/publish.ts).
 import {Binding, BindingScope, type Component} from '@loopback/core';

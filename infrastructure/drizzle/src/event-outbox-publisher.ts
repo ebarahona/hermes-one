@@ -1,11 +1,10 @@
-// EventOutboxPublisherLoop — `platform.data.event-outbox-publisher` (events/event-envelope.md):
+// EventOutboxPublisherLoop — `platform.data.event-outbox-publisher`:
 // the poll loop that drains `event.event_outbox` on a cadence (outboxPollIntervalMs) and fans each
 // pending row out as an EventEnvelope through the injected `EventPublisher` (Redis pub/sub today,
 // a broker adapter later — the config's documented, not-yet-implemented `broker` target).
 //
 // FLAGGED: the loop iterates an INJECTED tenant list and drains each tenant under its own RLS scope,
-// because the cross-tenant relay role is an unresolved spec question (row-level-security.md Open
-// Questions — a bypass-capable role is exactly what the RLS self-check exists to keep out). The
+// because the cross-tenant relay role is an unresolved question (a bypass-capable role is exactly what the RLS self-check exists to keep out). The
 // tenant list is config today (HERMES_OUTBOX_TENANTS); the real source is the tenant registry (CT1/CT2).
 import type {EventPublisher, SemVer, TenantId} from '@platform/contracts';
 import type {DrizzleEventOutboxRepository, OutboxDrainResult} from './event-outbox-repository.js';

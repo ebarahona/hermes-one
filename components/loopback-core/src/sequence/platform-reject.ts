@@ -1,7 +1,7 @@
-// PlatformReject — the SINGLE error exit for the REST surface (sequence-implementation.md
-// §"error-normalize" / the Reject sequence action). Every thrown error, from any middleware or
-// controller, normalizes here to the one wire shape `{ error: PlatformError }`
-// (rest-api-reference.md §"Error envelope"). A PlatformErrorException passes its PlatformError
+// PlatformReject — the SINGLE error exit for the REST surface (the "error-normalize" step /
+// the Reject sequence action). Every thrown error, from any middleware or
+// controller, normalizes here to the one wire shape `{ error: PlatformError }`.
+// A PlatformErrorException passes its PlatformError
 // through untouched; anything else collapses to a generic 500 `internal_error` (no leakage).
 import {injectable, type Provider} from '@loopback/core';
 import {type HandlerContext, type Reject} from '@loopback/rest';

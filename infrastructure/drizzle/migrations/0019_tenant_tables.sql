@@ -1,6 +1,6 @@
--- The `tenant` schema: tenants (reused from repository-patterns.md + slug unique), workspaces, users,
--- roles, vertical_pack_installations. Columns verbatim from database/table-catalog.md. Partial-unique
--- indexes (not expressible in the Drizzle DSL) are hand-authored here per constraints.md.
+-- The `tenant` schema: tenants (with a unique slug), workspaces, users,
+-- roles, vertical_pack_installations. Partial-unique
+-- indexes (not expressible in the Drizzle DSL) are hand-authored here.
 CREATE SCHEMA IF NOT EXISTS tenant;
 
 CREATE TABLE tenant.tenants (

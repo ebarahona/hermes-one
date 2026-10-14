@@ -30,11 +30,6 @@
     "role": "component",
     "plane": "agent",
     "published": false,
-    "sourceDocs": [
-      "06-agentback/060",
-      "063",
-      "agentback/tool-projection"
-    ],
     "governedBy": [
       "ADR-013",
       "ADR-017",

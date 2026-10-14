@@ -1,5 +1,5 @@
 // Tenant-scoped usage meter for audit.usage_records (RLS 'strict') — the store behind platform.usage.meter
-// (audit-contracts.md). Implements the canonical UsageMeter port. `record` upserts ON CONFLICT(dedupe_key)
+// Implements the canonical UsageMeter port. `record` upserts ON CONFLICT(dedupe_key)
 // DO NOTHING so at-least-once emission (Temporal retries / actor replays) collapses to exactly-once billing
 // (findings T7); it aggregates its input events, it does not re-derive tokens/cost. All access goes through
 // withTenant → set_config('app.tenant_id'). quantity is a Postgres numeric (string over the wire) — parsed

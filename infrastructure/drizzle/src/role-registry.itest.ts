@@ -1,4 +1,4 @@
-// Live-PG itest for DrizzleRoleRegistry (AUTH-2, security/role-matrix.md): platform-default
+// Live-PG itest for DrizzleRoleRegistry (AUTH-2): platform-default
 // resolution, tenant shadowing, per-request freshness (never cached), unknown-role → no scopes,
 // and the seeded platform matrix from migration 0029.
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';

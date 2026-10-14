@@ -18,13 +18,6 @@
     "role": "component",
     "plane": "edge",
     "published": false,
-    "sourceDocs": [
-      "05-loopback/050",
-      "053",
-      "loopback/application-bootstrap",
-      "loopback/binding-key-registry",
-      "loopback/component-registry"
-    ],
     "governedBy": []
   },
   "dependencies": {

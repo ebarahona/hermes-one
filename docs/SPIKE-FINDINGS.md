@@ -26,7 +26,7 @@ checks pass under `pnpm verify`.
 ## Integration notes — where the library sharpened the specification
 
 Validation is only valuable when it produces precision. Each of the following is where the real
-library refined the ADR/spec wording — and each is now pinned by a test, so the precision is
+library refined the ADR wording — and each is now pinned by a test, so the precision is
 enforced, not remembered.
 
 1. **The public dispatch seam is `MCPServer.callTool`.** ADR-018's draft wording said "wrap

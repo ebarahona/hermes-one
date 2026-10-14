@@ -10,7 +10,7 @@
 //
 // FLAGGED: the eval principal is granted the engine's full allowed scope set (scope-narrowing cases
 // script `tool-not-called` assertions instead); the workflow-level Temporal mock-provider simulation
-// (spec `SimulationService.simulateWorkflow`) remains deferred — this is the turn-level cut.
+// (`SimulationService.simulateWorkflow`) remains deferred — this is the turn-level cut.
 import type {
   AgentEngineContract,
   CapabilityContract,

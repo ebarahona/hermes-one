@@ -2,9 +2,9 @@
 // allowlist, so the sequence's authentication slot must establish a principal first; it echoes the
 // bound `platform.request.principal`. This proves the api-key strategy end-to-end (Slice 2) and is a
 // genuinely useful ops/debug endpoint (a "who am I" for a credential). The real admin controllers
-// (tenant/role/definition/deployment, api/admin-api.md) land in Slice 3+.
+// (tenant/role/definition/deployment) land in Slice 3+.
 //
-// JIT (flagged): admin-api.md does not define a /whoami route; it's authored here as the smallest
+// JIT (flagged): the admin API contract does not define a /whoami route; it's authored here as the smallest
 // authenticated surface to exercise AUTH-3.
 import {inject} from '@loopback/core';
 import {get} from '@loopback/rest';

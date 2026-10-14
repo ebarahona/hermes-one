@@ -1,8 +1,6 @@
 // @platform/contracts — src/composition-root.ts
-// The per-process composition-root contract, transcribed VERBATIM from
-// loopback/application-bootstrap.md (spec path: packages/contracts/src/apps/composition-root.ts —
-// this repo keeps contracts flat). Pure TS: no @loopback dependency; the TApp type parameter is the
-// plane's container (edge @loopback Application OR agent @agentback Application), so the contract
+// The per-process composition-root contract (this repo keeps contracts flat). Pure TS: no @loopback dependency;
+// the TApp type parameter is the plane's container (edge @loopback Application OR agent @agentback Application), so the contract
 // itself stays plane-neutral (ADR-017).
 
 /** Extends the 002 contract with serve(); binding key: none (constructed, not injected). */

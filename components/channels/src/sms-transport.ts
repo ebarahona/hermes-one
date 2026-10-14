@@ -5,7 +5,7 @@
 // the REAL vendor send: an HTTP POST to the Twilio Messages API, authenticated with the tenant's secret
 // bundle (ctx.config — resolved via a ProviderCredentialStore, never inline), classifying failures onto
 // the platform error taxonomy (5xx/network/timeout → infrastructure_error retryable; 4xx business →
-// provider_rejected non-retryable — provider-contracts.md outcome mapping). parseReceipt/isOptedOut stay
+// provider_rejected non-retryable — outcome mapping). parseReceipt/isOptedOut stay
 // minimal (flagged: a full receipt-webhook + STOP/HELP ledger is a later build).
 import {createHmac, timingSafeEqual} from 'node:crypto';
 import {
@@ -52,7 +52,7 @@ export interface SmsTransportConfig {
   signatureHeader: string;
   /** Header carrying the unix-seconds timestamp signed into the material (default 'x-timestamp'). */
   timestampHeader?: string;
-  /** Max |now - timestamp| accepted, seconds (authentication-strategies.md skewWindowSeconds, default 300). */
+  /** Max |now - timestamp| accepted, seconds. */
   skewWindowSeconds?: number;
   /** Replay guard (Redis setNX). When present, an already-seen signature is rejected (AUTH-1).
    *  Absence = guard off (dev/tests) — flagged; production wires RedisNonceStore. */
@@ -95,7 +95,7 @@ export class SmsChannelTransport implements ChannelTransport {
   }
 
   /**
-   * AUTH-1 verification ladder (authentication-strategies.md signed-webhook, cheap-first):
+   * AUTH-1 verification ladder:
    * 1. timestamp present and within the skew window (no HMAC work on stale requests);
    * 2. constant-time HMAC over `rawBody + '.' + timestamp` (timestamp inside the signed material);
    * 3. replay guard — the signature is single-use within the skew window (Redis setNX).
@@ -162,7 +162,7 @@ export class SmsChannelTransport implements ChannelTransport {
   /**
    * Deliver an outbound SMS through the Twilio Messages API. Credentials (accountSid/authToken/from)
    * arrive in `ctx.config` — resolved from the provider's configKey by a ProviderCredentialStore, never
-   * inline. Outcome mapping (provider-contracts.md): 5xx / network / timeout → infrastructure_error
+   * inline. Outcome mapping: 5xx / network / timeout → infrastructure_error
    * (retryable); a 4xx business rejection → provider_rejected (non-retryable); 2xx → the vendor SID.
    */
   async deliver(
@@ -191,7 +191,7 @@ export class SmsChannelTransport implements ChannelTransport {
         headers: {
           authorization: auth,
           'content-type': 'application/x-www-form-urlencoded',
-          // Best-effort vendor idempotency token (retry-policy-registry.md `delivery`): Twilio's
+          // Best-effort vendor idempotency token: Twilio's
           // Messages API does not document honoring it (flagged) — the real duplicate-send guard is
           // the `non-idempotent-guarded-write` class's maximumAttempts:1; this header lets a vendor
           // or proxy that DOES dedupe collapse an accidental resend.

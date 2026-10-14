@@ -6,7 +6,7 @@ import {deriveUsageEvents} from './usage-events.js';
 const NOW = '2026-07-13T09:00:00.000Z' as IsoTimestamp;
 
 // correlationId (workflow-run scope) deliberately DIFFERS from turnId: the dedupe key must be
-// turn-scoped (audit-contracts.md "correlationId = turnId"), not workflow-run-scoped.
+// turn-scoped ("correlationId = turnId"), not workflow-run-scoped.
 const ledger: TurnLedger = {
   turnId: 'trn_u' as TurnId,
   tenantId: 'tnt_u' as TenantId,

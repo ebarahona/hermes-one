@@ -74,9 +74,8 @@ export function createEnvelopeHook(deps?: {
             result && typeof result === 'object'
               ? (result as Record<string, unknown>)
               : {value: result},
-          // VERBATIM from the canonical tool-output example (agent-runtime-contracts.md §JSON
-          // examples): a result from a capability the PLATFORM invoked is authoritative/trusted.
-          // `trusted:false` is the indirect-injection defense for RETRIEVED content (the spec's other
+          // Follows the canonical tool-output example: a result from a capability the PLATFORM invoked is authoritative/trusted.
+          // `trusted:false` is the indirect-injection defense for RETRIEVED content (the other
           // example is source:'retrieved'), not for structured capability results. ADR-009
           // evidence-only composition grounds ONLY on trusted evidence (compose.ts) — stamping this
           // untrusted silently strips the agent of the very facts it just fetched.

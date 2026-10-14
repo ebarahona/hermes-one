@@ -1,4 +1,4 @@
-// Derive append-only AuditEvents (audit-contracts.md) from a completed turn's ledger — an edge concern
+// Derive append-only AuditEvents from a completed turn's ledger — an edge concern
 // (the agent plane emits contract data; the edge records the audit trail). One event per material action:
 // tool.invoked (per tool execution), decision.policy (per gate decision), handoff.requested (on handoff).
 // Each id + integrityHash is deterministic over the row — INCLUDING occurredAt, which the caller MUST

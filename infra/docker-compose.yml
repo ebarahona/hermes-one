@@ -96,7 +96,7 @@ services:
       - '6333:6333'
       - '6334:6334'
 
-  # --- Traces (OpenTelemetry Collector, observability/tracing-metrics-logging.md OB5) ------
+  # --- Traces (OpenTelemetry Collector, OB5) ------
   # The OTLP/HTTP sink the workers export to when HERMES_OTEL_TRACES=otlp (endpoint
   # http://127.0.0.1:4318/v1/traces). The bundled config just logs received spans (debug exporter);
   # point its pipeline at Jaeger/Tempo in a real deployment (backend is deployment-pluggable).

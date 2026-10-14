@@ -1,4 +1,4 @@
-// tenant.vertical_pack_installations (table-catalog.md, ADR-013): the durable record of WHICH
+// tenant.vertical_pack_installations (ADR-013): the durable record of WHICH
 // vertical pack a tenant installed, at what version, and which definitions it minted — written by
 // the installer in the same breath as the publish, so "what packs does this tenant run?" is a
 // tenant-scoped query instead of archaeology over definitions. RLS strict like every tenant table.

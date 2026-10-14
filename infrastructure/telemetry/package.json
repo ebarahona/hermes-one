@@ -18,10 +18,6 @@
     "role": "infrastructure",
     "plane": "none",
     "published": false,
-    "sourceDocs": [
-      "observability/tracing-metrics-logging",
-      "observability/observability-architecture"
-    ],
     "governedBy": [
       "ADR-009"
     ]

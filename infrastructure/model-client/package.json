@@ -18,10 +18,6 @@
     "role": "infrastructure",
     "plane": "none",
     "published": false,
-    "sourceDocs": [
-      "04-agent-runtime/054",
-      "061"
-    ],
     "governedBy": [
       "ADR-021"
     ]

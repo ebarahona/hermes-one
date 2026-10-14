@@ -1,14 +1,14 @@
 // @platform-internal/auth — src/contracts.ts
-// The container-COUPLED half of authentication-strategies.md §"TypeScript Interfaces": AuthStrategy
+// The container-COUPLED half of the auth contracts: AuthStrategy
 // (references @loopback/rest's Request) + the component's AuthConfig. The container-free facts/ports
 // (AuthenticatedIdentity, ApiKeyStore, PrincipalMapper, …) live in @platform/contracts/src/auth.ts
 // and are re-exported here for one import site (design 001).
 //
-// Spec delta (flagged): the spec's AuthStrategy `extends PlatformExtension` (from
-// `@platform/agent-runtime`, extension-point-registry.md) — but that package/type does NOT exist in
+// Design note (flagged): an AuthStrategy could `extends PlatformExtension` (from
+// `@platform/agent-runtime`) — but that package/type does NOT exist in
 // this repo; the real extension idiom here is LB4's `CoreTags.EXTENSION_FOR` tag (as the capability
 // registry uses). So AuthStrategy stands alone (name/applies/authenticate) and is discovered via the
-// EXTENSION_FOR tag. Recorded in Open Questions / the deferral ledger.
+// EXTENSION_FOR tag. Recorded in the deferral ledger.
 import {z} from 'zod';
 import type {Request} from '@loopback/rest';
 import {type AuthenticatedIdentity, type AuthMethod, PlatformErrorException} from '@platform/contracts';
@@ -28,7 +28,7 @@ export interface AuthStrategy {
   authenticate(request: Request): Promise<AuthenticatedIdentity | undefined>;
 }
 
-/** One OIDC issuer's verification + claim-mapping config (design 001 §Configuration `oidc.issuers[]`). */
+/** One OIDC issuer's verification + claim-mapping config (design 001 Configuration `oidc.issuers[]`). */
 export const OidcIssuerConfig = z.object({
   issuer: z.string().min(1),                         // expected `iss`
   audience: z.string().min(1),                       // expected `aud`
@@ -42,8 +42,8 @@ export type OidcIssuerConfig = z.infer<typeof OidcIssuerConfig>;
 /**
  * AuthConfig. Slice 2 shipped `apiKey`; Slice 4 adds the optional `oidc` block. The `oidc` strategy is
  * INERT when the block is absent (no JWKS/issuers) — so a stackless deployment stays api-key-only. The
- * remaining spec fields (strategyOrder, session, stepUp — design 001 §Configuration) land with the
- * session/cookie branch. The spec's AuthConfig is JSON-Schema-only; this is the Zod source (Zod-first).
+ * remaining fields (strategyOrder, session, stepUp — design 001 Configuration) land with the
+ * session/cookie branch. The AuthConfig design is JSON-Schema-only; this is the Zod source (Zod-first).
  */
 export const AuthConfig = z.object({
   apiKey: z.object({

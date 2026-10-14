@@ -1,6 +1,6 @@
 // JoseJwtVerifier — the OIDC/OAuth2 JwtVerifier port realized with `jose`. Verifies a bearer token's
 // signature against the issuer's JWKS with `iss`/`aud`/`exp` pinned, then maps the (per-issuer,
-// configurable) tenant/roles claim names into the canonical VerifiedClaims (authentication-strategies.md).
+// configurable) tenant/roles claim names into the canonical VerifiedClaims.
 //
 // The JWKS RESOLVER is injected per issuer (`ResolvedIssuer.jwks`): `createRemoteJWKSet(new URL(uri))`
 // in prod (cached by jose), or `createLocalJWKSet(jwks)` in tests — so no network is needed to test.

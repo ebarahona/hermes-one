@@ -32,10 +32,6 @@
     "role": "component",
     "plane": "agent",
     "published": false,
-    "sourceDocs": [
-      "04-agent-runtime/050",
-      "057"
-    ],
     "governedBy": [
       "ADR-021"
     ]

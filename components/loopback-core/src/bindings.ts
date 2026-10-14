@@ -1,17 +1,17 @@
 // PlatformBindings — every edge/data-plane (`@loopback/context`) binding key, transcribed from
-// loopback/binding-key-registry.md. All keys are strings of the form `platform.<area>.<name>`.
+// the binding-key registry design. All keys are strings of the form `platform.<area>.<name>`.
 //
-// Spec deltas (flagged, not improvised):
-// - The spec places this file in `packages/agent-platform-internal/bindings`; this repo hosts it in
+// Design notes (flagged, not improvised):
+// - The design places this file in `packages/agent-platform-internal/bindings`; this repo hosts it in
 //   `components/loopback-core` (edge) so `@platform/contracts` stays free of any container dependency
 //   (BindingKey.create is an @loopback/context API; contracts is plane-neutral).
 // - Keys whose PORT TYPE does not exist yet are NOT declared (declaring them typed `unknown` would
-//   invite untyped resolution). Pending, with their spec type owner:
+//   invite untyped resolution). Pending, with their type owner:
 //   TEMPORAL_* (`@platform/temporal` — Pack B types unbuilt), QDRANT (`VectorStore` port unbuilt),
 //   TRACER (OTel SDK pending, OB5), TENANT_RESOLVER / TENANT_RUNTIME_* (tenant registry, CT1/CT2),
 //   MEMORY_PROVIDER (memory pack unbuilt), AGENTBACK_BRIDGE (`AgentBackBridge` type pack-owned),
 //   WORKFLOW_VERSION_ANALYZER + admin/config-subtree keys (their packs are unbuilt).
-// - `platform.data.*` repository keys: `binding-key-registry.md` defers these to the database pack's
+// - `platform.data.*` repository keys: the binding-key registry design defers these to the database pack's
 //   own registry; the canonical ones documented there (`event-outbox-repository`,
 //   `event-outbox-publisher`, `handoff-repository`) are used verbatim; the rest follow the same
 //   `platform.data.<name>` grammar (flagged).
@@ -62,7 +62,7 @@ export namespace PlatformBindings {
   export const PROVIDER_REGISTRY = BindingKey.create<ProviderRegistry>('platform.provider.registry');
   /** Grammar-derived (flagged): the resolve+execute path over the registry/resolver (ADR-018). */
   export const CAPABILITY_INVOKER = BindingKey.create<CapabilityInvoker>('platform.capability.invoker');
-  /** New key, flagged (capability-and-provider-api.md ProviderMappingController): the tenant
+  /** New key, flagged (ProviderMappingController): the tenant
    *  OVERRIDE surface over capability.provider_mappings (ledger CT3). */
   export const PROVIDER_MAPPING_REPOSITORY = BindingKey.create<DrizzleProviderMappingRepository>(
     'platform.capability.providerMappingRepository',
@@ -94,7 +94,7 @@ export namespace PlatformBindings {
   export const COMPILED_PLAN_STORE = BindingKey.create<CompiledPlanStore>(
     'platform.data.compiled-plan-store',
   );
-  // ── definition-substrate services (substrate-lifecycle.md) ──
+  // ── definition-substrate services ──
   export const DEPLOYMENT_SERVICE = BindingKey.create<DeploymentService>(
     'platform.definition.deploymentService',
   );
@@ -123,7 +123,7 @@ export namespace PlatformBindings {
 
   // ── tenant context (tenant scope) ───────────────────────────────────────
   export const TENANT_ID = BindingKey.create<string>('platform.tenant.id');
-  /** Canonical key from security/role-matrix.md — role NAMES → scopes at runtime, never cached. */
+  /** Canonical key — role NAMES → scopes at runtime, never cached. */
   export const ROLE_REGISTRY = BindingKey.create<RoleRegistry>('platform.tenant.roleRegistry');
   export const TENANT_REPOSITORY = BindingKey.create<DrizzleTenantRepository>(
     'platform.data.tenant-repository',
@@ -151,7 +151,7 @@ export function tenantKey<T>(tenantId: string, name: string): BindingKey<T> {
 }
 
 /**
- * Extension-point ids (extension-point-registry.md / component-registry.md `consumesExtensionPoints`).
+ * Extension-point ids (`consumesExtensionPoints`).
  * Provider adapters are contributed as bindings tagged `{extensionFor: PROVIDER_ADAPTERS}` and
  * discovered by the CapabilityRegistryComponent (the LB4 extension-point idiom).
  */

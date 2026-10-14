@@ -1,6 +1,5 @@
 -- audit.usage_records: the deduped, billable usage aggregate. dedupe_key is the PRIMARY KEY — it enforces
 -- exactly-once billing under at-least-once emission (Temporal retries / actor replays), findings T7.
--- Columns verbatim from database/table-catalog.md.
 CREATE TABLE audit.usage_records (
   dedupe_key      text PRIMARY KEY,
   tenant_id       text NOT NULL,

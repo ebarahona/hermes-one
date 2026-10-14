@@ -1,9 +1,9 @@
-// JIT helpers (flagged — no spec doc names these; they are the mechanical projections consumers
+// JIT helpers (flagged — no contract names these; they are the mechanical projections consumers
 // need to use the registry, not new policy):
 // - `toTemporalActivityOptions` maps an `ActivityOptionsSpec` onto Temporal's `ActivityOptions`
 //   field-for-field, dropping `rationale` (operability metadata, not a Temporal field).
-// - `withPlatformFailures` applies retry-policy-registry.md acceptance criterion 8 ("every activity
-//   implementation calls `toApplicationFailure` in its catch path") ONCE at the worker registration
+// - `withPlatformFailures` applies the rule that every activity
+//   implementation calls `toApplicationFailure` in its catch path ONCE at the worker registration
 //   boundary, so a thrown `PlatformErrorException` always reaches Temporal as the stable typed
 //   `ApplicationFailure` the registry's `nonRetryableErrorTypes` can match.
 import type {Duration} from '@temporalio/common';

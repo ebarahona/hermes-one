@@ -1,4 +1,4 @@
-// DrizzleRoleRegistry — the canonical RoleRegistry port (security/role-matrix.md) over tenant.roles
+// DrizzleRoleRegistry — the canonical RoleRegistry port over tenant.roles
 // (nullable-tenant RLS: a session sees its tenant's rows + platform NULL rows). AUTH-2
 // (docs/design/001-edge-authn-design.md): roles are the source; scopes are derived per request via
 // resolveScopes and NEVER cached — a role edit takes effect on the next request. Shadowing: a tenant
@@ -30,7 +30,7 @@ const toDefinition = (r: RoleRow): RoleDefinition =>
     updatedAt: r.updatedAt.toISOString(),
   }) as RoleDefinition;
 
-/** Tenant rows shadow platform rows of the same name (role-matrix.md). */
+/** Tenant rows shadow platform rows of the same name. */
 const shadow = (rows: RoleRow[]): Map<string, RoleRow> => {
   const byName = new Map<string, RoleRow>();
   for (const r of rows) {
@@ -85,7 +85,7 @@ export class DrizzleRoleRegistry extends TenantAwareRepository implements RoleRe
   }
 
   /**
-   * FLAGGED (design doc AUTH-2): update/delete take only a roleId (role-matrix.md port shape) —
+   * FLAGGED (design doc AUTH-2): update/delete take only a roleId (the port shape) —
    * under RLS they need the ADMIN request context that establishes the tenant GUC, which is the
    * Tier-4 admin surface. The tenant-scoped cores below (`updateFor`/`deleteFor`) are the real
    * implementations; the port methods fail loud until the admin context exists. AUTH-2's runtime

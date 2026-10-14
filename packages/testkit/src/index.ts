@@ -5,6 +5,5 @@ export const descriptor = {
   role: 'package',
   plane: 'none',
   published: true,
-  sourceDocs: ['18-testing-operations'],
   governedBy: [],
 } as const;

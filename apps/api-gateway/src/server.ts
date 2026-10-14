@@ -38,7 +38,7 @@ export function createGatewayServer(deps: GatewayDeps): Server {
       return;
     }
     // edge.request: the trace root. Its traceparent is threaded onto the workflow start ref so the whole
-    // downstream (workflow → activity → turn → tool) joins one trace (tracing-metrics-logging.md).
+    // downstream (workflow → activity → turn → tool) joins one trace.
     const span = deps.tracer.startSpan('edge.request', {attributes: {'http.route': '/webhooks/sms'}});
     try {
       const rawBody = await readBody(req);
@@ -55,7 +55,7 @@ export function createGatewayServer(deps: GatewayDeps): Server {
       res.writeHead(202, {'content-type': 'application/json'}).end(JSON.stringify(started));
     } catch (err) {
       // Verification failure or malformed request — reject without starting anything. The body is
-      // GENERIC (authentication-strategies.md: no claim/schema/reason leakage on 401); the real
+      // GENERIC (no claim/schema/reason leakage on 401); the real
       // reason goes to the span/log only.
       span.end({ok: false, error: err as Error});
       res.writeHead(401, {'content-type': 'application/json'}).end(

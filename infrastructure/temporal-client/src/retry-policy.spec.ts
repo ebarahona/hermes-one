@@ -1,4 +1,4 @@
-// Unit tests transcribed from temporal/retry-policy-registry.md `Testing Strategy`.
+// Unit tests for the retry-policy registry.
 // The two live-Temporal integration rows (idempotent-write replay safety, guarded-write no
 // auto-retry) are exercised by the apps' e2es; the forced-failure harness is deferred (flagged).
 import {describe, expect, it} from 'vitest';
@@ -28,7 +28,7 @@ const platformError = (code: ErrorCode, retryable: boolean): PlatformError => ({
   httpStatus: HTTP_STATUS_BY_CODE[code],
 });
 
-describe('retry-policy registry (temporal/retry-policy-registry.md)', () => {
+describe('retry-policy registry', () => {
   it('maps all 7 fixed activity categories to exactly one of the 6 classes', () => {
     const fixed = ActivityCategory.options.filter(c => c !== 'capability-execution');
     for (const category of fixed) {
@@ -88,13 +88,13 @@ describe('retry-policy registry (temporal/retry-policy-registry.md)', () => {
     expect(retryable.nonRetryable).toBe(false);
   });
 
-  it("refines 043 §8's shorthand list (PolicyBlockedError verbatim; validation/authorization covered)", () => {
+  it("refines the non-retryable shorthand list (PolicyBlockedError verbatim; validation/authorization covered)", () => {
     expect(NON_RETRYABLE_ERROR_TYPES).toContain('PolicyBlockedError');
     expect(NON_RETRYABLE_ERROR_TYPES.filter(t => ['ValidationFailedError', 'OutputValidationFailedError'].includes(t)).length).toBeGreaterThanOrEqual(1);
     expect(NON_RETRYABLE_ERROR_TYPES.filter(t => ['UnauthorizedError', 'ForbiddenScopeError'].includes(t)).length).toBeGreaterThanOrEqual(1);
   });
 
-  it('model-call reproduces worker-topology.md agentTurn defaults (120s/20s/1) exactly', () => {
+  it('model-call reproduces the agentTurn defaults (120s/20s/1) exactly', () => {
     const modelCall = RETRY_POLICY_REGISTRY['model-call'];
     expect(modelCall.startToCloseTimeout).toBe('120s');
     expect(modelCall.heartbeatTimeout).toBe('20s');

@@ -1,17 +1,17 @@
-// Rebuild a Zod validator from a CapabilityContract's stored JSON Schema (tool-projection.md
-// "Zod rebuilt at the boundary", ADR-017 + ADR-020). Contracts cross into the agent plane as plain
+// Rebuild a Zod validator from a CapabilityContract's stored JSON Schema ("Zod rebuilt at the
+// boundary", ADR-017 + ADR-020). Contracts cross into the agent plane as plain
 // JSON; agentback's `@tool` needs a real `SchemaLike` (= ZodType | StandardSchemaV1 — a raw JSON
 // Schema object is NOT accepted), so the projector reconstitutes Zod here.
 //
 // TWO RULES, both load-bearing:
-//  1. NEVER produce a validator weaker than the authored contract. tool-projection.md's Open Question
+//  1. NEVER produce a validator weaker than the authored contract. The projection design
 //     flags the round-trip as lossy for constructs that don't serialize; a silent degrade would hand
 //     the model a validator weaker than the contract, so anything we cannot faithfully rebuild THROWS
 //     and the projector skips + reports that capability rather than shipping a hole.
 //  2. Handle what the platform ACTUALLY emits. Contracts are Zod-first with JSON Schema generated
 //     from Zod (ADR-020), and that generator emits `$schema`, `format` + `pattern`, numeric bounds,
 //     `default`, and `additionalProperties:false`. An allow-list narrower than the generator's output
-//     would reject every spec-faithful contract and silently vanish its tool from the agent's tool
+//     would reject every contract the generator can emit and silently vanish its tool from the agent's tool
 //     set — the same failure mode as rule 1, one level up.
 import {z} from 'zod';
 

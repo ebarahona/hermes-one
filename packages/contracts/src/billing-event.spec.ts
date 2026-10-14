@@ -1,4 +1,4 @@
-// Unit tests for the billing event fan-out contract (events/billing-events.md).
+// Unit tests for the billing event fan-out contract.
 import {describe, expect, it} from 'vitest';
 import type {UsageRecord} from './index.js';
 import {BillingPeriodSummary, assertValidMeterTotals, toUsageRecordOutboxInput} from './index.js';
@@ -16,7 +16,7 @@ const record = {
   recordedAt: '2026-07-14T00:00:00.000Z',
 } as unknown as UsageRecord;
 
-describe('billing events (billing-events.md)', () => {
+describe('billing events', () => {
   it('toUsageRecordOutboxInput builds the exact enqueue() input, keyed by dedupeKey', () => {
     expect(toUsageRecordOutboxInput(record)).toEqual({
       tenantId: 'tnt_bill',

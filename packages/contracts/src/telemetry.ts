@@ -1,11 +1,10 @@
 // @platform/contracts — src/telemetry.ts
 // Observability correlation + structured logging + redaction + the metrics catalogue + trace-propagation
-// interfaces. Transcribed from observability/observability-architecture.md (correlation) +
-// observability/tracing-metrics-logging.md (metrics/logging/redaction/tracing).
+// interfaces. Covers correlation, metrics, logging, redaction, and tracing.
 // IMPLEMENTED in @platform-internal/telemetry: the structured Logger + Redactor. Meter + the Temporal
 // trace interceptors are transcribed as interfaces only — impl deferred (needs the OTel SDK + Temporal
 // interceptors; DEFERRED-AND-FLAGGED OB5).
-// NOTE: the spec brands workflowId (WorkflowId) + nodeId (NodeId); WorkflowId has no substrate brand and
+// NOTE: the contract brands workflowId (WorkflowId) + nodeId (NodeId); WorkflowId has no substrate brand and
 // NodeId lives in workflow.ts — typed here as `string | null` to keep this module dependency-light
 // (flagged). Logger/Meter interfaces are JIT to the canonical binding keys (platform.telemetry.*).
 import {TenantId, WorkspaceId, ConversationId, TurnId} from './substrate.js';
@@ -16,9 +15,9 @@ export interface ObservabilityCorrelationContext {
   readonly tenantId: TenantId;
   readonly workspaceId: WorkspaceId | null;
   readonly conversationId: ConversationId | null;
-  readonly workflowId: string | null; // spec: WorkflowId (no substrate brand yet — flagged)
+  readonly workflowId: string | null; // contract: WorkflowId (no substrate brand yet — flagged)
   readonly runId: string | null; // Temporal-assigned, opaque
-  readonly nodeId: string | null; // spec: NodeId (workflow.ts) — string here to stay dependency-light
+  readonly nodeId: string | null; // contract: NodeId (workflow.ts) — string here to stay dependency-light
   /** turnId when inside a turn; WorkflowId (as string) before the first turn starts. */
   readonly turnId: TurnId | null;
   /** = turnId at turn scope; = workflowId (string) at workflow scope. Never independently generated. */
@@ -92,7 +91,7 @@ export interface Logger {
   log(record: LogRecord): void;
 }
 
-/** PII field-classification reused from database/data-retention-jobs.md's PiiCipher dataClass tagging —
+/** PII field-classification reused from the retention jobs' PiiCipher dataClass tagging —
  *  NOT a second scheme. A field tagged here with a dataClass gets redacted, never logged raw. */
 export type PiiDataClass = 'direct-identifier' | 'contact-info' | 'financial' | 'health' | 'free-text';
 

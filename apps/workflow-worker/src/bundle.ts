@@ -49,7 +49,7 @@ export interface DeploymentPin {
  * The workflow loads the compiled plans from the content-addressed store via an activity,
  * scoped by `tenantId` (the cache namespace) and verified by `contentHash`. `deployment`
  * pins the exact deployment version the run belongs to — the agent turn resolves THAT
- * deployment, never whatever is active at turn time (deployment-manifest.md `resolveVersion`).
+ * deployment, never whatever is active at turn time (`resolveVersion`).
  * Optional only for workflows with no agent node; `runTriage` fails without it.
  */
 export interface WorkflowRunRef {
@@ -61,14 +61,14 @@ export interface WorkflowRunRef {
    *  scopes come from RoleRegistry.resolveScopes per request). Required by agent workflows. */
   principal?: Principal;
   /** The conversation this run acts within, minted at the ingest edge alongside the persisted inbound
-   *  message (WorkspaceContext.conversationId, tenant-contracts.md). Absent for conversation-less
+   *  message (WorkspaceContext.conversationId). Absent for conversation-less
    *  starts; a handoff turn without it persists NO durable task row (handoff_tasks.conversation_id
    *  is NOT NULL), so every conversation-driven start MUST carry it. */
   conversationId?: string;
   parameters: Record<string, unknown>;
   input: Record<string, unknown>;
-  /** W3C trace context from the edge (observability/tracing-metrics-logging.md, OB5). Carried as an
-   *  explicit workflow-input field (the spec's "trace on WorkflowExecutionInput") so the turn activity
+  /** W3C trace context from the edge (OB5). Carried as an
+   *  explicit workflow-input field ("trace on WorkflowExecutionInput") so the turn activity
    *  parents its spans off the edge trace — never ambient across the Temporal boundary. */
   trace?: TraceHeader;
 }

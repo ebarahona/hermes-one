@@ -48,7 +48,7 @@ export const messages = runtime.table('messages', {
 
 /* ------------------------------------------------------------------ *
  * runtime.tool_executions — durable replay/audit ledger for side-effecting tool calls.
- * Verbatim from database/table-catalog.md; aligns to ToolCall + ToolResult (agent-runtime-contracts.md).
+ * Aligns to ToolCall + ToolResult.
  * ------------------------------------------------------------------ */
 export const toolExecutions = runtime.table('tool_executions', {
   toolCallId: text('tool_call_id').primaryKey(),                // ToolCallId 'tc_...'
@@ -73,7 +73,7 @@ export const toolExecutions = runtime.table('tool_executions', {
 
 /* ------------------------------------------------------------------ *
  * runtime.evidence_records — grounded, citable facts (evidence-only composition, ADR-009).
- * Verbatim from database/table-catalog.md; aligns column-for-column to EvidenceRecord.
+ * Aligns column-for-column to EvidenceRecord.
  * ------------------------------------------------------------------ */
 export const evidenceRecords = runtime.table('evidence_records', {
   id: text('id').primaryKey(),                                  // EvidenceId 'evd_...'
@@ -93,7 +93,7 @@ export const evidenceRecords = runtime.table('evidence_records', {
 
 /* ------------------------------------------------------------------ *
  * runtime.policy_decisions — every gate/voter decision for a turn (audit + explainability).
- * Verbatim from database/table-catalog.md; aligns to PolicyDecision + PolicySite (policy-contracts.md).
+ * Aligns to PolicyDecision + PolicySite.
  * decision_id is a storage-only surrogate (the contract carries no persistence id).
  * ------------------------------------------------------------------ */
 export const policyDecisions = runtime.table('policy_decisions', {
@@ -116,7 +116,7 @@ export const policyDecisions = runtime.table('policy_decisions', {
 
 /* ------------------------------------------------------------------ *
  * runtime.handoff_tasks — durable human-handoff request + ownership state (ADR-012).
- * Verbatim from database/table-catalog.md; aligns to HandoffRequest + HandoffState merged (handoff-contracts.md).
+ * Aligns to HandoffRequest + HandoffState merged.
  * ------------------------------------------------------------------ */
 export const handoffTasks = runtime.table('handoff_tasks', {
   handoffId: text('handoff_id').primaryKey(),                   // HandoffId 'hof_...'
@@ -145,7 +145,7 @@ export const handoffTasks = runtime.table('handoff_tasks', {
 
 /* ------------------------------------------------------------------ *
  * runtime.message_templates — reusable outbound message templates. tenant_id IS NULL = platform template.
- * Aligns to OutboundMessage.templateId (provider-contracts.md). Verbatim from database/table-catalog.md.
+ * Aligns to OutboundMessage.templateId.
  * ------------------------------------------------------------------ */
 export const messageTemplates = runtime.table('message_templates', {
   templateId: text('template_id').primaryKey(),                // 'tpl_...'
@@ -165,8 +165,8 @@ export const messageTemplates = runtime.table('message_templates', {
 
 /* ------------------------------------------------------------------ *
  * runtime.workflow_executions_projection — Postgres read-model of Temporal workflow executions (Temporal
- * remains the source of truth; this exists for tenant-scoped admin/API querying). Verbatim from catalog.
- * Aligns to WorkflowExecutionInput/Result (workflow-contracts.md) + DeploymentRef/PlanRef.
+ * remains the source of truth; this exists for tenant-scoped admin/API querying).
+ * Aligns to WorkflowExecutionInput/Result + DeploymentRef/PlanRef.
  * ------------------------------------------------------------------ */
 export const workflowExecutionsProjection = runtime.table('workflow_executions_projection', {
   workflowRunId: text('workflow_run_id').primaryKey(),          // Temporal runId (external, unprefixed)

@@ -32,7 +32,7 @@ export async function assertNonBypassingRole(db: PlatformDb): Promise<RlsRolePos
 }
 
 /**
- * ADR-022 fail-closed boot preflight (application-bootstrap.md `PostgresLifecycleObserver`): prove the
+ * ADR-022 fail-closed boot preflight (`PostgresLifecycleObserver`): prove the
  * transaction-local tenant GUC actually works — `set_config('app.tenant_id', …, true)` inside a
  * transaction round-trips — else reject boot. Complements `assertNonBypassingRole` (role posture).
  */

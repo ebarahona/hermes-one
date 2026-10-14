@@ -67,7 +67,7 @@ export type ToolBindingSource = (capability: CapabilityName) => ToolBinding | un
 
 /**
  * Names the adapter that served a capability's dispatch, for `ToolMetrics.providerId` (canonical in
- * agent-runtime-contracts.md; the `internal-scheduler` metrics example in table-catalog.md). Provider
+ * the `internal-scheduler` metrics example). Provider
  * selection happens inside the projected tool body, so the executor cannot know it otherwise. Absent
  * → providerId is omitted, exactly as before.
  */

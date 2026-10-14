@@ -1,4 +1,4 @@
-// ApiKeyStrategy — the api-key AuthStrategy (authentication-strategies.md). The spec gives no concrete
+// ApiKeyStrategy — the api-key AuthStrategy. The design gives no concrete
 // strategy body (only the ApiKeyStore/ApiKeyRecord port + the `apiKey` config), so this is authored
 // JIT to the port. Steps: recognise the configured header → resolve the presented key through the
 // (hashed, constant-time) ApiKeyStore → enforce status/expiry → mint a `service` Principal whose

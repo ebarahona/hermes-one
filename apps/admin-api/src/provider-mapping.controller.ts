@@ -1,5 +1,4 @@
-// ProviderMappingController — the tenant provider-mapping OVERRIDE surface (ledger CT3;
-// api/capability-and-provider-api.md §ProviderMappingController):
+// ProviderMappingController — the tenant provider-mapping OVERRIDE surface (ledger CT3):
 //   GET    /v1/capabilities/{name}/provider-mapping?tenantId=      scope: capability.read
 //   PUT    /v1/tenants/{tenantId}/capabilities/{name}/provider-mapping   scope: tenant.providerMapping.write
 //   DELETE /v1/tenants/{tenantId}/capabilities/{name}/provider-mapping   scope: tenant.providerMapping.write
@@ -25,7 +24,7 @@ import {
 } from '@platform/contracts';
 
 const READ_CAPABILITY = 'capability.read' as Scope;
-/** Spec delta (flagged, not improvised): capability-and-provider-api.md writes this scope as
+/** Note: the capability/provider API contract writes this scope as
  * `tenant.providerMapping.write` (camelCase). The `Scope` brand (tenant.ts) enforces
  * `^[a-z][a-z0-9-]*(\.[a-z0-9*-]+){1,2}$` — no uppercase — so that literal string fails
  * `Principal.parse` at auth time (every request carrying it would 500, not 403). Using the
@@ -33,8 +32,8 @@ const READ_CAPABILITY = 'capability.read' as Scope;
  * constraint; same `domain.resource.action` meaning. */
 const WRITE_PROVIDER_MAPPING = 'tenant.provider-mapping.write' as Scope;
 
-/** PUT body — mirrors the CapabilityProviderOverride config shape (capability-contracts.md
- * Configuration examples) and capability.provider_mappings columns (database/table-catalog.md). */
+/** PUT body — mirrors the CapabilityProviderOverride config shape
+ * and capability.provider_mappings columns. */
 export const PutProviderMappingRequest = z.object({
   providers: z.array(z.object({
     providerId: z.string().min(1),
@@ -77,7 +76,7 @@ function notFound(name: string): PlatformErrorException {
 }
 
 export class ProviderMappingController {
-  // Spec delta (flagged, not improvised): capability-and-provider-api.md's ProviderMappingController
+  // Note: the capability/provider API contract's ProviderMappingController
   // also injects PlatformBindings.CAPABILITY_REGISTRY, but nothing in this controller's routes uses the
   // registry (the contract default is read straight off the tenant's own published contract row via
   // findContractDefault) and CAPABILITY_REGISTRY has no binding in this app's composition root (no
@@ -115,7 +114,7 @@ export class ProviderMappingController {
     return {source: 'contract-default', mapping: contractDefault};
   }
 
-  @put('/v1/tenants/{tenantId}/capabilities/{name}/provider-mapping') // requiredScope: WRITE_PROVIDER_MAPPING (see spec-delta note above)
+  @put('/v1/tenants/{tenantId}/capabilities/{name}/provider-mapping') // requiredScope: WRITE_PROVIDER_MAPPING (see scope note above)
   async put(
     @param.path.string('tenantId') tenantId: TenantId,
     @param.path.string('name') name: CapabilityName,
@@ -135,7 +134,7 @@ export class ProviderMappingController {
     };
   }
 
-  @del('/v1/tenants/{tenantId}/capabilities/{name}/provider-mapping') // requiredScope: WRITE_PROVIDER_MAPPING (see spec-delta note above)
+  @del('/v1/tenants/{tenantId}/capabilities/{name}/provider-mapping') // requiredScope: WRITE_PROVIDER_MAPPING (see scope note above)
   async remove(
     @param.path.string('tenantId') tenantId: TenantId,
     @param.path.string('name') name: CapabilityName,

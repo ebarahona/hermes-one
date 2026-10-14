@@ -5,6 +5,5 @@ export const descriptor = {
   role: 'app',
   plane: 'none',
   published: false,
-  sourceDocs: ['16-admin-ui'],
   governedBy: [],
 } as const;

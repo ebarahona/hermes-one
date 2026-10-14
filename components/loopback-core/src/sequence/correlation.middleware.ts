@@ -1,5 +1,5 @@
-// CorrelationMiddleware — the first platform slot (sequence-implementation.md §"Slot assignment",
-// group `correlation`). Honors an inbound `x-correlation-id`, else mints one; binds it as
+// CorrelationMiddleware — the first platform slot
+// (group `correlation`). Honors an inbound `x-correlation-id`, else mints one; binds it as
 // PlatformBindings.CORRELATION_ID (request scope) for downstream stages; echoes it on the response as
 // `X-Correlation-Id`. Because this runs first, EVERY response — including a 401 from the reject
 // action — carries the header (the "Correlation-always" law).

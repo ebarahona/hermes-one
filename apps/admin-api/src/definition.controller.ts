@@ -1,4 +1,4 @@
-// DefinitionController — authoring the compiled-plan substrate (api/admin-api.md §DefinitionController):
+// DefinitionController — authoring the compiled-plan substrate (admin API contract):
 //   PUT /v1/definitions/{definitionId}   scope: definition.write
 // Upserts a definition of any of the five kinds through DefinitionRegistry.put, which validates the
 // body per-kind, compiles the logic-DSL kinds (workflow/rule/policy) or validate-and-pins the
@@ -26,7 +26,7 @@ import {
 
 const WRITE_DEF = 'definition.write' as Scope;
 
-/** admin-api.md PutDefinitionRequest — the shaping fields; the body is narrowed per-kind by the registry. */
+/** PutDefinitionRequest — the shaping fields; the body is narrowed per-kind by the registry. */
 const PutDefinitionRequest = z.object({
   tenantId: z.string().nullable(),
   kind: DefinitionKind,

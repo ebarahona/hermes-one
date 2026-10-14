@@ -30,6 +30,5 @@ export const descriptor = {
   role: 'package',
   plane: 'none',
   published: true,
-  sourceDocs: ['contracts/'],
   governedBy: ['ADR-016', 'ADR-020'],
 } as const;

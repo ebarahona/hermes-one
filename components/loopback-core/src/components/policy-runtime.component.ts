@@ -1,5 +1,5 @@
 // PolicyRuntimeComponent (edge): binds the policy runtime (ADR-019) — pre/post gate evaluation over
-// a CompiledPolicyPlan (loopback/component-registry.md).
+// a CompiledPolicyPlan.
 import {Binding, type Component} from '@loopback/core';
 import {BindingScope} from '@loopback/context';
 import {builtinRegistry} from '@platform/expression-core';

@@ -11,7 +11,7 @@ import {
 
 const TP = '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01';
 
-describe('PassThroughWorkflowTrace (spec WorkflowTraceInterceptor)', () => {
+describe('PassThroughWorkflowTrace (WorkflowTraceInterceptor)', () => {
   it('yields the inbound trace unchanged (transparent hop, no mutation)', () => {
     const trace: TraceHeader = {traceparent: TP};
     expect(new PassThroughWorkflowTrace().onWorkflowExecute({trace}).childTrace).toEqual(trace);
@@ -22,7 +22,7 @@ describe('PassThroughWorkflowTrace (spec WorkflowTraceInterceptor)', () => {
   });
 });
 
-describe('HeaderActivityTrace (spec ActivityTraceInterceptor)', () => {
+describe('HeaderActivityTrace (ActivityTraceInterceptor)', () => {
   it('extracts exactly the traceparent that was injected (no mutation)', () => {
     const headers = {[TRACEPARENT_HEADER]: TP};
     expect(new HeaderActivityTrace().onActivityExecute(headers).childTrace.traceparent).toBe(TP);

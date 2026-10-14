@@ -59,7 +59,7 @@ async function main() {
   const agentWorker = await createAgentWorker();
 
   // OB5 trace-continuity check: simulate the edge trace so the turn spans (emitted on the agent plane,
-  // across the real Temporal boundary) parent off this exact traceId — the spec's #1 acceptance test.
+  // across the real Temporal boundary) parent off this exact traceId — the primary acceptance test.
   const EDGE_TRACEPARENT = '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01';
   const EDGE_TRACE_ID = '4bf92f3577b34da6a3ce929d0e0e4736';
 

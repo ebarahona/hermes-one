@@ -162,7 +162,7 @@ describe('SmsChannelTransport.deliver (outcome mapping)', () => {
     expect(seen!.body).toContain('To=%2B15125559999');
     expect(seen!.body).toContain('From=%2B18885550100');
     expect(seen!.auth).toBe(`Basic ${Buffer.from('AC123:tok').toString('base64')}`);
-    // Best-effort vendor idempotency token rides on every send (retry-policy-registry.md `delivery`).
+    // Best-effort vendor idempotency token rides on every send.
     expect(seen!.idem).toBe('idem-1');
   });
 

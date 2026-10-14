@@ -18,23 +18,23 @@ server upgrade), the messaging-convergence bundle (AU3 + S7-residual + P3), and 
 **2026-07-22:** a platform-wide review and hardening cycle landed — substrate validation at `put()`,
 compile-time operator verification, deterministic turn identity, turn budget enforcement, durable
 credential revocation, the full replay-nonce window, production-matching evaluation-gate evidence
-stamping, and authentication-gated spec endpoints. The ledger's rows dated 2026-07-22 carry the
+stamping, and authentication-gated API endpoints. The ledger's rows dated 2026-07-22 carry the
 detail; current open totals live in the ledger's header.
 
 ## Phase 0 — Ratify the four blocking decisions ✅ (ADRs 025–028, this commit)
 
-Zero code. Four spec conflicts were found during the build and flagged instead of improvised
-(per the spec-fidelity mandate); each now has a ratified answer:
+Zero code. Four design conflicts were found during the build and flagged instead of improvised;
+each now has a ratified answer:
 
 | ADR | Ledger | Decision |
 |---|---|---|
-| 025 | S5 | ONE `SecretProvider` (the `security/` doc's); refs never name vendors; backend = unpinned config |
+| 025 | S5 | ONE `SecretProvider` (the security design's); refs never name vendors; backend = unpinned config |
 | 026 | S6 | Tenant vendor credentials = envelope-encrypted rows under the tenant CMK, NOT secret-manager entries; `resolve()` returns the record; `configKey` deleted |
-| 027 | PE4 | `role-matrix.md` governs role scopes; seeded default roles never carry wildcards |
+| 027 | PE4 | The role matrix governs role scopes; seeded default roles never carry wildcards |
 | 028 | A6 | Tool-output evidence is `authoritative/trusted`; `CapabilityInvoker` aligns; `trusted:false` = retrieved-content injection defense |
 
-Follow-through edits owned by later phases: `migrations-and-seed.md:212` (027), `CapabilityInvoker`
-stamping (028, Phase 1 since that file is already open there), `table-catalog.md` + secrets doc
+Follow-through edits owned by later phases: the seeded default role scopes (027), `CapabilityInvoker`
+stamping (028, Phase 1 since that file is already open there), table-catalog and secrets documentation
 amendments (026, Phase 1).
 
 ## Phase 1 — The credential spine ✅ (S1 ✅ · S6 ✅ · S7 ✅ · PE7 ✅ 2026-07-17; S2 narrowed to platform secrets; S1a = KMS cipher adapter)
@@ -45,7 +45,7 @@ plane (`components/channels`, so the agent plane structurally could not import i
 PE7), and BOTH planes passed `providerConfig: {}`.
 
 1. ✅ **S7 (structural, DONE 2026-07-17):** move the `ProviderCredentialStore` port to `@platform/contracts`
-   beside every other port; create `infrastructure/secrets` (plane `none`) — the member the spec
+   beside every other port; create `infrastructure/secrets` (plane `none`) — the member the design
    already assigns; wire BOTH call sites (`agent-activity.ts`, `capability-activities.ts`).
 2. ✅ **ADR-026 store (DONE 2026-07-17):** `capability.provider_credentials` table (envelope-encrypted, RLS'd, per
    `(tenant, provider, capability)`), `EnvelopeCredentialStore` in `infrastructure/secrets`, a
@@ -61,8 +61,8 @@ Two coupled fixes, both about durable truth:
 1. ✅ **Replay-stable time (DONE 2026-07-17):** stamp `occurredAt` in the WORKFLOW (Temporal's deterministic clock),
    thread through `TurnRequest` — the audit `integrityHash` covers `occurredAt`, which was
    wall-clock-fresh per attempt; tamper-reject (AU2) required this to land first. Contract change
-   at the plane boundary; `agent-runtime-contracts.md` governs.
-2. ✅ **Atomic substrate writer (DONE 2026-07-17)** ("F3 for the substrate path"): a port + drizzle impl so
+   at the plane boundary.
+2. ✅ **Atomic substrate writer (DONE 2026-07-17)**: a port + drizzle impl so
    `DeploymentService.publish` / `DefinitionRegistry.put` commit rows AND outbox events in one
    transaction. `definition-substrate` stays pure (depends only on contracts; the composition root
    injects the writer). AU3/AU4's missing audit/domain events become one-line emissions on the seam;
@@ -93,13 +93,13 @@ anything above.
 
 ## Deliberately out (for now)
 
-P1 (providers/capabilities spec pack — a spec-generation exercise, not a code slice) · T4 (vendor
+P1 (providers/capabilities documentation pack — a documentation exercise, not a code slice) · T4 (vendor
 behavior) · OB6 replay/simulation · the 3 follow-on verticals (after Phases 1–3 make them cheap) ·
 S0a/AUTH-4 (blocked upstream on agentback's sync `ConfirmationStore`).
 
 ## Working discipline
 
 Build → typecheck → plane-lint → test → itest → e2es, IN THAT ORDER (vitest resolves cross-package
-imports to dist). Re-run e2es. Assert the durable ledger, not the workflow path. The spec outranks
+imports to dist). Re-run e2es. Assert the durable ledger, not the workflow path. The design outranks
 a review; conflicts get FLAGGED, never silently resolved. One phase in flight at a time; check in
 at each phase boundary.

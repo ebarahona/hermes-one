@@ -1,9 +1,7 @@
-// AuthBindings — the `platform.auth.*` edge-plane binding keys, transcribed from
-// authentication-strategies.md §"Configuration examples" (components/auth/src/auth.bindings.ts).
+// AuthBindings — the `platform.auth.*` edge-plane binding keys, 
 // Slice 2 declares the keys the api-key path uses + CONFIG; the oidc/session/webhook/service-identity
 // verifier keys land with their strategies (Slice 4+). CONFIG is typed to the component's AuthConfig
-// (the spec's import of AuthConfig from ./contracts is honored here; the spec's own contracts block
-// omitted the type — a doc inconsistency the agent flagged).
+// (imported from ./contracts).
 import {BindingKey} from '@loopback/context';
 import type {ApiKeyStore, JwtVerifier, PrincipalMapper} from '@platform/contracts';
 import type {AuthConfig} from './contracts.js';

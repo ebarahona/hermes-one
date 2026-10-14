@@ -1,4 +1,4 @@
-// Unit tests for the event-envelope contract (events/event-envelope.md).
+// Unit tests for the event-envelope contract.
 import {describe, expect, it} from 'vitest';
 import type {EventOutboxRow, IsoTimestamp, SemVer, TenantId} from './index.js';
 import {EventEnvelope, deriveEventIdempotencyKey, toEventEnvelope} from './index.js';

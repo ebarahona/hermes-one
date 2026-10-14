@@ -18,9 +18,6 @@
     "role": "component",
     "plane": "agent",
     "published": false,
-    "sourceDocs": [
-      "observability/evaluation-and-cost-analytics"
-    ],
     "governedBy": [
       "ADR-021"
     ]

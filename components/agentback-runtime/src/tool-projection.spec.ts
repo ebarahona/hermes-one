@@ -1,4 +1,4 @@
-// tool-projection.md Testing Strategy — the rows this slice can assert hermetically (no live stack).
+// Tool projection — the rows this slice can assert hermetically (no live stack).
 import {describe, expect, it, vi} from 'vitest';
 import {z} from 'zod';
 import type {CapabilityContract, ProviderAdapter} from '@platform/contracts';
@@ -77,7 +77,7 @@ describe('jsonSchemaToZod (bounded allow-list)', () => {
     expect(schema.parse({slots: ['a', 'b']})).toEqual({slots: ['a', 'b']});
   });
 
-  // The spec's Open Question: a lossy round-trip must not silently hand the model a WEAKER validator
+  // Open question: a lossy round-trip must not silently hand the model a WEAKER validator
   // than the authored contract — an unrepresentable construct is a projection-time failure.
   it('THROWS on a keyword outside the allow-list rather than degrading', () => {
     expect(() => jsonSchemaToZod({oneOf: [{type: 'string'}]})).toThrow(UnsupportedSchemaError);
@@ -86,7 +86,7 @@ describe('jsonSchemaToZod (bounded allow-list)', () => {
   });
 
   // Contracts are Zod-first and their JSON Schema is GENERATED from Zod (ADR-020), so the rebuilder
-  // must accept exactly what that generator emits — otherwise a spec-faithful contract is skipped and
+  // must accept exactly what that generator emits — otherwise a contract the generator can emit is skipped and
   // its tool silently vanishes from the agent's tool set.
   it('rebuilds the real Zod→JSON-Schema output ($schema, format+pattern, bounds, default)', () => {
     const generated = {
@@ -213,8 +213,7 @@ describe('CapabilityToolProjector', () => {
     expect(new Set(keys).size).toBe(2);
   });
 
-  // ToolMetrics.providerId is canonical (agent-runtime-contracts.md; the `internal-scheduler` example
-  // in table-catalog.md). The body resolves the provider privately, so it must report it back or the
+  // ToolMetrics.providerId is canonical (the `internal-scheduler` example). The body resolves the provider privately, so it must report it back or the
   // synthesized envelope cannot name who served the call.
   it('reports the resolved providerId so the envelope can carry ToolMetrics.providerId', async () => {
     const served: Array<[string, string]> = [];

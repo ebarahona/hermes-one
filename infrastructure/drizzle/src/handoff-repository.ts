@@ -1,5 +1,5 @@
 // Tenant-scoped writer for runtime.handoff_tasks (RLS 'strict') — the durable store behind
-// platform.data.handoff-repository (handoff-contracts.md). This build persists the INITIAL request row a
+// platform.data.handoff-repository. This build persists the INITIAL request row a
 // turn writes when it hands off (status 'requested', owner 'agent'); the ownership lifecycle
 // (assign/takeover/resolve via Temporal signals + admin inbox) is a later build (flagged). Idempotent on
 // handoff_id so a replayed turn collapses. All access goes through withTenant → set_config('app.tenant_id').

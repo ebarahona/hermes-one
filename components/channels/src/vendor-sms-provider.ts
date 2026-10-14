@@ -1,6 +1,6 @@
 // VendorSmsProvider (edge plane): the REAL outbound realization of the messaging.reply.send capability
 // against a live SMS vendor. It is the ProviderAdapter the capability resolver picks ahead of the
-// internal message-log fallback. Per provider-contracts.md a `*.message.send` capability adapter
+// internal message-log fallback. Per the provider contracts a `*.message.send` capability adapter
 // delegates its outbound to the channel transport's `deliver()`; this provider does exactly that, then
 // persists the authoritative runtime.messages row (tenant-scoped, RLS, idempotent) with the real vendor
 // message id. It returns the capability's UNWRAPPED output (ADR-018 — the ToolResult envelope is
@@ -8,8 +8,8 @@
 // status() so the resolver skips the vendor after repeated failures and fails over to the log provider.
 //
 // FLAGGED (JIT): the breaker state is in-process (one worker instance). A multi-instance deployment
-// needs a shared breaker (Redis) — the follow-up owned by redis/idempotency-locks-ratelimits.md. No
-// providers/ runtime spec doc exists; this is authored to provider-contracts.md + capability-contracts.md.
+// needs a shared breaker (Redis) — the follow-up owned by the Redis idempotency/locks/rate-limit pack.
+// This is authored to the provider and capability contracts.
 import {createHash} from 'node:crypto';
 import {
   type ConversationId,

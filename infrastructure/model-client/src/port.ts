@@ -1,7 +1,7 @@
-// The single-step model seam (ADR-021). NOTE: no canonical model-port spec doc exists — the
-// agent-runtime-contracts.md turn spec names the model substrate but leaves the port out of scope
-// ("wired in agentback/"). This port is therefore authored JIT to ADR-021's single-step contract and
-// kept in the infrastructure layer; the agent loop depends only on this interface, never on a vendor SDK.
+// The single-step model seam (ADR-021). NOTE: the agent turn contract names the model
+// substrate but leaves the port out of scope (wired in agentback/).
+// This port is authored to ADR-021's single-step contract and kept in the infrastructure layer;
+// the agent loop depends only on this interface, never on a vendor SDK.
 export interface ModelMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
   content: string;

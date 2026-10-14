@@ -1,5 +1,5 @@
 // RuleRuntimeComponent (edge): binds the deterministic rule runtime (ADR-015) — pure, synchronous
-// evaluation over the pinned operator registry (loopback/component-registry.md).
+// evaluation over the pinned operator registry.
 import {Binding, type Component} from '@loopback/core';
 import {BindingScope} from '@loopback/context';
 import type {SemVer} from '@platform/contracts';

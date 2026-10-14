@@ -5,6 +5,5 @@ export const descriptor = {
   role: 'infrastructure',
   plane: 'none',
   published: false,
-  sourceDocs: ['08-data/083'],
   governedBy: ['ADR-007'],
 } as const;

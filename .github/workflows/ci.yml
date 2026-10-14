@@ -1,4 +1,4 @@
-# Minimal CI (deferral-ledger I0 / triage F7): the safety-critical verifications that previously ran
+# Minimal CI (deferral-ledger I0): the safety-critical verifications that previously ran
 # only when a human remembered to run them.
 #   verify      — hermetic: typecheck + plane-lint + unit tests + full build + REPLAY GATE
 #                 (golden histories vs the candidate interpreter — ADR-029, fail on ANY nondeterminism)
@@ -35,7 +35,7 @@ jobs:
       # (verification-discipline), so unit tests on a fresh clone need dist to exist.
       - run: pnpm -r build
       - run: pnpm verify # typecheck + plane-lint + unit tests
-      # Replay gate (ADR-029 / worker-versioning-and-replay.md): every committed golden history must
+      # Replay gate (ADR-029): every committed golden history must
       # replay against THIS build's interpreter with zero nondeterminism. Hard blocker, no waiver.
       - run: pnpm -F @platform-internal/workflow-worker replay-gate
 

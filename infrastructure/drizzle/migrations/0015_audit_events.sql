@@ -1,6 +1,5 @@
 -- The `audit` schema + audit_events: the append-only, immutable, tamper-evident record of every material
 -- action (ADR-009/012). integrity_hash = sha256 of the row (minus id) — dedupe on replay + tamper-evidence.
--- Columns verbatim from database/table-catalog.md.
 CREATE SCHEMA IF NOT EXISTS audit;
 
 CREATE TABLE audit.audit_events (

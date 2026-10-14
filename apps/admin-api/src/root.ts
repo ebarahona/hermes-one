@@ -1,11 +1,11 @@
-// AdminApiRoot — the admin-api composition root (loopback/application-bootstrap.md, the CompositionRoot
+// AdminApiRoot — the admin-api composition root (the CompositionRoot
 // contract). Builds a PlatformRestApplication, mounts the platform REST sequence (correlation +
 // fail-closed authentication + the single PlatformError exit) and the controllers, then serves by
 // LB4 HTTP listen. Driven by the shared bootstrap() (main.ts) or, in the e2e, by calling the phases
 // directly against an ephemeral port.
 //
 // Slice 1/2 scope: no datasource is bound, so start() has no pool to open and the app is exempt from
-// the ADR-022 fail-closed tenant gate (application-bootstrap.md: "workflow-worker (no repositories) …
+// the ADR-022 fail-closed tenant gate ("workflow-worker (no repositories) …
 // are exempt"). The RLS boot gate + tenant-tx interceptor land with the first repository-backed
 // controller (Slice 3). AUTH-3 (Slice 2): the AuthComponent binds the strategy registry + principal
 // mapper + api-key strategy; the root supplies the request-shaped bits (the AuthConfig + the
@@ -71,7 +71,7 @@ export class AdminApiRoot implements CompositionRoot<PlatformRestApplication> {
     // AUTH-3 config + stores (request-shaped bits the AuthComponent can't supply).
     app.bind(AuthBindings.CONFIG.key).to(this.authConfig);
     app.bind(AuthBindings.API_KEY_STORE.key).to(new StaticApiKeyStore(this.apiKeySeeds));
-    // The oidc strategy stays inert unless a verifier is bound (design 001 §5).
+    // The oidc strategy stays inert unless a verifier is bound (docs/design/001-edge-authn-design.md).
     if (this.jwtVerifier) app.bind(AuthBindings.JWT_VERIFIER.key).to(this.jwtVerifier);
   }
 

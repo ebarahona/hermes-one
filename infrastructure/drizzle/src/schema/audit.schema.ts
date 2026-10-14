@@ -1,13 +1,12 @@
 // The `audit` schema. Append-only, immutable, tamper-evident records of every material action (ADR-009/012)
 // plus deduped, billable usage_records. Every row is tenant-owned (tenant_id NOT NULL) and RLS-protected.
-// Verbatim from database/table-catalog.md.
 import {pgSchema, text, timestamp, jsonb, numeric, index} from 'drizzle-orm/pg-core';
 
 export const audit = pgSchema('audit');
 
 /* ------------------------------------------------------------------ *
  * audit.audit_events — append-only immutable audit trail.
- * Aligns column-for-column to AuditEvent (audit-contracts.md).
+ * Aligns column-for-column to AuditEvent.
  * ------------------------------------------------------------------ */
 export const auditEvents = audit.table('audit_events', {
   id: text('id').primaryKey(),                                  // AuditEventId 'aud_...'
@@ -33,7 +32,7 @@ export const auditEvents = audit.table('audit_events', {
 
 /* ------------------------------------------------------------------ *
  * audit.usage_records — deduped, billable usage aggregate. dedupe_key is the PK: it enforces
- * exactly-once billing under at-least-once emission (findings T7). Aligns to UsageRecord (audit-contracts.md).
+ * exactly-once billing under at-least-once emission (findings T7). Aligns to UsageRecord.
  * ------------------------------------------------------------------ */
 export const usageRecords = audit.table('usage_records', {
   dedupeKey: text('dedupe_key').primaryKey(),                   // enforces exactly-once billing (T7)

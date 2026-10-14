@@ -16,7 +16,7 @@ export async function createAgentWorker(): Promise<Worker> {
   return Worker.create({
     connection,
     namespace: cfg.temporal.namespace,
-    // Typed failures for the retry-policy registry (retry-policy-registry.md acceptance criterion 8).
+    // Typed failures for the retry-policy registry (retry-policy registry).
     activities: withPlatformFailures({agentTurn}),
     taskQueue: AGENT_QUEUE,
   });

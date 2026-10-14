@@ -33,7 +33,7 @@ export function createModelDecider(opts: {
   /**
    * Derives the ToolCall's idempotency key. The caller owns this because the canonical material is
    * `turnId + capability name + the contract's declared keyFields` (deriveIdempotencyKey;
-   * tool-projection.md "Idempotency key") — and the decider has neither the turn nor the contract.
+   * deriveIdempotencyKey) — and the decider has neither the turn nor the contract.
    * Omitted → the legacy capability+args placeholder, which is NOT turn-scoped.
    */
   idempotencyKeyFor?: (capability: CapabilityName, args: Record<string, unknown>) => string;

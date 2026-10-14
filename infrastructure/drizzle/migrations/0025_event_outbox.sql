@@ -1,6 +1,6 @@
 -- The `event` schema + event_outbox: transactional outbox for "commit-and-publish". An outbox row is
 -- written in the SAME transaction as the domain row it fans out from; a publisher polls status='pending'
--- and dispatches, then marks 'published'. Columns verbatim from database/table-catalog.md.
+-- and dispatches, then marks 'published'.
 CREATE SCHEMA IF NOT EXISTS event;
 
 CREATE TABLE event.event_outbox (

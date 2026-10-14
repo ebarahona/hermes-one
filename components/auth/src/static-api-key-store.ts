@@ -1,5 +1,5 @@
-// StaticApiKeyStore — a config/seed-backed realization of the `ApiKeyStore` port
-// (authentication-strategies.md). The spec leaves the ApiKeyStore BACKING "prose/port-only,
+// StaticApiKeyStore — a config/seed-backed realization of the `ApiKeyStore` port.
+// The design leaves the ApiKeyStore BACKING "prose/port-only,
 // deferred" — no table DDL — so this in-memory store is the faithful stand-in, mirroring AUTH-1's
 // webhook `tenantByNumber` map and the `StaticProviderCredentialStore` seam.
 //

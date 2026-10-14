@@ -8,7 +8,7 @@ import type {EventEnvelope, EventPublisher} from '@platform/contracts';
 /**
  * The narrow surface the platform's cache-through adapters consume, bound at `platform.data.redis`.
  * Kept minimal on purpose — string keys, string values, explicit TTL, explicit invalidation.
- * Pub/sub is FAN-OUT ONLY (events/event-envelope.md: a subscriber that misses a message re-derives
+ * Pub/sub is FAN-OUT ONLY (a subscriber that misses a message re-derives
  * from the outbox/domain table — no replay-from-Redis path exists).
  */
 export interface RedisClient {
@@ -68,11 +68,11 @@ export function createRedisClient(url: string): RedisClient {
   };
 }
 
-/* ---------------- Replay guard (authentication-strategies.md NonceStore) ---------------- */
+/* ---------------- Replay guard (NonceStore) ---------------- */
 
 /**
  * Redis-backed single-use nonce guard for stateless credentials (signed webhooks, workload tokens).
- * Canonical port shape from `loopback/authentication-strategies.md` — hosted here until the auth
+ * Canonical port shape — hosted here until the auth
  * component (`components/auth`, AUTH-3) lands and re-exports it (flagged,
  * docs/design/001-edge-authn-design.md).
  */
@@ -88,12 +88,12 @@ export class RedisNonceStore implements NonceStore {
   }
 }
 
-/* ------------------- Event fan-out (events/event-envelope.md) ------------------- */
+/* ------------------- Event fan-out ------------------- */
 
-/** The spec default — `channelPattern` in EventEnvelopeConfig. Never a cross-tenant wildcard. */
+/** The default `channelPattern` in EventEnvelopeConfig. Never a cross-tenant wildcard. */
 export const DEFAULT_EVENT_CHANNEL_PATTERN = 'events:{tenantId}:{aggregateType}';
 
-/** The ONE place the event pub/sub channel string is constructed (keyspace-reference.md discipline). */
+/** The ONE place the event pub/sub channel string is constructed. */
 export function eventChannel(pattern: string, tenantId: string, aggregateType: string): string {
   return pattern.replace('{tenantId}', tenantId).replace('{aggregateType}', aggregateType);
 }
@@ -122,6 +122,5 @@ export const descriptor = {
   role: 'infrastructure',
   plane: 'none',
   published: false,
-  sourceDocs: ['08-data/082', 'events/event-envelope'],
   governedBy: ['ADR-006'],
 } as const;

@@ -1,4 +1,4 @@
--- Enum-shaped text columns pinned at the database, not just at the Zod boundary. (constraints.md)
+-- Enum-shaped text columns pinned at the database, not just at the Zod boundary.
 ALTER TABLE substrate.definitions ADD CONSTRAINT definitions_kind_ck
   CHECK (kind IN ('workflow','rule','policy','capability','agent-engine'));
 ALTER TABLE substrate.definitions ADD CONSTRAINT definitions_status_ck

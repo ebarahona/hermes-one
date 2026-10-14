@@ -32,6 +32,5 @@ export const descriptor = {
   role: 'package',
   plane: 'none',
   published: true,
-  sourceDocs: ['03-workflow-runtime/040'],
   governedBy: ['ADR-016'],
 } as const;

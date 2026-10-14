@@ -1,4 +1,4 @@
-// REST-surface-local binding keys (loopback/binding-key-registry.md grammar `platform.<area>.<name>`).
+// REST-surface-local binding keys (grammar `platform.<area>.<name>`).
 // Kept out of the global PlatformBindings until they graduate past the admin-api slice.
 import {BindingKey} from '@loopback/core';
 

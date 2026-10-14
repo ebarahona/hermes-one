@@ -43,7 +43,7 @@ export type CapabilityLookup = (name: CapabilityName) => CapabilityContract | un
 
 /**
  * Looks up the TENANT's provider-mapping override (capability.provider_mappings — CT3). Absence of a
- * row means "use the contract's default" (table-catalog.md). The contract itself is immutable and
+ * row means "use the contract's default". The contract itself is immutable and
  * content-hashed; the override is plain tenant-row CRUD, which is exactly why it is consulted at
  * INVOCATION time rather than baked into the pinned contract.
  */
@@ -136,7 +136,7 @@ export class CapabilityInvoker {
       // ADR-028: a schema-validated result from a capability the platform authored, gated, and
       // invoked is authoritative/trusted — `trusted:false` is the RETRIEVED-content injection
       // defense. This aligns with the agent plane's envelope hook and the canonical example in
-      // agent-runtime-contracts.md §JSON examples; ADR-009 composition grounds only on trusted.
+      // ADR-009 composition grounds only on trusted.
       source: 'authoritative',
       trusted: true,
       observedAt: ctx.now,

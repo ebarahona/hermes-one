@@ -1,6 +1,6 @@
 -- runtime.message_templates (tenant_id IS NULL = platform template) + runtime.workflow_executions_projection
--- (Postgres read-model of Temporal executions; Temporal remains the source of truth). Columns verbatim
--- from database/table-catalog.md.
+-- (Postgres read-model of Temporal executions; Temporal remains the source of truth).
+
 CREATE TABLE runtime.message_templates (
   template_id          text PRIMARY KEY,
   tenant_id            text,                                     -- NULL = platform template

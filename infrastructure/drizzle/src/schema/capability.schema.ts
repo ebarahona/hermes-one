@@ -1,6 +1,6 @@
 // The `capability` schema: tenant-specific overrides of a capability's default ProviderMapping (the
 // default itself ships inside the content-hashed capability contract). Absence of a row = use the
-// contract's default. RLS-protected (strict). Verbatim from database/table-catalog.md.
+// contract's default. RLS-protected (strict).
 import {pgSchema, text, timestamp, jsonb, uniqueIndex} from 'drizzle-orm/pg-core';
 
 export const capability = pgSchema('capability');

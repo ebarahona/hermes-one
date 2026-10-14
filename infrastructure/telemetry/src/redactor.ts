@@ -1,8 +1,8 @@
 // FieldRedactor: applies RedactionRule[] to a LogRecord's `fields` by dot-path BEFORE export, so PII is
-// never logged raw (tracing-metrics-logging.md). Strategies: mask (→ '[REDACTED]'), hash (→ 'sha256:<12hex>'
+// never logged raw. Strategies: mask (→ '[REDACTED]'), hash (→ 'sha256:<12hex>'
 // — correlatable without exposing the value), drop (remove the field). Non-mutating: returns a new record.
 //
-// FLAGGED: the canonical rule SOURCE is database/data-retention-jobs.md's PiiCipher dataClass tagging
+// FLAGGED: the canonical rule SOURCE is the PiiCipher dataClass tagging
 // (not yet built) — the rules passed here are a stand-in until that classification exists.
 import {createHash} from 'node:crypto';
 import type {LogRecord, RedactionRule, Redactor} from '@platform/contracts';

@@ -1,5 +1,5 @@
 -- Durable human-handoff task (ADR-012): the request + ownership state a turn writes when it hands off to
--- a human. Merges HandoffRequest + HandoffState into one row (database/table-catalog.md). Lifecycle
+-- a human. Merges HandoffRequest + HandoffState into one row. Lifecycle
 -- transitions (assign/takeover/resolve) are appended to `transitions` by the admin/temporal layers later.
 CREATE TABLE runtime.handoff_tasks (
   handoff_id         text PRIMARY KEY,

@@ -80,7 +80,7 @@ describe('DeploymentService.publish — regression gate', () => {
   });
 });
 
-describe('DeploymentService.resolveVersion (deployment-manifest.md — replay + audit)', () => {
+describe('DeploymentService.resolveVersion (replay + audit)', () => {
   it('resolves a specific historical version through the store port', async () => {
     const {deployments, store} = fakes();
     const historical = {deploymentId: 'dpl_old', tenantId: 'tnt_gate', version: '1.0.1', status: 'superseded'};

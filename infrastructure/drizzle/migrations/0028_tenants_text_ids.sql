@@ -1,9 +1,9 @@
 -- CT1 (DECIDED by the user 2026-07-14, docs/design/001-edge-authn-design.md Open Questions):
 -- tenant identifiers are the TEXT brands (`tnt_…`) EVERYWHERE. tenant.tenants was the one table keyed
--- by uuid (per loopback/repository-patterns.md) while every GUC, RLS predicate, contract brand, and
+-- by uuid while every GUC, RLS predicate, contract brand, and
 -- other table keys on the text brand — so a text-GUC session saw ZERO tenant rows (fail-closed defect,
 -- ledger CT1). This migration converts the two uuid columns to text and recreates the RLS policy
--- without the ::text cast. Recorded as a deliberate deviation from repository-patterns.md.
+-- without the ::text cast. Recorded as a deliberate deviation from the base repository pattern.
 --
 -- Existing rows: tenant.tenants has NO runtime consumers yet (ledger CT2 — schema-complete only) and
 -- every pre-CT1 row was unreachable under RLS from the request path (the fail-closed mismatch above);

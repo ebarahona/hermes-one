@@ -1,16 +1,15 @@
-// Worker versioning + interpreter-change discipline, transcribed from
-// temporal/worker-versioning-and-replay.md (ADR-029 pins the API generation — see below). The ONE
+// Worker versioning + interpreter-change discipline (ADR-029 pins the API generation — see below). The ONE
 // interpreter (`executeCompiledWorkflow`, ADR-014) is the single deterministic surface for the whole
 // fleet: every edit to it is classified, and NO candidate build becomes the default until every
 // captured history replays against it without a nondeterminism error. Two orthogonal pinning axes,
 // never conflated: WHICH INTERPRETER CODE runs (buildId — this module) vs WHICH COMPILED PLAN it
-// walks (planRef contentHash — substrate/deployment-manifest.md). Publishing a plan never needs a
+// walks (planRef contentHash). Publishing a plan never needs a
 // new buildId; shipping a buildId never republishes plans.
 //
-// SPEC DELTA (flagged, ADR-029 / the doc's own Open Question #1): the doc's `BuildIdRegistry` is
+// NOTE (flagged, ADR-029): the `BuildIdRegistry` design is
 // written against Temporal's LEGACY compatible-sets API (`useVersioning`/`buildId`), which
 // @temporalio 1.20.2 marks @deprecated. ADR-029 pins the successor (Worker Deployments:
-// `workerDeploymentOptions` with `PINNED` behavior — exactly the spec's open-executions-stay-put
+// `workerDeploymentOptions` with `PINNED` behavior — exactly the open-executions-stay-put
 // intent). The registry's deploy-time tooling lands with the deployment pipeline; what ships NOW is
 // the classification table, the buildId derivation, the worker options, and the REPLAY GATE (hard
 // CI blocker, generation-independent).
@@ -47,7 +46,7 @@ export const INTERPRETER_CHANGE_CLASS: Record<InterpreterChangeKind, Interpreter
 
 /* ------------------------- Build identity (ADR-029 generation) ------------------------- */
 
-/** `workflow-worker@<yyyy.mm.dd>+sha.<gitsha>` — the spec's composite build id. */
+/** `workflow-worker@<yyyy.mm.dd>+sha.<gitsha>` — the composite build id. */
 export type WorkerBuildId = string;
 
 export function deriveBuildId(gitSha: string, date: Date): WorkerBuildId {
@@ -57,7 +56,7 @@ export function deriveBuildId(gitSha: string, date: Date): WorkerBuildId {
 
 /**
  * The workflow-worker's versioning options in the PINNED generation (ADR-029). ONLY the
- * workflow-worker is versioned — activity/agent workers host no workflow code (spec acceptance #2).
+ * workflow-worker is versioned — activity/agent workers host no workflow code.
  * `enabled: false` (dev default) runs unversioned exactly as before; flipping it on requires the
  * server's Worker Deployments support verified live first (ADR-029 (3)).
  */
@@ -96,8 +95,8 @@ export interface ReplayGateResult {
 }
 
 export interface ReplayGateConfig {
-  minFixtures: number; // spec default 50 is "a reasonable default, not ratified" — config
-  /** const true — no waiver path (spec: "there is no override path"). */
+  minFixtures: number; // default 50 is "a reasonable default, not ratified" — config
+  /** const true — no waiver path (there is no override path). */
   failBuildOnAnyNondeterminism: true;
 }
 

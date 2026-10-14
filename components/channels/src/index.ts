@@ -28,6 +28,5 @@ export const descriptor = {
   role: 'component',
   plane: 'edge',
   published: false,
-  sourceDocs: ['12-provider-adapters/120', 'contracts/provider-contracts'],
   governedBy: ['ADR-010', 'ADR-018'],
 } as const;

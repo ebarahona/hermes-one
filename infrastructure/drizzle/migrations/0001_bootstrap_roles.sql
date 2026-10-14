@@ -1,6 +1,6 @@
 -- Runs BEFORE any CREATE POLICY. Idempotent (CREATE ROLE guarded by a DO block).
 -- platform_app is the non-bypassable request-time role RLS depends on; platform_migrator is the
--- more-privileged DDL/migration role. Neither is a superuser. (ADR-022, row-level-security.md)
+-- more-privileged DDL/migration role. Neither is a superuser. (ADR-022)
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'platform_app') THEN

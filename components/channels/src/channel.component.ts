@@ -1,11 +1,11 @@
-// ChannelComponent (edge) — loopback/component-registry.md: the channel plane's contribution to the
+// ChannelComponent (edge) — the channel plane's contribution to the
 // capability extension point. Contributes the provider adapters as `extensionFor`-tagged bindings the
 // CapabilityRegistryComponent discovers (LB4 extension-point idiom — no hardcoded provider lists in
 // composition roots): the persist-only internal message-log provider always; the real SMS vendor only
 // when configured (the contract's providerMapping ranks twilio-sms > internal-message-log and the
 // resolver fails over when the vendor circuit is open).
 //
-// The full spec ChannelComponent (transport lifecycle, per-channel components as MVP expands — L1/L7)
+// The full ChannelComponent (transport lifecycle, per-channel components as MVP expands — L1/L7)
 // grows here; this slice owns exactly what the roots used to wire inline.
 import {Binding, CoreTags, type Component} from '@loopback/core';
 import {BindingScope, inject} from '@loopback/context';

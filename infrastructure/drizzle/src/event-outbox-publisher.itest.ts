@@ -1,5 +1,5 @@
 // Integration test against the live backing stack (Postgres :5433, Redis :6380). Proves the
-// transactional-outbox PUBLISHER (events/event-envelope.md): pending rows drain in sequence order to
+// transactional-outbox PUBLISHER: pending rows drain in sequence order to
 // the tenant-scoped Redis pub/sub channel, publish marks rows `published`, a failing publish
 // increments attempts and stays `pending` until maxAttempts then flips `failed` (excluded), and a
 // tenant-B subscriber never sees tenant-A envelopes.

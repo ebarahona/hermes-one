@@ -79,12 +79,12 @@ export class DefinitionRegistry {
   async put(def: Definition, actor: PrincipalId): Promise<PutDefinitionResult> {
     const tenantId = def.tenantId as TenantId;
     if (!tenantId) {
-      // Platform-shared (tenant_id IS NULL) definitions require a privileged path (constraints.md);
-      // not minted through platform_app here (flagged in Open Questions).
+      // Platform-shared (tenant_id IS NULL) definitions require a privileged path;
+      // not minted through platform_app here (flagged).
       throw new Error('DefinitionRegistry.put requires a tenant-scoped definition (tenantId set)');
     }
     const scope = {tenantId};
-    // Assert the SchemaRef grammar `<name>.<type>/vN` before the family branch (substrate-lifecycle.md).
+    // Assert the SchemaRef grammar `<name>.<type>/vN` before the family branch.
     const schemaRef = SchemaRef.safeParse(def.schemaRef);
     if (!schemaRef.success) {
       throw validationFailed(
@@ -153,8 +153,8 @@ export class DefinitionRegistry {
     };
     // agent-engine keeps its config under `body` (AgentEngineContract); capability spreads its fields
     // at the top level (CapabilityContract) — the two contract-schema shapes differ (agent-runtime /
-    // capability-contracts.md). Validate against the canonical versioned Zod schema — "validate only
-    // (Zod, no compiler)" (substrate-lifecycle.md, ADR-016); a failing body never reaches the store.
+    // capability). Validate against the canonical versioned Zod schema — "validate only
+    // (Zod, no compiler)" (ADR-016); a failing body never reaches the store.
     const parsed =
       def.kind === 'agent-engine'
         ? AgentEngineContract.safeParse({...base, body: def.body})
@@ -167,7 +167,7 @@ export class DefinitionRegistry {
     }
     const contract: ValidatedContractBase = parsed.data;
 
-    // definition.published fires for kind:'capability' ONLY (events/domain-events.md's trigger
+    // definition.published fires for kind:'capability' ONLY (the event's trigger
     // column); it rides putDefinition's transaction and is skipped on an idempotent re-put.
     const events =
       def.kind === 'capability'

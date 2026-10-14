@@ -1,14 +1,14 @@
-// The `tenant` schema: tenants (reused from loopback/repository-patterns.md), workspaces, users, roles,
+// The `tenant` schema: tenants (reused from the base repository pattern), workspaces, users, roles,
 // and vertical_pack_installations. Every row is tenant-owned and RLS-protected (roles + message_templates
-// allow a NULL tenant_id = platform-shared). Verbatim from database/table-catalog.md — EXCEPT
+// allow a NULL tenant_id = platform-shared). Columns align to the contract types EXCEPT
 // tenant.tenants ids: TEXT brands per the CT1 decision (2026-07-14, migration 0028), a deliberate
-// deviation from repository-patterns.md's uuid columns.
+// deviation from the base pattern's uuid columns.
 import {pgSchema, text, timestamp, jsonb, integer, index, uniqueIndex} from 'drizzle-orm/pg-core';
 
 export const tenant = pgSchema('tenant');
 
 /* ------------------------------------------------------------------ *
- * tenant.tenants — reused from loopback/repository-patterns.md (+ a unique index on slug);
+ * tenant.tenants — reused from the base repository pattern (+ a unique index on slug);
  * ids are the text `tnt_…` brand (CT1 decision, migration 0028).
  * ------------------------------------------------------------------ */
 export const tenants = tenant.table('tenants', {
@@ -28,7 +28,7 @@ export const tenants = tenant.table('tenants', {
 }));
 
 /* ------------------------------------------------------------------ *
- * tenant.workspaces — durable anchor for a WorkspaceContext (tenant-contracts.md).
+ * tenant.workspaces — durable anchor for a WorkspaceContext.
  * ------------------------------------------------------------------ */
 export const workspaces = tenant.table('workspaces', {
   workspaceId: text('workspace_id').primaryKey(),          // WorkspaceId 'wsp_...'

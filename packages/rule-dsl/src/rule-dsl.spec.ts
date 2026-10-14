@@ -125,7 +125,7 @@ describe('rule-dsl compile', () => {
     body: {...missedCallRule.body, branches: [{outcome: 'x', when}]},
   });
 
-  it('rejects a wrong-arity expression → RULE_OPERATOR_ARITY (rule-compiler.md)', () => {
+  it('rejects a wrong-arity expression → RULE_OPERATOR_ARITY', () => {
     const bad = withWhen({
       type: 'op',
       op: 'equals',

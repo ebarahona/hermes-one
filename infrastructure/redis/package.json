@@ -18,9 +18,6 @@
     "role": "infrastructure",
     "plane": "none",
     "published": false,
-    "sourceDocs": [
-      "08-data/082"
-    ],
     "governedBy": [
       "ADR-006"
     ]

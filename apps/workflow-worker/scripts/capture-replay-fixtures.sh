@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Capture golden replay fixtures (worker-versioning-and-replay.md / ADR-029).
+# Capture golden replay fixtures (ADR-029).
 # Runs the missed-call e2e, then exports each case's history via the Temporal CLI — the CLI's JSON is
 # the proto3 form `historyFromJSON` accepts (the SDK's in-process historyToJSON chokes on some event
 # fields in 1.20.2; the CLI export is the canonical interchange format). Commit the fixtures: the

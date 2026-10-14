@@ -1,5 +1,5 @@
--- Substrate reconciliation views — plain SELECTs over RLS-protected base tables. Verbatim from
--- database/table-catalog.md. security_invoker=true (PG15+) is MANDATORY: without it a view runs as its
+-- Substrate reconciliation views — plain SELECTs over RLS-protected base tables.
+-- security_invoker=true (PG15+) is MANDATORY: without it a view runs as its
 -- owner and BYPASSES the base tables' RLS (cross-tenant leak). With it, RLS applies transparently as the
 -- querying role (platform_app) + its app.tenant_id GUC — exactly as the catalog intends.
 CREATE VIEW substrate.workflow_definitions WITH (security_invoker = true) AS

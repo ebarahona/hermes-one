@@ -1,8 +1,8 @@
 // @platform/contracts — src/evaluation.ts
-// Golden-conversation evaluation framework (observability/evaluation-and-cost-analytics.md): cases are
+// Golden-conversation evaluation framework (evaluation and cost analytics): cases are
 // DATA (author-time, versioned), played through the SAME single-step turn loop real turns use, scored
 // against assertions; a RegressionGate blocks deployment publish on any 'required'-severity failure.
-// Transcribed VERBATIM. (Spec imports DefinitionId/ContentHash/MeterKind that these types don't
+// (The contract imports DefinitionId/ContentHash/MeterKind that these types don't
 // reference — omitted to satisfy noUnusedLocals.)
 import {z} from 'zod';
 import {TenantId, SemVer, IsoTimestamp, DeploymentRef} from './substrate.js';
@@ -42,13 +42,13 @@ export const EvaluationResult = z.object({
   passed: z.boolean(),
   assertionResults: z.array(z.object({assertion: EvaluationAssertion, passed: z.boolean(), detail: z.string().optional()})),
   ranAt: IsoTimestamp,
-  /** Always true — evaluation runs execute via SimulationService (audit-and-replay.md). */
+  /** Always true — evaluation runs execute via SimulationService. */
   dryRun: z.literal(true),
 });
 export type EvaluationResult = z.infer<typeof EvaluationResult>;
 
 export interface EvaluationRunner {
-  /** Drives audit-and-replay.md's SimulationService — does NOT reimplement the turn loop. */
+  /** Drives the SimulationService — does NOT reimplement the turn loop. */
   runCase(goldenCase: GoldenConversationCase, deploymentRef: DeploymentRef): Promise<EvaluationResult>;
   runSuite(goldenCases: GoldenConversationCase[], deploymentRef: DeploymentRef): Promise<EvaluationResult[]>;
 }

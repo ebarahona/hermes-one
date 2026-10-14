@@ -1,6 +1,6 @@
-// Derive billable UsageEvents (audit-contracts.md) from a completed turn's usage totals — an edge concern.
+// Derive billable UsageEvents from a completed turn's usage totals — an edge concern.
 // One event per metered signal: model input/output tokens, model cost, and tool-invocation count. Each
-// dedupeKey (principalId:turnId:meterKind:sequence — audit-contracts.md pins "correlationId = turnId"
+// dedupeKey (principalId:turnId:meterKind:sequence — the audit contract pins "correlationId = turnId"
 // at turn scope, and this build's workflow correlationId spans EVERY turn in a run) is stable across
 // Temporal retries so re-emission collapses to exactly-once billing (T7), while a second turn in the
 // same run gets its own keys instead of being deduped away unbilled. id is deterministic over the
@@ -28,7 +28,7 @@ export function deriveUsageEvents(ledger: TurnLedger, ctx: MeterInput): UsageEve
 
   return meters.map(m => {
     const dedupeKey = deriveDedupeKey({
-      // The dedupe recipe's correlation component is the TURN (audit-contracts.md: "correlationId =
+      // The dedupe recipe's correlation component is the TURN ("correlationId =
       // turnId") — keying on the workflow-wide correlationId made every turn after the first collapse
       // into the first turn's records (never billed).
       correlationId: ledger.turnId,

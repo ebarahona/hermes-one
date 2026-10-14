@@ -1,6 +1,6 @@
 // The deterministic-rail audit signal: when a workflow rule node resolves a decision with ZERO LLM call,
 // emit a `decision.rule` AuditEvent. This is the numerator of the deterministic-hit-rate KPI
-// (observability/evaluation-and-cost-analytics.md) — the platform's headline scalability metric. The id +
+// — the platform's headline scalability metric. The id +
 // integrityHash are deterministic over the decision so a Temporal workflow replay re-emits an identical
 // event that collapses via the append's ON CONFLICT DO NOTHING.
 import {createHash} from 'node:crypto';

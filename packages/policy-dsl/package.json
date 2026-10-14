@@ -24,9 +24,6 @@
     "role": "package",
     "plane": "none",
     "published": true,
-    "sourceDocs": [
-      "13-security/132"
-    ],
     "governedBy": [
       "ADR-019"
     ]

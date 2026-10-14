@@ -1,4 +1,4 @@
-// DrizzleAuditQueryService (read side of the audit trail, audit-and-replay.md): composes an incident
+// DrizzleAuditQueryService (read side of the audit trail): composes an incident
 // timeline by joining audit_events ⋈ tool_executions ⋈ policy_decisions ⋈ evidence_records for a
 // (tenant, correlationId). audit_events + policy_decisions carry correlation_id directly; tool_executions
 // + evidence_records link by turn_id, so we first resolve the correlation's turnIds (from the audit/policy

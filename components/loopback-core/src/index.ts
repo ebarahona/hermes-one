@@ -1,6 +1,6 @@
-// @platform-internal/loopback-core — the edge-plane LB4 composition layer (F6/T1, decided
-// 2026-07-14: build to the loopback pack specs; the hand-rolled composition roots migrate onto
-// this). Phase 1: PlatformBindings + the boundary contract + PlatformApplication + bootstrap() +
+// @platform-internal/loopback-core — the edge-plane LB4 composition layer (decided
+// 2026-07-14: the hand-rolled composition roots migrate onto this). Phase 1: PlatformBindings +
+// the boundary contract + PlatformApplication + bootstrap() +
 // the first five edge components (Persistence, Observability, CapabilityRegistry, RuleRuntime,
 // PolicyRuntime). Phase 2 (pending): TenantCore (CT1/CT2), WorkflowCore/Temporal components,
 // Channel/Memory/Bridge, the REST surface (RestApplication + sequence), interceptors, tags.
@@ -10,13 +10,6 @@ export const descriptor = {
   role: 'component',
   plane: 'edge',
   published: false,
-  sourceDocs: [
-    '05-loopback/050',
-    '053',
-    'loopback/application-bootstrap',
-    'loopback/binding-key-registry',
-    'loopback/component-registry',
-  ],
   governedBy: ['ADR-017', 'ADR-022'],
 } as const;
 
@@ -38,7 +31,7 @@ export {RuleRuntimeComponent} from './components/rule-runtime.component.js';
 export {PolicyRuntimeComponent} from './components/policy-runtime.component.js';
 export {SubstrateComponent} from './components/substrate.component.js';
 
-// REST surface (loopback/application-bootstrap.md + sequence-implementation.md) — the admin-api host.
+// REST surface — the admin-api host.
 export {PlatformRestApplication} from './rest-application.js';
 export {
   PlatformSequenceGroups,

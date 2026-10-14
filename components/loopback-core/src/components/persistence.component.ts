@@ -1,7 +1,6 @@
 // PersistenceComponent (edge): binds the datasources + the Drizzle-backed repository/store ports
 // (ADR-022) over ONE shared pool, and registers the lifecycle observers that own connect order,
-// the fail-closed RLS boot gate, and reverse-order close (loopback/component-registry.md,
-// loopback/application-bootstrap.md).
+// the fail-closed RLS boot gate, and reverse-order close.
 //
 // The Drizzle classes stay free of any @loopback dependency (plane 'none'); this component is the
 // place their constructor wiring meets the container — exactly the gap flagged in

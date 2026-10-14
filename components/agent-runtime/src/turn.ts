@@ -68,7 +68,7 @@ export interface TurnLedgerHandoff {
 /**
  * The durable ledger a completed turn emits for persistence. Uses only contract types so the agent
  * plane stays free of any store dependency — the edge composition maps it onto the Drizzle repo
- * (no canonical turn-ledger port spec doc exists; this seam is authored JIT, flagged in Open Questions).
+ * (no canonical turn-ledger port is defined; this seam is authored JIT).
  */
 export interface TurnLedger {
   turnId: TurnId;
@@ -236,9 +236,9 @@ export async function runTurn(request: TurnRequest, deps: TurnDeps): Promise<Tur
     return result;
   };
 
-  // Over-budget short-circuit (agent-runtime-contracts.md "Bounded loop": the loop stops at maxSteps
-  // or deadlineAt; over-budget short-circuits). HandoffReason (handoff-contracts.md) carries no
-  // budget/limit-shaped value, so the conservative spec reading is outcome:'failed' — never a handoff
+  // Over-budget short-circuit ("Bounded loop": the loop stops at maxSteps
+  // or deadlineAt; over-budget short-circuits). HandoffReason carries no
+  // budget/limit-shaped value, so the conservative reading is outcome:'failed' — never a handoff
   // without a typed reason. An absent bound is unbounded (TurnBudgets requires all three today, so the
   // typeof guards are defensive).
   const overBudget = (): string | null => {
@@ -349,7 +349,7 @@ export async function runTurn(request: TurnRequest, deps: TurnDeps): Promise<Tur
     // no read-back capability is wired in this build, so the hook is a documented no-op.
   }
 
-  // Over-budget after the FINAL model call (accumulation the in-loop check cannot see): the spec's
+  // Over-budget after the FINAL model call (accumulation the in-loop check cannot see): the
   // short-circuit covers composition too — a turn over budget never delivers a reply.
   const why = overBudget();
   if (why) return finishOverBudget(why);

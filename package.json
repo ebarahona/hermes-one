@@ -2,6 +2,7 @@
   "name": "hermes-one",
   "version": "0.0.0",
   "private": true,
+  "license": "MIT",
   "description": "Hermes Orchestration Node Engine — agentic workflow platform monorepo",
   "type": "module",
   "engines": {

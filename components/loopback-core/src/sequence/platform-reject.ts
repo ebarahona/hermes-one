@@ -19,11 +19,17 @@ export class PlatformReject implements Provider<Reject> {
 
       let error: PlatformError;
       if (err instanceof PlatformErrorException) {
-        error = {...err.error, correlationId: err.error.correlationId ?? correlationId};
+        error = {
+          ...err.error,
+          correlationId: err.error.correlationId ?? correlationId,
+        };
       } else {
         // Unexpected — never surface internals over the wire (matches bootstrap's fatal-log posture).
         // eslint-disable-next-line no-console
-        console.error('[rest] unhandled error', {correlationId, err: String(err)});
+        console.error('[rest] unhandled error', {
+          correlationId,
+          err: String(err),
+        });
         error = {
           category: 'internal',
           code: 'internal_error',

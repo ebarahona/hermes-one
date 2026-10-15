@@ -5,7 +5,10 @@
 // placeholder the turn/executor may override.
 import {createHash} from 'node:crypto';
 import type {CapabilityName, ToolCall, TurnId} from '@platform/contracts';
-import type {ModelToolSpec, SingleStepModel} from '@platform-internal/model-client';
+import type {
+  ModelToolSpec,
+  SingleStepModel,
+} from '@platform-internal/model-client';
 import type {Decider} from './single-step-loop.js';
 
 export interface DeciderTool {
@@ -36,7 +39,10 @@ export function createModelDecider(opts: {
    * deriveIdempotencyKey) — and the decider has neither the turn nor the contract.
    * Omitted → the legacy capability+args placeholder, which is NOT turn-scoped.
    */
-  idempotencyKeyFor?: (capability: CapabilityName, args: Record<string, unknown>) => string;
+  idempotencyKeyFor?: (
+    capability: CapabilityName,
+    args: Record<string, unknown>,
+  ) => string;
 }): Decider {
   const now = opts.now ?? (() => Date.now());
   const specs: ModelToolSpec[] = opts.tools.map(t => ({
@@ -66,9 +72,14 @@ export function createModelDecider(opts: {
       });
 
       const proposed = result.toolCalls[0];
-      const tool = proposed && opts.tools.find(t => t.toolName === proposed.name);
+      const tool =
+        proposed && opts.tools.find(t => t.toolName === proposed.name);
       if (!proposed || !tool) {
-        return {kind: 'done', reply: result.text || undefined, usage: result.usage};
+        return {
+          kind: 'done',
+          reply: result.text || undefined,
+          usage: result.usage,
+        };
       }
 
       const call: ToolCall = {

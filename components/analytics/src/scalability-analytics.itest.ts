@@ -5,9 +5,17 @@
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {Pool} from 'pg';
 import {loadConfig} from '@platform-internal/config';
-import {createAuditSink, createUsageMeter, type AuditSinkHandle, type UsageMeterHandle} from '@platform-internal/drizzle';
+import {
+  createAuditSink,
+  createUsageMeter,
+  type AuditSinkHandle,
+  type UsageMeterHandle,
+} from '@platform-internal/drizzle';
 import type {TenantId} from '@platform/contracts';
-import {UsageScalabilityAnalyticsService, type ScalabilityDataSources} from './scalability-analytics.js';
+import {
+  UsageScalabilityAnalyticsService,
+  type ScalabilityDataSources,
+} from './scalability-analytics.js';
 
 const cfg = loadConfig();
 const PG = cfg.stores.authoritative.url;
@@ -22,8 +30,12 @@ beforeAll(async () => {
   owner = new Pool({connectionString: PG, max: 2});
   audit = createAuditSink(PG);
   usage = createUsageMeter(PG);
-  await owner.query(`DELETE FROM audit.audit_events WHERE tenant_id = $1`, [TENANT]);
-  await owner.query(`DELETE FROM audit.usage_records WHERE tenant_id = $1`, [TENANT]);
+  await owner.query(`DELETE FROM audit.audit_events WHERE tenant_id = $1`, [
+    TENANT,
+  ]);
+  await owner.query(`DELETE FROM audit.usage_records WHERE tenant_id = $1`, [
+    TENANT,
+  ]);
 
   // 3 deterministic routing decisions (decision.rule), 1 of which escalated to a model turn.
   for (const i of [1, 2, 3]) {
@@ -44,8 +56,12 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await owner.query(`DELETE FROM audit.audit_events WHERE tenant_id = $1`, [TENANT]);
-  await owner.query(`DELETE FROM audit.usage_records WHERE tenant_id = $1`, [TENANT]);
+  await owner.query(`DELETE FROM audit.audit_events WHERE tenant_id = $1`, [
+    TENANT,
+  ]);
+  await owner.query(`DELETE FROM audit.usage_records WHERE tenant_id = $1`, [
+    TENANT,
+  ]);
   await owner.end();
   await audit.close();
   await usage.close();
@@ -55,15 +71,16 @@ describe('UsageScalabilityAnalyticsService (live composition)', () => {
   it('computes the deterministic-hit-rate from real decision.rule events vs model turns', async () => {
     const data: ScalabilityDataSources = {
       summarize: (t, p) => usage.repo.summarize(t, p),
-      countRuleDecisions: (t, p) => audit.repo.countByAction(t, 'decision.rule', p),
+      countRuleDecisions: (t, p) =>
+        audit.repo.countByAction(t, 'decision.rule', p),
       countModelTurns: (t, p) => usage.repo.countModelTurns(t, p),
     };
     const svc = new UsageScalabilityAnalyticsService(data);
     const m = await svc.dashboard(TENANT, PERIOD);
 
-    expect(m.turns).toBe(3);                       // 3 decision.rule events
+    expect(m.turns).toBe(3); // 3 decision.rule events
     expect(m.deterministicHitRate).toBeCloseTo(2 / 3, 6); // (3 - 1 model turn) / 3
-    expect(m.tokensPerTurn).toBeCloseTo(1200 / 3, 6);     // (900 + 300) / 3
-    expect(m.costPerTurnUsd).toBeCloseTo(0.01 / 3, 6);    // 0.01 / 3
+    expect(m.tokensPerTurn).toBeCloseTo(1200 / 3, 6); // (900 + 300) / 3
+    expect(m.costPerTurnUsd).toBeCloseTo(0.01 / 3, 6); // 0.01 / 3
   });
 });

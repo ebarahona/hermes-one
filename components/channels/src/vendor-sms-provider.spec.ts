@@ -1,13 +1,24 @@
 import {describe, expect, it} from 'vitest';
 import type {DrizzleMessageRepository} from '@platform-internal/drizzle';
-import type {OutboundMessage, ProviderExecutionContext, TenantId} from '@platform/contracts';
+import type {
+  OutboundMessage,
+  ProviderExecutionContext,
+  TenantId,
+} from '@platform/contracts';
 import {StaticProviderCredentialStore} from '@platform-internal/secrets';
 import {MESSAGING_REPLY_SEND, type OutboundInput} from './messaging.js';
 import type {SmsChannelTransport} from './sms-transport.js';
-import {TWILIO_SMS_PROVIDER_ID, VendorSmsProvider} from './vendor-sms-provider.js';
+import {
+  TWILIO_SMS_PROVIDER_ID,
+  VendorSmsProvider,
+} from './vendor-sms-provider.js';
 
 const creds = new StaticProviderCredentialStore({
-  [TWILIO_SMS_PROVIDER_ID]: {accountSid: 'AC1', authToken: 'tok', from: '+18885550100'},
+  [TWILIO_SMS_PROVIDER_ID]: {
+    accountSid: 'AC1',
+    authToken: 'tok',
+    from: '+18885550100',
+  },
 });
 
 /** Records outbound persistence for assertions. */
@@ -43,7 +54,9 @@ const input: OutboundInput = {to: '+15125559999', body: 'on my way'};
 
 describe('VendorSmsProvider', () => {
   it('delivers via the transport and persists the authoritative row with the vendor SID', async () => {
-    const {transport, calls} = fakeTransport(async () => ({providerMessageId: 'SM_real'}));
+    const {transport, calls} = fakeTransport(async () => ({
+      providerMessageId: 'SM_real',
+    }));
     const {repo, rows} = fakeRepo();
     const p = new VendorSmsProvider(transport, repo, creds);
 
@@ -53,7 +66,11 @@ describe('VendorSmsProvider', () => {
     expect(calls[0]!.to).toBe('+15125559999');
     expect(calls[0]!.text).toBe('on my way');
     expect(rows).toHaveLength(1);
-    expect(rows[0]).toMatchObject({providerMessageId: 'SM_real', status: 'sent', channel: 'sms'});
+    expect(rows[0]).toMatchObject({
+      providerMessageId: 'SM_real',
+      status: 'sent',
+      channel: 'sms',
+    });
   });
 
   it('does not persist when the vendor send fails, and rethrows the classified error', async () => {

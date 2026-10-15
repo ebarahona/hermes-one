@@ -69,7 +69,11 @@ export const PlatformError = z.object({
   correlationId: z.string().optional(),
   /** Payment challenge detail for 402 (x402 / MPP). */
   payment: z
-    .object({priceUsd: z.string(), challenge: z.string().optional(), scheme: z.enum(['x402', 'mpp'])})
+    .object({
+      priceUsd: z.string(),
+      challenge: z.string().optional(),
+      scheme: z.enum(['x402', 'mpp']),
+    })
     .optional(),
 });
 export type PlatformError = z.infer<typeof PlatformError>;
@@ -142,7 +146,10 @@ export interface AgentbackErrorEnvelope {
   httpStatus?: number;
   price?: string;
 }
-export function toPlatformError(e: AgentbackErrorEnvelope, correlationId?: string): PlatformError {
+export function toPlatformError(
+  e: AgentbackErrorEnvelope,
+  correlationId?: string,
+): PlatformError {
   /* impl in agentback/ */
   throw new Error('see agentback/ pack for the reference implementation');
 }

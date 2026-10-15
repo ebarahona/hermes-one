@@ -13,7 +13,11 @@ export const descriptor = {
   governedBy: ['ADR-017', 'ADR-022'],
 } as const;
 
-export {PlatformBindings, PlatformExtensionPoints, tenantKey} from './bindings.js';
+export {
+  PlatformBindings,
+  PlatformExtensionPoints,
+  tenantKey,
+} from './bindings.js';
 export type {PlatformComponentBoundary} from './boundary.js';
 export {PlatformApplication} from './application.js';
 export {bootstrap} from './bootstrap.js';

@@ -31,7 +31,10 @@ let base: string;
 beforeAll(async () => {
   const loaded = loadConfig();
   const cfg = {...loaded, api: {...loaded.api, port: 0}}; // ephemeral (schema floors real config at 1)
-  const root = new AdminApiRoot(cfg, {apiKeySeeds: SEEDS, withPersistence: false});
+  const root = new AdminApiRoot(cfg, {
+    apiKeySeeds: SEEDS,
+    withPersistence: false,
+  });
   app = root.createApp();
   root.bindPorts(app);
   root.registerComponents(app);
@@ -53,7 +56,9 @@ describe('admin-api REST surface (Slice 1+2)', () => {
 
   it('echoes an inbound correlation id on the response', async () => {
     const cid = 'spec-correlation-xyz';
-    const res = await fetch(`${base}/v1/healthz`, {headers: {'x-correlation-id': cid}});
+    const res = await fetch(`${base}/v1/healthz`, {
+      headers: {'x-correlation-id': cid},
+    });
     expect(res.headers.get('x-correlation-id')).toBe(cid);
   });
 
@@ -61,7 +66,9 @@ describe('admin-api REST surface (Slice 1+2)', () => {
     const res = await fetch(`${base}/v1/whoami`);
     const text = await res.text();
     expect(res.status).toBe(401); // fail-closed authenticate runs before findRoute → 401, not 404
-    const body = JSON.parse(text) as {error?: {code?: string; httpStatus?: number}};
+    const body = JSON.parse(text) as {
+      error?: {code?: string; httpStatus?: number};
+    };
     expect(body.error?.code).toBe('unauthorized');
     expect(body.error?.httpStatus).toBe(401);
     expect(res.headers.get('x-correlation-id')).toBeTruthy();
@@ -77,20 +84,26 @@ describe('admin-api REST surface (Slice 1+2)', () => {
   });
 
   it('still serves /openapi.json to an AUTHENTICATED caller (gated, not removed)', async () => {
-    const res = await fetch(`${base}/openapi.json`, {headers: {'x-api-key': API_KEY}});
+    const res = await fetch(`${base}/openapi.json`, {
+      headers: {'x-api-key': API_KEY},
+    });
     expect(res.status).toBe(200);
     expect(((await res.json()) as {openapi?: string}).openapi).toBeTruthy();
   });
 
   it('rejects an invalid api key with 401 (no distinction from absent)', async () => {
-    const res = await fetch(`${base}/v1/whoami`, {headers: {'x-api-key': 'not-a-real-key'}});
+    const res = await fetch(`${base}/v1/whoami`, {
+      headers: {'x-api-key': 'not-a-real-key'},
+    });
     const body = (await res.json()) as {error?: {code?: string}};
     expect(res.status).toBe(401);
     expect(body.error?.code).toBe('unauthorized');
   });
 
   it('authenticates a valid api key → the bound service principal (api-key strategy end-to-end)', async () => {
-    const res = await fetch(`${base}/v1/whoami`, {headers: {'x-api-key': API_KEY}});
+    const res = await fetch(`${base}/v1/whoami`, {
+      headers: {'x-api-key': API_KEY},
+    });
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
       principalId: 'prn_svc_spec',

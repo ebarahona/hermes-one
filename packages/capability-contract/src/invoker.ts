@@ -35,11 +35,15 @@ export interface InvokeContext {
    * providerId known. Fail-closed at the store; a credential-less internal provider is an
    * explicit `{}` bundle. Never logged.
    */
-  providerConfigFor?: (providerId: string) => Promise<Readonly<Record<string, string>>>;
+  providerConfigFor?: (
+    providerId: string,
+  ) => Promise<Readonly<Record<string, string>>>;
 }
 
 /** Looks up the pinned CapabilityContract for a name (from the active deployment's manifest). */
-export type CapabilityLookup = (name: CapabilityName) => CapabilityContract | undefined;
+export type CapabilityLookup = (
+  name: CapabilityName,
+) => CapabilityContract | undefined;
 
 /**
  * Looks up the TENANT's provider-mapping override (capability.provider_mappings — CT3). Absence of a
@@ -62,17 +66,30 @@ export class CapabilityInvoker {
   async invoke(call: ToolCall, ctx: InvokeContext): Promise<ToolResult> {
     const contract = this.lookup(call.capability);
     if (!contract) {
-      return this.errorResult(call, contract, 'not_found', `unknown capability: ${call.capability}`);
+      return this.errorResult(
+        call,
+        contract,
+        'not_found',
+        `unknown capability: ${call.capability}`,
+      );
     }
 
     // Tenant override first (CT3), contract default otherwise — then resolve() ranks within the
     // EFFECTIVE mapping. resolve() throws NoProviderError (fail/handoff) — propagated by design.
-    const mapping = (await this.mappingOverride?.(ctx.tenantId, call.capability)) ?? contract.providerMapping;
-    const provider = await this.resolver.resolve(call.capability, mapping, ctx.facts);
+    const mapping =
+      (await this.mappingOverride?.(ctx.tenantId, call.capability)) ??
+      contract.providerMapping;
+    const provider = await this.resolver.resolve(
+      call.capability,
+      mapping,
+      ctx.facts,
+    );
 
     const started = Date.now();
     try {
-      const config = ctx.providerConfigFor ? await ctx.providerConfigFor(provider.providerId) : ctx.providerConfig;
+      const config = ctx.providerConfigFor
+        ? await ctx.providerConfigFor(provider.providerId)
+        : ctx.providerConfig;
       const output = await provider.execute(call.input, {
         tenantId: ctx.tenantId,
         capability: call.capability,
@@ -161,7 +178,13 @@ export class CapabilityInvoker {
       stateChanged: false,
       changedDomains: [],
       evidence: [],
-      metrics: {latencyMs, providerId, retries: 0, costUsd: 0, idempotentReplay: false},
+      metrics: {
+        latencyMs,
+        providerId,
+        retries: 0,
+        costUsd: 0,
+        idempotentReplay: false,
+      },
       error: {code, message, retryable},
     });
   }

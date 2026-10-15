@@ -128,7 +128,11 @@ export type CapabilityContract = z.infer<typeof CapabilityContract>;
 
 export const CapabilityManifest = z.object({
   entries: z.array(
-    z.object({definitionId: DefinitionId, name: CapabilityName, version: SemVer}),
+    z.object({
+      definitionId: DefinitionId,
+      name: CapabilityName,
+      version: SemVer,
+    }),
   ),
 });
 export type CapabilityManifest = z.infer<typeof CapabilityManifest>;
@@ -136,6 +140,9 @@ export type CapabilityManifest = z.infer<typeof CapabilityManifest>;
 /** Registry port — validate/register/resolve (no compiler — ADR-016). */
 export interface CapabilityRegistry {
   register(cap: CapabilityContract): Promise<void>;
-  get(name: CapabilityName, version: SemVer): Promise<CapabilityContract | null>;
+  get(
+    name: CapabilityName,
+    version: SemVer,
+  ): Promise<CapabilityContract | null>;
   list(manifest: CapabilityManifest): Promise<CapabilityContract[]>;
 }

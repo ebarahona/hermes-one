@@ -15,7 +15,10 @@ import {
   StaticProviderCredentialStore,
 } from '@platform-internal/secrets';
 import {runMigrations} from './migrate.js';
-import {createCredentialRowStore, type CredentialRowStoreHandle} from './client.js';
+import {
+  createCredentialRowStore,
+  type CredentialRowStoreHandle,
+} from './client.js';
 
 const cfg = loadConfig();
 const PG = cfg.stores.authoritative.url;
@@ -33,20 +36,32 @@ beforeAll(async () => {
   owner = new Pool({connectionString: PG, max: 2});
   rows = createCredentialRowStore(PG);
   store = new EnvelopeCredentialStore(rows.repo, new LocalAesGcmCipher(KEY));
-  await owner.query(`DELETE FROM capability.provider_credentials WHERE tenant_id IN ($1, $2)`, [TNT_A, TNT_B]);
+  await owner.query(
+    `DELETE FROM capability.provider_credentials WHERE tenant_id IN ($1, $2)`,
+    [TNT_A, TNT_B],
+  );
 });
 
 afterAll(async () => {
-  await owner.query(`DELETE FROM capability.provider_credentials WHERE tenant_id IN ($1, $2)`, [TNT_A, TNT_B]);
+  await owner.query(
+    `DELETE FROM capability.provider_credentials WHERE tenant_id IN ($1, $2)`,
+    [TNT_A, TNT_B],
+  );
   await owner.end();
   await rows.close();
 });
 
 describe('provider_credentials (live, RLS)', () => {
   it('rotate → resolve round-trips through Postgres, and the ROW never holds plaintext', async () => {
-    await store.rotate(TNT_A, 'twilio-sms', CAP, {accountSid: 'AC_itest', authToken: 'tok_secret_itest'});
+    await store.rotate(TNT_A, 'twilio-sms', CAP, {
+      accountSid: 'AC_itest',
+      authToken: 'tok_secret_itest',
+    });
     const rec = await store.resolve(TNT_A, 'twilio-sms', CAP);
-    expect(rec.config).toEqual({accountSid: 'AC_itest', authToken: 'tok_secret_itest'});
+    expect(rec.config).toEqual({
+      accountSid: 'AC_itest',
+      authToken: 'tok_secret_itest',
+    });
 
     const raw = await owner.query(
       `SELECT ciphertext, key_ref, status FROM capability.provider_credentials WHERE tenant_id = $1`,
@@ -60,22 +75,37 @@ describe('provider_credentials (live, RLS)', () => {
   });
 
   it('re-rotation REPLACES in place (unique tuple, upsert) — still one row', async () => {
-    await store.rotate(TNT_A, 'twilio-sms', CAP, {accountSid: 'AC_v2', authToken: 'tok_v2'});
-    expect((await store.resolve(TNT_A, 'twilio-sms', CAP)).config).toEqual({accountSid: 'AC_v2', authToken: 'tok_v2'});
-    const n = await owner.query(`SELECT count(*)::int AS n FROM capability.provider_credentials WHERE tenant_id = $1`, [TNT_A]);
+    await store.rotate(TNT_A, 'twilio-sms', CAP, {
+      accountSid: 'AC_v2',
+      authToken: 'tok_v2',
+    });
+    expect((await store.resolve(TNT_A, 'twilio-sms', CAP)).config).toEqual({
+      accountSid: 'AC_v2',
+      authToken: 'tok_v2',
+    });
+    const n = await owner.query(
+      `SELECT count(*)::int AS n FROM capability.provider_credentials WHERE tenant_id = $1`,
+      [TNT_A],
+    );
     expect(n.rows[0].n).toBe(1);
   });
 
   it("tenant B cannot resolve A's credentials (store) and cannot SEE the row (RLS GUC session)", async () => {
-    await expect(store.resolve(TNT_B, 'twilio-sms', CAP)).rejects.toThrow(MissingCredentialsError);
+    await expect(store.resolve(TNT_B, 'twilio-sms', CAP)).rejects.toThrow(
+      MissingCredentialsError,
+    );
 
     // Straight to the RLS posture: a platform_app session pinned to B sees zero of A's rows.
     const client = await owner.connect();
     try {
       await client.query('BEGIN');
       await client.query(`SET LOCAL ROLE platform_app`);
-      await client.query(`SELECT set_config('app.tenant_id', $1, true)`, [TNT_B]);
-      const visible = await client.query(`SELECT count(*)::int AS n FROM capability.provider_credentials`);
+      await client.query(`SELECT set_config('app.tenant_id', $1, true)`, [
+        TNT_B,
+      ]);
+      const visible = await client.query(
+        `SELECT count(*)::int AS n FROM capability.provider_credentials`,
+      );
       expect(visible.rows[0].n).toBe(0);
       await client.query('ROLLBACK');
     } finally {
@@ -85,18 +115,29 @@ describe('provider_credentials (live, RLS)', () => {
 
   it('revoke fail-closes at the live store until a fresh rotate', async () => {
     await store.revoke(TNT_A, 'twilio-sms', CAP);
-    await expect(store.resolve(TNT_A, 'twilio-sms', CAP)).rejects.toThrow(RevokedCredentialsError);
-    await store.rotate(TNT_A, 'twilio-sms', CAP, {accountSid: 'AC_v3', authToken: 'tok_v3'});
-    expect((await store.resolve(TNT_A, 'twilio-sms', CAP)).status).toBe('active');
+    await expect(store.resolve(TNT_A, 'twilio-sms', CAP)).rejects.toThrow(
+      RevokedCredentialsError,
+    );
+    await store.rotate(TNT_A, 'twilio-sms', CAP, {
+      accountSid: 'AC_v3',
+      authToken: 'tok_v3',
+    });
+    expect((await store.resolve(TNT_A, 'twilio-sms', CAP)).status).toBe(
+      'active',
+    );
   });
 
   it('revoking a tuple with NO prior row writes a durable revoked tombstone — no platform fallback', async () => {
     const layered = new FallbackCredentialStore(
       store,
-      new StaticProviderCredentialStore({'twilio-voice': {accountSid: 'AC_platform'}}),
+      new StaticProviderCredentialStore({
+        'twilio-voice': {accountSid: 'AC_platform'},
+      }),
     );
     // before: no tenant row → the tuple rides the platform bundle
-    expect((await layered.resolve(TNT_B, 'twilio-voice', CAP)).config).toEqual({accountSid: 'AC_platform'});
+    expect((await layered.resolve(TNT_B, 'twilio-voice', CAP)).config).toEqual({
+      accountSid: 'AC_platform',
+    });
 
     await layered.revoke(TNT_B, 'twilio-voice', CAP);
 
@@ -108,10 +149,16 @@ describe('provider_credentials (live, RLS)', () => {
     expect(raw.rows).toEqual([{status: 'revoked'}]);
 
     // fail-closed at both layers: never MissingCredentials → never the platform bundle
-    await expect(store.resolve(TNT_B, 'twilio-voice', CAP)).rejects.toThrow(RevokedCredentialsError);
-    await expect(layered.resolve(TNT_B, 'twilio-voice', CAP)).rejects.toThrow(RevokedCredentialsError);
+    await expect(store.resolve(TNT_B, 'twilio-voice', CAP)).rejects.toThrow(
+      RevokedCredentialsError,
+    );
+    await expect(layered.resolve(TNT_B, 'twilio-voice', CAP)).rejects.toThrow(
+      RevokedCredentialsError,
+    );
 
     // unaffected tuple: tenant A's own (rotated) credentials still resolve
-    expect((await store.resolve(TNT_A, 'twilio-sms', CAP)).status).toBe('active');
+    expect((await store.resolve(TNT_A, 'twilio-sms', CAP)).status).toBe(
+      'active',
+    );
   });
 });

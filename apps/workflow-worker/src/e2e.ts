@@ -38,7 +38,11 @@ async function main() {
   // Publish the compiled plans to the real Postgres plan store (ADR-014); the
   // workflow is then started with only refs and loads them via an activity.
   const bundle = buildBundle({});
-  await publishBundle(bundle, cfg.stores.authoritative.url, cfg.stores.ephemeral.url);
+  await publishBundle(
+    bundle,
+    cfg.stores.authoritative.url,
+    cfg.stores.ephemeral.url,
+  );
 
   const connection = await Connection.connect({address: cfg.temporal.address});
   const client = new Client({connection, namespace: cfg.temporal.namespace});

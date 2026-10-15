@@ -1,8 +1,13 @@
 // @platform/contracts — src/tenant.ts
 import {z} from 'zod';
 import {
-  TenantId, WorkspaceId, ConversationId, PrincipalId, IsoTimestamp,
-  DeploymentRef, SemVer,
+  TenantId,
+  WorkspaceId,
+  ConversationId,
+  PrincipalId,
+  IsoTimestamp,
+  DeploymentRef,
+  SemVer,
 } from './substrate.js';
 
 /* ------------------------------ Principal ------------------------------ */
@@ -13,7 +18,10 @@ export type PrincipalKind = z.infer<typeof PrincipalKind>;
 /** A capability scope string; mirrors capability naming `domain.resource.action` (+ wildcards). */
 export const Scope = z
   .string()
-  .regex(/^[a-z][a-z0-9-]*(\.[a-z0-9*-]+){1,2}$/, 'expected "domain.resource.action" scope')
+  .regex(
+    /^[a-z][a-z0-9-]*(\.[a-z0-9*-]+){1,2}$/,
+    'expected "domain.resource.action" scope',
+  )
   .brand('Scope');
 export type Scope = z.infer<typeof Scope>;
 
@@ -27,13 +35,23 @@ export const Principal = z.object({
   /** Flattened, resolved scopes. Drives agentback tools/list visibility + voters. */
   scopes: z.array(Scope).default([]),
   /** ABAC attributes consumed by policy voters (department, region, consent flags, …). */
-  attributes: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).default({}),
+  attributes: z
+    .record(
+      z.string(),
+      z.union([z.string(), z.number(), z.boolean(), z.null()]),
+    )
+    .default({}),
 });
 export type Principal = z.infer<typeof Principal>;
 
 /* --------------------------- TenantContext ----------------------------- */
 
-export const TenantStatus = z.enum(['active', 'suspended', 'trial', 'archived']);
+export const TenantStatus = z.enum([
+  'active',
+  'suspended',
+  'trial',
+  'archived',
+]);
 export type TenantStatus = z.infer<typeof TenantStatus>;
 
 export const DataResidency = z.enum(['us', 'eu', 'apac']);
@@ -93,7 +111,14 @@ export type TenantRuntimeContext = z.infer<typeof TenantRuntimeContext>;
 
 /* --------------------------- WorkspaceContext -------------------------- */
 
-export const Channel = z.enum(['sms', 'whatsapp', 'webchat', 'email', 'voice', 'api']);
+export const Channel = z.enum([
+  'sms',
+  'whatsapp',
+  'webchat',
+  'email',
+  'voice',
+  'api',
+]);
 export type Channel = z.infer<typeof Channel>;
 
 /**
@@ -119,12 +144,17 @@ export const AgentbackPrincipal = z.object({
   tenantId: TenantId,
   kind: PrincipalKind,
   scopes: z.array(Scope),
-  attributes: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])),
+  attributes: z.record(
+    z.string(),
+    z.union([z.string(), z.number(), z.boolean(), z.null()]),
+  ),
 });
 export type AgentbackPrincipal = z.infer<typeof AgentbackPrincipal>;
 
 /** Pure mapping — the "bridge" is a value-mapper, NOT DI marshalling (ADR-017). */
-export function principalFromWorkspace(ws: WorkspaceContext): AgentbackPrincipal {
+export function principalFromWorkspace(
+  ws: WorkspaceContext,
+): AgentbackPrincipal {
   return {
     subject: ws.principal.id,
     tenantId: ws.tenantRuntime.tenantId,

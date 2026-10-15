@@ -22,7 +22,12 @@ export type AgentbackMeteringExport = (
 ) => Promise<Partial<Record<MeterKind, number>>>;
 
 const ALL_METER_KINDS: MeterKind[] = [
-  'model.input.tokens', 'model.output.tokens', 'model.cost.usd', 'tool.invocation', 'message.sent', 'storage.vector',
+  'model.input.tokens',
+  'model.output.tokens',
+  'model.cost.usd',
+  'tool.invocation',
+  'message.sent',
+  'storage.vector',
 ];
 
 export class UsageCostAnalyticsService implements CostAnalyticsService {
@@ -33,17 +38,28 @@ export class UsageCostAnalyticsService implements CostAnalyticsService {
   ) {}
 
   /** No independent aggregation — the deduped UsageRecord table is the single source (T7). */
-  async summarize(tenantId: TenantId, period: string): Promise<Record<MeterKind, number>> {
+  async summarize(
+    tenantId: TenantId,
+    period: string,
+  ): Promise<Record<MeterKind, number>> {
     return this.meter.summarize(tenantId, period);
   }
 
-  async reconcile(tenantId: TenantId, period: string): Promise<ReconciliationReport> {
+  async reconcile(
+    tenantId: TenantId,
+    period: string,
+  ): Promise<ReconciliationReport> {
     const tolerance = this.opts.toleranceDiffPct ?? 1; // percent
-    const now = (this.opts.clock ?? (() => new Date()))().toISOString() as IsoTimestamp;
+    const now = (
+      this.opts.clock ?? (() => new Date())
+    )().toISOString() as IsoTimestamp;
     const platform = await this.meter.summarize(tenantId, period);
     const agentback = await this.agentbackExport(tenantId, period);
 
-    const deltas: Record<string, {platformTotal: number; agentbackTotal: number; diffPct: number}> = {};
+    const deltas: Record<
+      string,
+      {platformTotal: number; agentbackTotal: number; diffPct: number}
+    > = {};
     for (const kind of ALL_METER_KINDS) {
       const p = platform[kind] ?? 0;
       const a = agentback[kind] ?? 0;

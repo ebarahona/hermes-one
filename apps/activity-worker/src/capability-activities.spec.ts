@@ -4,9 +4,15 @@
 // second side effect silently deduped — while a Temporal retry of the SAME invocation must still
 // re-derive the identical key (exactly-once under at-least-once delivery).
 import {describe, expect, it} from 'vitest';
-import type {CapabilityInvoker, CapabilityLookup} from '@platform/capability-contract';
+import type {
+  CapabilityInvoker,
+  CapabilityLookup,
+} from '@platform/capability-contract';
 import type {CapabilityContract, ToolCall} from '@platform/contracts';
-import {createCapabilityActivities, type InvokeCapabilityArgs} from './capability-activities.js';
+import {
+  createCapabilityActivities,
+  type InvokeCapabilityArgs,
+} from './capability-activities.js';
 
 const CONTRACT = {
   name: 'messaging.reply.send',
@@ -39,7 +45,9 @@ describe('invokeCapability derived turn identity', () => {
     await activities.invokeCapability(BASE);
     await activities.invokeCapability(BASE);
     expect(invocations[1].turnId).toBe(invocations[0].turnId);
-    expect(invocations[1].call.idempotencyKey).toBe(invocations[0].call.idempotencyKey);
+    expect(invocations[1].call.idempotencyKey).toBe(
+      invocations[0].call.idempotencyKey,
+    );
     expect(invocations[1].call.toolCallId).toBe(invocations[0].call.toolCallId);
   });
 
@@ -49,7 +57,11 @@ describe('invokeCapability derived turn identity', () => {
     // Second rule-driven visit: identical capability + input — only the workflow's invocation seq advances.
     await activities.invokeCapability({...BASE, invokeSeq: 1});
     expect(invocations[1].turnId).not.toBe(invocations[0].turnId);
-    expect(invocations[1].call.idempotencyKey).not.toBe(invocations[0].call.idempotencyKey);
-    expect(invocations[1].call.toolCallId).not.toBe(invocations[0].call.toolCallId);
+    expect(invocations[1].call.idempotencyKey).not.toBe(
+      invocations[0].call.idempotencyKey,
+    );
+    expect(invocations[1].call.toolCallId).not.toBe(
+      invocations[0].call.toolCallId,
+    );
   });
 });

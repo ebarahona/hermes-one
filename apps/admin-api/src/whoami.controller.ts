@@ -13,11 +13,17 @@ import type {Principal} from '@platform/contracts';
 
 export class WhoamiController {
   constructor(
-    @inject(PlatformBindings.REQUEST_PRINCIPAL) private readonly principal: Principal,
+    @inject(PlatformBindings.REQUEST_PRINCIPAL)
+    private readonly principal: Principal,
   ) {}
 
   @get('/v1/whoami')
-  whoami(): {principalId: string; tenantId: string; kind: string; scopes: string[]} {
+  whoami(): {
+    principalId: string;
+    tenantId: string;
+    kind: string;
+    scopes: string[];
+  } {
     return {
       principalId: this.principal.id,
       tenantId: this.principal.tenantId,

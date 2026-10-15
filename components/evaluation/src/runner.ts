@@ -26,39 +26,78 @@ export type SimulateTurnFn = (
   deploymentRef: DeploymentRef,
 ) => Promise<TurnSimulationOutput>;
 
-type AssertionResult = {assertion: EvaluationAssertion; passed: boolean; detail?: string};
+type AssertionResult = {
+  assertion: EvaluationAssertion;
+  passed: boolean;
+  detail?: string;
+};
 
 /** Score one assertion against every turn's output (an assertion passes if it holds for ANY turn). */
-export function scoreAssertion(assertion: EvaluationAssertion, outputs: TurnSimulationOutput[]): AssertionResult {
-  const fail = (detail: string): AssertionResult => ({assertion, passed: false, detail});
+export function scoreAssertion(
+  assertion: EvaluationAssertion,
+  outputs: TurnSimulationOutput[],
+): AssertionResult {
+  const fail = (detail: string): AssertionResult => ({
+    assertion,
+    passed: false,
+    detail,
+  });
   const pass: AssertionResult = {assertion, passed: true};
 
   switch (assertion.kind) {
     case 'tool-called': {
       const hit = outputs.some(o =>
-        o.result.toolCalls.some((c, i) => c.capability === assertion.capability && i >= assertion.atStepOrLater),
+        o.result.toolCalls.some(
+          (c, i) =>
+            c.capability === assertion.capability &&
+            i >= assertion.atStepOrLater,
+        ),
       );
-      return hit ? pass : fail(`capability '${assertion.capability}' was not called at step ≥ ${assertion.atStepOrLater}`);
+      return hit
+        ? pass
+        : fail(
+            `capability '${assertion.capability}' was not called at step ≥ ${assertion.atStepOrLater}`,
+          );
     }
     case 'tool-not-called': {
-      const called = outputs.some(o => o.result.toolCalls.some(c => c.capability === assertion.capability));
-      return called ? fail(`capability '${assertion.capability}' was called but should not have been`) : pass;
+      const called = outputs.some(o =>
+        o.result.toolCalls.some(c => c.capability === assertion.capability),
+      );
+      return called
+        ? fail(
+            `capability '${assertion.capability}' was called but should not have been`,
+          )
+        : pass;
     }
     case 'evidence-contains': {
       const re = new RegExp(assertion.pattern);
-      const hit = outputs.some(o => o.ledger.evidence.some(e => re.test(e.statement)));
-      return hit ? pass : fail(`no evidence statement matched /${assertion.pattern}/`);
+      const hit = outputs.some(o =>
+        o.ledger.evidence.some(e => re.test(e.statement)),
+      );
+      return hit
+        ? pass
+        : fail(`no evidence statement matched /${assertion.pattern}/`);
     }
     case 'reply-matches': {
       const re = new RegExp(assertion.pattern);
-      const hit = outputs.some(o => typeof o.result.reply === 'string' && re.test(o.result.reply));
+      const hit = outputs.some(
+        o => typeof o.result.reply === 'string' && re.test(o.result.reply),
+      );
       return hit ? pass : fail(`no reply matched /${assertion.pattern}/`);
     }
     case 'policy-outcome': {
       const hit = outputs.some(o =>
-        o.ledger.policyDecisions.some(d => d.site === assertion.site && d.decision.outcome === assertion.outcome),
+        o.ledger.policyDecisions.some(
+          d =>
+            d.site === assertion.site &&
+            d.decision.outcome === assertion.outcome,
+        ),
       );
-      return hit ? pass : fail(`no ${assertion.site} decision had outcome '${assertion.outcome}'`);
+      return hit
+        ? pass
+        : fail(
+            `no ${assertion.site} decision had outcome '${assertion.outcome}'`,
+          );
     }
     case 'turn-outcome': {
       const hit = outputs.some(o => o.result.outcome === assertion.outcome);
@@ -73,10 +112,16 @@ export class DefaultEvaluationRunner implements EvaluationRunner {
     private readonly clock: () => Date = () => new Date(),
   ) {}
 
-  async runCase(goldenCase: GoldenConversationCase, deploymentRef: DeploymentRef): Promise<EvaluationResultType> {
+  async runCase(
+    goldenCase: GoldenConversationCase,
+    deploymentRef: DeploymentRef,
+  ): Promise<EvaluationResultType> {
     const outputs: TurnSimulationOutput[] = [];
-    for (const turn of goldenCase.turns) outputs.push(await this.simulate(turn, deploymentRef));
-    const assertionResults = goldenCase.assertions.map(a => scoreAssertion(a, outputs));
+    for (const turn of goldenCase.turns)
+      outputs.push(await this.simulate(turn, deploymentRef));
+    const assertionResults = goldenCase.assertions.map(a =>
+      scoreAssertion(a, outputs),
+    );
     return EvaluationResult.parse({
       caseId: goldenCase.caseId,
       deploymentRef,
@@ -87,7 +132,10 @@ export class DefaultEvaluationRunner implements EvaluationRunner {
     });
   }
 
-  async runSuite(goldenCases: GoldenConversationCase[], deploymentRef: DeploymentRef): Promise<EvaluationResultType[]> {
+  async runSuite(
+    goldenCases: GoldenConversationCase[],
+    deploymentRef: DeploymentRef,
+  ): Promise<EvaluationResultType[]> {
     const out: EvaluationResultType[] = [];
     for (const c of goldenCases) out.push(await this.runCase(c, deploymentRef));
     return out;

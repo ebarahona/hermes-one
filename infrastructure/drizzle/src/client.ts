@@ -43,7 +43,10 @@ export interface PlatformDbHandle {
  * login IS platform_app and the role option is a harmless no-op. Validated against ROLE_RE (the value
  * is embedded in the startup string, so it can't be parameterized).
  */
-export function createPlatformDb(url: string, opts: {appRole?: string} = {}): PlatformDbHandle {
+export function createPlatformDb(
+  url: string,
+  opts: {appRole?: string} = {},
+): PlatformDbHandle {
   const appRole = opts.appRole ?? 'platform_app';
   if (!ROLE_RE.test(appRole)) throw new Error(`invalid appRole: ${appRole}`);
   const pool = new Pool({connectionString: url, options: `-c role=${appRole}`});
@@ -62,7 +65,10 @@ export function createMigratorDb(url: string): PlatformDbHandle {
  * misconfigured production login (superuser / BYPASSRLS) fails startup instead of silently running
  * with RLS as a no-op.
  */
-export async function assertRlsPostureAtBoot(pgUrl: string, opts: {appRole?: string} = {}): Promise<void> {
+export async function assertRlsPostureAtBoot(
+  pgUrl: string,
+  opts: {appRole?: string} = {},
+): Promise<void> {
   const handle = createPlatformDb(pgUrl, opts);
   try {
     await assertNonBypassingRole(handle.db);
@@ -124,7 +130,10 @@ export interface AuditSinkHandle {
 }
 
 /** Convenience composition: pg (as platform_app) → a tenant-scoped append-only audit sink. */
-export function createAuditSink(pgUrl: string, opts: {appRole?: string} = {}): AuditSinkHandle {
+export function createAuditSink(
+  pgUrl: string,
+  opts: {appRole?: string} = {},
+): AuditSinkHandle {
   const {db, pool} = createPlatformDb(pgUrl, {appRole: opts.appRole});
   return {repo: new DrizzleAuditSink(db), close: () => pool.end()};
 }
@@ -135,7 +144,10 @@ export interface UsageMeterHandle {
 }
 
 /** Convenience composition: pg (as platform_app) → a tenant-scoped usage meter. */
-export function createUsageMeter(pgUrl: string, opts: {appRole?: string} = {}): UsageMeterHandle {
+export function createUsageMeter(
+  pgUrl: string,
+  opts: {appRole?: string} = {},
+): UsageMeterHandle {
   const {db, pool} = createPlatformDb(pgUrl, {appRole: opts.appRole});
   return {repo: new DrizzleUsageMeter(db), close: () => pool.end()};
 }
@@ -146,7 +158,10 @@ export interface TurnPersistenceHandle {
 }
 
 /** Convenience composition: pg (as platform_app) → the ATOMIC turn-persistence writer (F3). */
-export function createTurnPersistence(pgUrl: string, opts: {appRole?: string} = {}): TurnPersistenceHandle {
+export function createTurnPersistence(
+  pgUrl: string,
+  opts: {appRole?: string} = {},
+): TurnPersistenceHandle {
   const {db, pool} = createPlatformDb(pgUrl, {appRole: opts.appRole});
   return {repo: new DrizzleTurnPersistence(db), close: () => pool.end()};
 }
@@ -162,7 +177,10 @@ export function createEventOutboxRepository(
   opts: {appRole?: string; maxAttempts?: number} = {},
 ): EventOutboxRepositoryHandle {
   const {db, pool} = createPlatformDb(pgUrl, {appRole: opts.appRole});
-  return {repo: new DrizzleEventOutboxRepository(db, opts.maxAttempts), close: () => pool.end()};
+  return {
+    repo: new DrizzleEventOutboxRepository(db, opts.maxAttempts),
+    close: () => pool.end(),
+  };
 }
 
 export interface RoleRegistryHandle {
@@ -171,7 +189,10 @@ export interface RoleRegistryHandle {
 }
 
 /** Convenience composition: pg (as platform_app) → the role→scope registry. */
-export function createRoleRegistry(pgUrl: string, opts: {appRole?: string} = {}): RoleRegistryHandle {
+export function createRoleRegistry(
+  pgUrl: string,
+  opts: {appRole?: string} = {},
+): RoleRegistryHandle {
   const {db, pool} = createPlatformDb(pgUrl, {appRole: opts.appRole});
   return {repo: new DrizzleRoleRegistry(db), close: () => pool.end()};
 }
@@ -188,12 +209,21 @@ export interface VerticalPackInstallationsHandle {
 }
 
 /** tenant.vertical_pack_installations (ADR-013/CT2) — written by the vertical installer. */
-export function createVerticalPackInstallations(pgUrl: string, opts: {appRole?: string} = {}): VerticalPackInstallationsHandle {
+export function createVerticalPackInstallations(
+  pgUrl: string,
+  opts: {appRole?: string} = {},
+): VerticalPackInstallationsHandle {
   const {db, pool} = createPlatformDb(pgUrl, {appRole: opts.appRole});
-  return {repo: new DrizzleVerticalPackInstallationRepository(db), close: () => pool.end()};
+  return {
+    repo: new DrizzleVerticalPackInstallationRepository(db),
+    close: () => pool.end(),
+  };
 }
 
-export function createCredentialRowStore(pgUrl: string, opts: {appRole?: string} = {}): CredentialRowStoreHandle {
+export function createCredentialRowStore(
+  pgUrl: string,
+  opts: {appRole?: string} = {},
+): CredentialRowStoreHandle {
   const {db, pool} = createPlatformDb(pgUrl, {appRole: opts.appRole});
   return {repo: new DrizzleCredentialRowStore(db), close: () => pool.end()};
 }
@@ -210,7 +240,10 @@ export function createProviderMappingRepository(
   opts: {appRole?: string} = {},
 ): ProviderMappingRepositoryHandle {
   const {db, pool} = createPlatformDb(pgUrl, {appRole: opts.appRole});
-  return {repo: new DrizzleProviderMappingRepository(db), close: () => pool.end()};
+  return {
+    repo: new DrizzleProviderMappingRepository(db),
+    close: () => pool.end(),
+  };
 }
 
 export interface AuditQueryServiceHandle {
@@ -219,7 +252,10 @@ export interface AuditQueryServiceHandle {
 }
 
 /** Convenience composition: pg (as platform_app) → the read-side audit timeline/query service. */
-export function createAuditQueryService(pgUrl: string, opts: {appRole?: string} = {}): AuditQueryServiceHandle {
+export function createAuditQueryService(
+  pgUrl: string,
+  opts: {appRole?: string} = {},
+): AuditQueryServiceHandle {
   const {db, pool} = createPlatformDb(pgUrl, {appRole: opts.appRole});
   return {repo: new DrizzleAuditQueryService(db), close: () => pool.end()};
 }
@@ -231,7 +267,10 @@ export interface SubstrateWriteHandle {
 }
 
 /** Convenience composition: pg (as platform_app) → the tenant-scoped substrate write repositories. */
-export function createSubstrateWrite(pgUrl: string, opts: {appRole?: string} = {}): SubstrateWriteHandle {
+export function createSubstrateWrite(
+  pgUrl: string,
+  opts: {appRole?: string} = {},
+): SubstrateWriteHandle {
   const {db, pool} = createPlatformDb(pgUrl, {appRole: opts.appRole});
   return {
     definitions: new DrizzleDefinitionRepository(db),
@@ -248,7 +287,11 @@ export function createCompiledPlanStore(
 ): CompiledPlanStoreHandle {
   const {db, pool} = createPlatformDb(pgUrl, {appRole: opts.appRole});
   const redis: RedisClient = createRedisClient(redisUrl);
-  const store = new DrizzleCompiledPlanStore(db, redis, opts.cache ?? DEFAULT_SUBSTRATE_CACHE);
+  const store = new DrizzleCompiledPlanStore(
+    db,
+    redis,
+    opts.cache ?? DEFAULT_SUBSTRATE_CACHE,
+  );
   return {
     store,
     close: async () => {

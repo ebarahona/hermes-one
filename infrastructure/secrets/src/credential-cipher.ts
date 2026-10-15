@@ -4,13 +4,25 @@
 // TenantMasterKeyRef) is the production swap — SAME port, no store change. Plaintext bundles exist
 // only in memory between decrypt and ProviderExecutionContext.config; they never touch a column,
 // a log, or a definition body.
-import {createCipheriv, createDecipheriv, createHash, randomBytes} from 'node:crypto';
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  randomBytes,
+} from 'node:crypto';
 import type {TenantId} from '@platform/contracts';
 
 export interface CredentialCipher {
   /** Encrypt one tenant's bundle. `keyRef` names the wrapping key for rotation-aware decrypt. */
-  encrypt(tenantId: TenantId, plaintext: string): Promise<{ciphertext: string; keyRef: string}>;
-  decrypt(tenantId: TenantId, ciphertext: string, keyRef: string): Promise<string>;
+  encrypt(
+    tenantId: TenantId,
+    plaintext: string,
+  ): Promise<{ciphertext: string; keyRef: string}>;
+  decrypt(
+    tenantId: TenantId,
+    ciphertext: string,
+    keyRef: string,
+  ): Promise<string>;
 }
 
 /**
@@ -26,21 +38,35 @@ export class LocalAesGcmCipher implements CredentialCipher {
   /** `masterKeyHex`: 64 hex chars (32 bytes). Comes from config/env at the composition root ONLY. */
   constructor(masterKeyHex: string) {
     if (!/^[0-9a-f]{64}$/i.test(masterKeyHex)) {
-      throw new Error('LocalAesGcmCipher: masterKey must be 64 hex chars (32 bytes)');
+      throw new Error(
+        'LocalAesGcmCipher: masterKey must be 64 hex chars (32 bytes)',
+      );
     }
     this.master = Buffer.from(masterKeyHex, 'hex');
     // Key IDENTITY for keyRef — a fingerprint, never material.
-    this.keyId = createHash('sha256').update(this.master).digest('hex').slice(0, 16);
+    this.keyId = createHash('sha256')
+      .update(this.master)
+      .digest('hex')
+      .slice(0, 16);
   }
 
   private subkey(tenantId: TenantId): Buffer {
-    return createHash('sha256').update(this.master).update(String(tenantId)).digest();
+    return createHash('sha256')
+      .update(this.master)
+      .update(String(tenantId))
+      .digest();
   }
 
-  async encrypt(tenantId: TenantId, plaintext: string): Promise<{ciphertext: string; keyRef: string}> {
+  async encrypt(
+    tenantId: TenantId,
+    plaintext: string,
+  ): Promise<{ciphertext: string; keyRef: string}> {
     const iv = randomBytes(12);
     const cipher = createCipheriv('aes-256-gcm', this.subkey(tenantId), iv);
-    const data = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
+    const data = Buffer.concat([
+      cipher.update(plaintext, 'utf8'),
+      cipher.final(),
+    ]);
     const tag = cipher.getAuthTag();
     return {
       ciphertext: `${iv.toString('base64url')}:${tag.toString('base64url')}:${data.toString('base64url')}`,
@@ -48,18 +74,35 @@ export class LocalAesGcmCipher implements CredentialCipher {
     };
   }
 
-  async decrypt(tenantId: TenantId, ciphertext: string, keyRef: string): Promise<string> {
+  async decrypt(
+    tenantId: TenantId,
+    ciphertext: string,
+    keyRef: string,
+  ): Promise<string> {
     if (keyRef !== `local:${this.keyId}`) {
-      throw new Error(`credential wrapped under a different key (${keyRef}) — rotate or supply that key`);
+      throw new Error(
+        `credential wrapped under a different key (${keyRef}) — rotate or supply that key`,
+      );
     }
     const parts = ciphertext.split(':');
-    if (parts.length !== 3) throw new Error('credential ciphertext malformed — expected iv:tag:data');
+    if (parts.length !== 3)
+      throw new Error('credential ciphertext malformed — expected iv:tag:data');
     const [iv, tag, data] = parts.map(p => Buffer.from(p, 'base64url'));
     // Full 16-byte GCM tag ONLY: Node accepts truncated (4/8/12-byte) tags, which would let a
     // DB-level tamperer forge with 2^-32 instead of 2^-128 work. authTagLength pins the decipher too.
-    if (tag.length !== 16) throw new Error(`credential auth tag must be 16 bytes, got ${tag.length}`);
-    const decipher = createDecipheriv('aes-256-gcm', this.subkey(tenantId), iv, {authTagLength: 16});
+    if (tag.length !== 16)
+      throw new Error(
+        `credential auth tag must be 16 bytes, got ${tag.length}`,
+      );
+    const decipher = createDecipheriv(
+      'aes-256-gcm',
+      this.subkey(tenantId),
+      iv,
+      {authTagLength: 16},
+    );
     decipher.setAuthTag(tag);
-    return Buffer.concat([decipher.update(data), decipher.final()]).toString('utf8');
+    return Buffer.concat([decipher.update(data), decipher.final()]).toString(
+      'utf8',
+    );
   }
 }

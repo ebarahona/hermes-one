@@ -9,8 +9,17 @@
 // (it's the other way round). On success the PrincipalMapper (the sole writer) binds the principal.
 // Fail-closed everywhere: no registry bound → 401; registry rejects → its `unauthorized` propagates.
 import {inject, injectable, type Provider} from '@loopback/core';
-import {asMiddleware, type Middleware, type MiddlewareContext, type Request} from '@loopback/rest';
-import {type AuthenticatedIdentity, PlatformErrorException, type PrincipalMapper} from '@platform/contracts';
+import {
+  asMiddleware,
+  type Middleware,
+  type MiddlewareContext,
+  type Request,
+} from '@loopback/rest';
+import {
+  type AuthenticatedIdentity,
+  PlatformErrorException,
+  type PrincipalMapper,
+} from '@platform/contracts';
 import {PlatformSequenceGroups} from './sequence-groups.js';
 import {REST_PUBLIC_PATHS} from './rest-bindings.js';
 
@@ -58,12 +67,16 @@ export class FailClosedAuthenticationMiddleware implements Provider<Middleware> 
   value(): Middleware {
     return async (ctx: MiddlewareContext, next) => {
       const path = ctx.request.path;
-      const isPublic = this.publicPaths.some(p => path === p || path.startsWith(`${p}/`));
+      const isPublic = this.publicPaths.some(
+        p => path === p || path.startsWith(`${p}/`),
+      );
       if (isPublic) return next();
 
       // Non-public: an auth strategy MUST establish a principal. Resolve the plane from the request
       // context (request-scoped mapper binds against THIS ctx).
-      const registry = await ctx.get<Authenticator>(STRATEGY_REGISTRY_KEY, {optional: true});
+      const registry = await ctx.get<Authenticator>(STRATEGY_REGISTRY_KEY, {
+        optional: true,
+      });
       if (!registry) throw unauthorized(); // auth plane not wired → fail-closed
       const identity = await registry.authenticate(ctx.request); // throws unauthorized on bad/absent credential
       const mapper = await ctx.get<PrincipalMapper>(PRINCIPAL_MAPPER_KEY);

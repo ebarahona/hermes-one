@@ -8,7 +8,14 @@
 //
 // FLAGGED: message.sent/received audit events belong to the channel layer (not the turn) — later.
 import {createHash} from 'node:crypto';
-import type {AuditEvent, TurnId, ConversationId, PrincipalId, TenantId, IsoTimestamp} from '@platform/contracts';
+import type {
+  AuditEvent,
+  TurnId,
+  ConversationId,
+  PrincipalId,
+  TenantId,
+  IsoTimestamp,
+} from '@platform/contracts';
 import type {TurnLedger} from '@platform-internal/agent-runtime';
 
 const sha256hex = (s: string) => createHash('sha256').update(s).digest('hex');
@@ -16,15 +23,27 @@ const sha256hex = (s: string) => createHash('sha256').update(s).digest('hex');
 /** integrityHash = sha256 of the row minus id (tamper-evidence + replay dedupe), 'sha256:<64hex>'. */
 function integrityHash(row: Omit<AuditEvent, 'id' | 'integrityHash'>): string {
   const canonical = JSON.stringify([
-    row.tenantId, row.principalId, row.action, row.correlationId, row.turnId, row.conversationId,
-    row.subject, row.detail, row.outcome, row.occurredAt,
+    row.tenantId,
+    row.principalId,
+    row.action,
+    row.correlationId,
+    row.turnId,
+    row.conversationId,
+    row.subject,
+    row.detail,
+    row.outcome,
+    row.occurredAt,
   ]);
   return `sha256:${sha256hex(canonical)}`;
 }
 
 export function deriveAuditEvents(
   ledger: TurnLedger,
-  ctx: {principalId: PrincipalId; conversationId: ConversationId | null; occurredAt: IsoTimestamp},
+  ctx: {
+    principalId: PrincipalId;
+    conversationId: ConversationId | null;
+    occurredAt: IsoTimestamp;
+  },
 ): AuditEvent[] {
   const events: Omit<AuditEvent, 'id' | 'integrityHash'>[] = [];
   const base = {
@@ -41,7 +60,11 @@ export function deriveAuditEvents(
       ...base,
       action: 'tool.invoked',
       subject: call.capability,
-      detail: {toolCallId: result.toolCallId, sideEffect: result.sideEffect, changedDomains: result.changedDomains},
+      detail: {
+        toolCallId: result.toolCallId,
+        sideEffect: result.sideEffect,
+        changedDomains: result.changedDomains,
+      },
       outcome: result.ok ? 'success' : 'error',
     });
   }
@@ -51,7 +74,12 @@ export function deriveAuditEvents(
       ...base,
       action: 'decision.policy',
       subject: capability ?? decision.policyRuleId,
-      detail: {site, outcome: decision.outcome, policyRuleId: decision.policyRuleId, reason: decision.reason},
+      detail: {
+        site,
+        outcome: decision.outcome,
+        policyRuleId: decision.policyRuleId,
+        reason: decision.reason,
+      },
       outcome: decision.outcome === 'deny' ? 'denied' : 'success',
     });
   }

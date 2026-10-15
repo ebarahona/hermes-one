@@ -17,7 +17,11 @@ export {
   type PlatformDb,
   type PlatformTx,
 } from './tenant-aware.repository.js';
-export {assertNonBypassingRole, tenantGucPreflight, type RlsRolePosture} from './rls-self-check.js';
+export {
+  assertNonBypassingRole,
+  tenantGucPreflight,
+  type RlsRolePosture,
+} from './rls-self-check.js';
 
 // Compiled-plan store (content-hash addressed + Redis cache-through).
 export {
@@ -49,7 +53,10 @@ export {DrizzleAuditSink} from './audit-repository.js';
 export {DrizzleUsageMeter} from './usage-repository.js';
 export {DrizzleAuditQueryService} from './audit-query.js';
 export {DrizzleCredentialRowStore} from './provider-credential-rows.js';
-export {DrizzleVerticalPackInstallationRepository, type VerticalPackInstallation} from './vertical-pack-repository.js';
+export {
+  DrizzleVerticalPackInstallationRepository,
+  type VerticalPackInstallation,
+} from './vertical-pack-repository.js';
 export {DrizzleProviderMappingRepository} from './provider-mapping-repository.js';
 export {
   DrizzleTurnPersistence,
@@ -115,7 +122,10 @@ export {
 } from './client.js';
 
 // Migration runner.
-export {DrizzleTenantRepository, type TenantPatch} from './tenant-repository.js';
+export {
+  DrizzleTenantRepository,
+  type TenantPatch,
+} from './tenant-repository.js';
 export {
   DrizzleUserRepository,
   type UserCreateInput,

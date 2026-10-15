@@ -31,16 +31,27 @@ export function messagingReplySendContract(): CapabilityContract {
     inputJsonSchema: {
       type: 'object',
       required: ['to'],
-      properties: {to: {type: 'string'}, template: {type: 'string'}, body: {type: 'string'}},
+      properties: {
+        to: {type: 'string'},
+        template: {type: 'string'},
+        body: {type: 'string'},
+      },
     },
     outputJsonSchema: {
       type: 'object',
       required: ['providerMessageId', 'status'],
-      properties: {providerMessageId: {type: 'string'}, status: {type: 'string'}},
+      properties: {
+        providerMessageId: {type: 'string'},
+        status: {type: 'string'},
+      },
     },
     sideEffect: 'external',
     changedDomains: ['messaging', 'conversation'],
-    idempotency: {required: true, keyFields: ['to', 'template'], ttlSeconds: 86400},
+    idempotency: {
+      required: true,
+      keyFields: ['to', 'template'],
+      ttlSeconds: 86400,
+    },
     confirm: false,
     requiredScope: 'messaging.reply.send',
     providerMapping: {
@@ -70,12 +81,14 @@ export interface MessageSendResult {
   status: 'queued' | 'sent';
 }
 
-const shortHash = (s: string, n: number) => createHash('sha256').update(s).digest('hex').slice(0, n);
+const shortHash = (s: string, n: number) =>
+  createHash('sha256').update(s).digest('hex').slice(0, n);
 
 /** Persists the outbound message to runtime.messages (the authoritative record); returns a receipt id. */
-export class PersistingMessageProvider
-  implements ProviderAdapter<OutboundInput, MessageSendResult>
-{
+export class PersistingMessageProvider implements ProviderAdapter<
+  OutboundInput,
+  MessageSendResult
+> {
   readonly providerId = 'internal-message-log';
   readonly capability = MESSAGING_REPLY_SEND;
 
@@ -93,12 +106,16 @@ export class PersistingMessageProvider
     };
   }
 
-  async execute(input: OutboundInput, ctx: ProviderExecutionContext): Promise<MessageSendResult> {
+  async execute(
+    input: OutboundInput,
+    ctx: ProviderExecutionContext,
+  ): Promise<MessageSendResult> {
     const providerMessageId = `pm_${shortHash(ctx.idempotencyKey, 16)}`;
     await this.repo.appendOutbound(
       {
         messageId: `msg_${shortHash(ctx.idempotencyKey, 24)}`,
-        conversationId: input.conversationId ?? `cnv_${shortHash(input.to, 16)}`,
+        conversationId:
+          input.conversationId ?? `cnv_${shortHash(input.to, 16)}`,
         channel: 'sms',
         body: input.body ?? input.template,
         providerMessageId,

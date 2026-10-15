@@ -24,7 +24,10 @@ export interface RedisClient {
    * SUBSCRIBE on a DEDICATED duplicated connection (ioredis requires a subscriber connection to do
    * nothing else). Returns an unsubscribe that closes that dedicated connection.
    */
-  subscribe(channel: string, onMessage: (message: string) => void): Promise<() => Promise<void>>;
+  subscribe(
+    channel: string,
+    onMessage: (message: string) => void,
+  ): Promise<() => Promise<void>>;
   close(): Promise<void>;
 }
 
@@ -45,7 +48,13 @@ export function createRedisClient(url: string): RedisClient {
       await redis.publish(channel, message);
     },
     setnx: async (key, ttlSeconds, value) => {
-      const res = await redis.set(key, value, 'EX', Math.max(1, ttlSeconds), 'NX');
+      const res = await redis.set(
+        key,
+        value,
+        'EX',
+        Math.max(1, ttlSeconds),
+        'NX',
+      );
       return res === 'OK';
     },
     subscribe: async (channel, onMessage) => {
@@ -91,11 +100,18 @@ export class RedisNonceStore implements NonceStore {
 /* ------------------- Event fan-out ------------------- */
 
 /** The default `channelPattern` in EventEnvelopeConfig. Never a cross-tenant wildcard. */
-export const DEFAULT_EVENT_CHANNEL_PATTERN = 'events:{tenantId}:{aggregateType}';
+export const DEFAULT_EVENT_CHANNEL_PATTERN =
+  'events:{tenantId}:{aggregateType}';
 
 /** The ONE place the event pub/sub channel string is constructed. */
-export function eventChannel(pattern: string, tenantId: string, aggregateType: string): string {
-  return pattern.replace('{tenantId}', tenantId).replace('{aggregateType}', aggregateType);
+export function eventChannel(
+  pattern: string,
+  tenantId: string,
+  aggregateType: string,
+): string {
+  return pattern
+    .replace('{tenantId}', tenantId)
+    .replace('{aggregateType}', aggregateType);
 }
 
 /**
@@ -111,7 +127,11 @@ export class RedisPubSubEventPublisher implements EventPublisher {
 
   async publish(envelope: EventEnvelope): Promise<void> {
     await this.client.publish(
-      eventChannel(this.channelPattern, envelope.tenantId, envelope.aggregate.type),
+      eventChannel(
+        this.channelPattern,
+        envelope.tenantId,
+        envelope.aggregate.type,
+      ),
       JSON.stringify(envelope),
     );
   }

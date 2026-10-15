@@ -1,7 +1,11 @@
 // Unit tests for the event-envelope contract.
 import {describe, expect, it} from 'vitest';
 import type {EventOutboxRow, IsoTimestamp, SemVer, TenantId} from './index.js';
-import {EventEnvelope, deriveEventIdempotencyKey, toEventEnvelope} from './index.js';
+import {
+  EventEnvelope,
+  deriveEventIdempotencyKey,
+  toEventEnvelope,
+} from './index.js';
 
 const row: EventOutboxRow = {
   outboxId: 'obx_7f1',
@@ -32,17 +36,26 @@ describe('toEventEnvelope (outbox row → wire shape)', () => {
 
   it('idempotencyKey is stable across republish (attempt count plays no part)', () => {
     const a = toEventEnvelope(row, '1.0.0' as SemVer);
-    const b = toEventEnvelope({...row, attempts: 3, status: 'failed'}, '1.0.0' as SemVer);
+    const b = toEventEnvelope(
+      {...row, attempts: 3, status: 'failed'},
+      '1.0.0' as SemVer,
+    );
     expect(a.idempotencyKey).toBe(b.idempotencyKey);
     expect(a.idempotencyKey).toBe(
       deriveEventIdempotencyKey({
-        tenantId: row.tenantId, aggregateType: 'audit_event', aggregateId: 'aud_7f1', eventType: 'tool.invoked',
+        tenantId: row.tenantId,
+        aggregateType: 'audit_event',
+        aggregateId: 'aud_7f1',
+        eventType: 'tool.invoked',
       }),
     );
   });
 
   it('falls back to the aggregateId as correlationId when the payload has none', () => {
-    const env = toEventEnvelope({...row, payload: {id: 'aud_7f1'}}, '1.0.0' as SemVer);
+    const env = toEventEnvelope(
+      {...row, payload: {id: 'aud_7f1'}},
+      '1.0.0' as SemVer,
+    );
     expect(env.correlationId).toBe('aud_7f1');
   });
 });

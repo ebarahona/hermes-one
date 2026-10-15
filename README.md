@@ -47,13 +47,13 @@ see `docs/SPIKE-FINDINGS.md`.
 
 ## Layout (five areas)
 
-| Area              | Role                                                 | Scope                  |
-| ----------------- | ---------------------------------------------------- | ---------------------- |
+| Area              | Role                                                                                                                                     | Scope                  |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
 | `apps/`           | deployable processes, one composition root each (`admin-web` is reserved for the admin console, which drops onto the existing admin API) | `@platform-internal/*` |
-| `packages/`       | pure libraries — schemas, compilers, plan types      | `@platform/*`          |
-| `components/`     | DI-wired engines (depend on ports, not adapters)     | `@platform-internal/*` |
-| `infrastructure/` | I/O adapters (the only place with I/O)               | `@platform-internal/*` |
-| `verticals/`      | **data** bundles (not workspace packages)            | —                      |
+| `packages/`       | pure libraries — schemas, compilers, plan types                                                                                          | `@platform/*`          |
+| `components/`     | DI-wired engines (depend on ports, not adapters)                                                                                         | `@platform-internal/*` |
+| `infrastructure/` | I/O adapters (the only place with I/O)                                                                                                   | `@platform-internal/*` |
+| `verticals/`      | **data** bundles (not workspace packages)                                                                                                | —                      |
 
 ## Toolchain
 

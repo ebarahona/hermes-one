@@ -13,7 +13,11 @@
 // (typed not_found, non-retryable) — never a silent fallback to the active deployment.
 import {Context} from '@agentback/context';
 import {Context as ActivityContext} from '@temporalio/activity';
-import {MCPBindings, MCP_DISPATCH_HOOK_TAG, type MCPServer} from '@agentback/mcp';
+import {
+  MCPBindings,
+  MCP_DISPATCH_HOOK_TAG,
+  type MCPServer,
+} from '@agentback/mcp';
 import {
   type AgentEngineContract,
   type CapabilityContract,
@@ -28,12 +32,23 @@ import {
   type TurnRequest,
   type TurnResult,
 } from '@platform/contracts';
-import {capabilitiesForEngine, deriveIdempotencyKey, ProviderRegistry, ProviderResolver} from '@platform/capability-contract';
+import {
+  capabilitiesForEngine,
+  deriveIdempotencyKey,
+  ProviderRegistry,
+  ProviderResolver,
+} from '@platform/capability-contract';
 import {ExpressionPolicyRuntime} from '@platform/policy-dsl';
 import {builtinRegistry} from '@platform/expression-core';
 import {loadConfig} from '@platform-internal/config';
-import {createOpenAICompatibleModel, type SingleStepModel} from '@platform-internal/model-client';
-import {createAgentPlaneApp, CapabilityToolProjector} from '@platform-internal/agentback-runtime';
+import {
+  createOpenAICompatibleModel,
+  type SingleStepModel,
+} from '@platform-internal/model-client';
+import {
+  createAgentPlaneApp,
+  CapabilityToolProjector,
+} from '@platform-internal/agentback-runtime';
 import {InternalSchedulerProvider} from '@platform-internal/scheduler';
 import {
   EnvelopeCredentialStore,
@@ -49,7 +64,12 @@ import {
   type ToolBindingSource,
   type ProviderIdSource,
 } from '@platform-internal/tool-executor';
-import {createModelDecider, runTurn, type DeciderTool, type TurnLedger} from '@platform-internal/agent-runtime';
+import {
+  createModelDecider,
+  runTurn,
+  type DeciderTool,
+  type TurnLedger,
+} from '@platform-internal/agent-runtime';
 import {
   assertRlsPostureAtBoot,
   createCompiledPlanStore,
@@ -88,7 +108,9 @@ import {emitTurnMetrics} from './turn-metrics.js';
 // before export. The real redaction rule set comes from the PII data-classification (flagged, OB5).
 const turnLogger: Logger = new RedactingLogger(
   new JsonLogger('info'),
-  new FieldRedactor([{fieldPath: 'reply', dataClass: 'free-text', strategy: 'mask'}]),
+  new FieldRedactor([
+    {fieldPath: 'reply', dataClass: 'free-text', strategy: 'mask'},
+  ]),
 );
 // Metrics catalogue: emitted as structured logs in dev (OTel exporter is the prod swap, flagged OB5).
 const meter: Meter = new LoggingMeter(new JsonLogger('info'));
@@ -117,14 +139,24 @@ class TracingToolExecutor extends PlatformToolExecutor {
     super(server, parent, metaSource, bindingSource, providerIdSource);
   }
 
-  override async dispatch(call: ToolCall, ctx: TurnContext): Promise<DispatchResult> {
+  override async dispatch(
+    call: ToolCall,
+    ctx: TurnContext,
+  ): Promise<DispatchResult> {
     const span = this.tracer.startSpan(`agent.tool.${call.capability}`, {
       parentTraceparent: this.turnTraceparent,
-      attributes: {'tenant.id': this.tenantId, 'turn.id': this.turnId, 'tool.capability': call.capability},
+      attributes: {
+        'tenant.id': this.tenantId,
+        'turn.id': this.turnId,
+        'tool.capability': call.capability,
+      },
     });
     try {
       const d = await super.dispatch(call, ctx);
-      span.setAttributes({'tool.side_effect': d.result.sideEffect, 'tool.ok': d.result.ok});
+      span.setAttributes({
+        'tool.side_effect': d.result.sideEffect,
+        'tool.ok': d.result.ok,
+      });
       span.end({ok: d.result.ok});
       return d;
     } catch (err) {
@@ -168,32 +200,47 @@ function boot(): Promise<Booted> {
     // RLS boot self-check (RLS): a bypass-capable login fails startup, not silently.
     await assertRlsPostureAtBoot(cfg.stores.authoritative.url);
     const app = createAgentPlaneApp();
-    app.bind('platform.hook.envelope').to(createEnvelopeHook()).tag(MCP_DISPATCH_HOOK_TAG);
+    app
+      .bind('platform.hook.envelope')
+      .to(createEnvelopeHook())
+      .tag(MCP_DISPATCH_HOOK_TAG);
     await app.start();
     const server = await app.get<MCPServer>(MCPBindings.SERVER);
     const model = createOpenAICompatibleModel(cfg.llm);
-    const {store} = createCompiledPlanStore(cfg.stores.authoritative.url, cfg.stores.ephemeral.url);
-    const {repo: persistence} = createTurnPersistence(cfg.stores.authoritative.url);
+    const {store} = createCompiledPlanStore(
+      cfg.stores.authoritative.url,
+      cfg.stores.ephemeral.url,
+    );
+    const {repo: persistence} = createTurnPersistence(
+      cfg.stores.authoritative.url,
+    );
     // OTel tracing (OB5): one provider per worker process; spans export to the configured exporter.
-    const tracing = initTracing(tracingConfigFor(cfg.otel, 'hermes-agent-worker'));
+    const tracing = initTracing(
+      tracingConfigFor(cfg.otel, 'hermes-agent-worker'),
+    );
     // The PROVIDER PLANE in the agent plane (tool projection). Before this the agent plane had no
     // ProviderRegistry at all and dispatched to the SpikeBookingTools fixtures; now a pinned capability
     // projects to a tool whose generic body resolves the ranked adapter here. Adapters are plane-neutral
     // (@platform-internal/*, no @loopback/*) so the agent plane may import them (ADR-017 / plane-lint).
     const providers = new ProviderRegistry([new InternalSchedulerProvider()]);
-    const projector = new CapabilityToolProjector((capability, mapping, facts) =>
-      new ProviderResolver(providers).resolve(capability, mapping, facts),
+    const projector = new CapabilityToolProjector(
+      (capability, mapping, facts) =>
+        new ProviderResolver(providers).resolve(capability, mapping, facts),
     );
     // ProviderCredentialStore (port in @platform/contracts, impl in the plane-neutral
     // infrastructure/secrets — ledger S7): the agent plane could never import the old edge-plane
     // store, which is WHY providerConfig was {} here (PE7). internal-scheduler is credential-less —
     // an EXPLICIT empty bundle; absence stays fail-closed. The per-tenant envelope store (ADR-026)
     // swaps in behind this same port.
-    const platformDefaults = new StaticProviderCredentialStore({[new InternalSchedulerProvider().providerId]: {}});
+    const platformDefaults = new StaticProviderCredentialStore({
+      [new InternalSchedulerProvider().providerId]: {},
+    });
     // ADR-026: with a master key configured, per-tenant envelope-encrypted rows take precedence and
     // the static env bundle becomes the platform DEFAULT a tenant falls back to until they bring
     // their own vendor account (rotate()). Without a key: static only, exactly as before.
-    const mappingOverrides = createProviderMappingRepository(cfg.stores.authoritative.url).repo;
+    const mappingOverrides = createProviderMappingRepository(
+      cfg.stores.authoritative.url,
+    ).repo;
     const credentials = cfg.credentials
       ? new FallbackCredentialStore(
           new EnvelopeCredentialStore(
@@ -203,7 +250,18 @@ function boot(): Promise<Booted> {
           platformDefaults,
         )
       : platformDefaults;
-    return {app, server, model, store, persistence, tracer: tracing.tracer, tracing, projector, credentials, mappingOverrides};
+    return {
+      app,
+      server,
+      model,
+      store,
+      persistence,
+      tracer: tracing.tracer,
+      tracing,
+      projector,
+      credentials,
+      mappingOverrides,
+    };
   })());
 }
 
@@ -214,7 +272,10 @@ export async function shutdownAgentWorker(): Promise<void> {
 
 // HandoffConfig routing defaults are not wired yet (no tenant config store) — 'general'/'normal', no
 // expiry (flagged, DEFERRED-AND-FLAGGED). The turn grounds reason/summary/evidence; the edge fills these.
-function toHandoffRow(h: NonNullable<TurnLedger['handoff']>, now: Date): HandoffTaskRow {
+function toHandoffRow(
+  h: NonNullable<TurnLedger['handoff']>,
+  now: Date,
+): HandoffTaskRow {
   return {
     handoffId: h.handoffId,
     conversationId: h.conversationId as string,
@@ -226,7 +287,9 @@ function toHandoffRow(h: NonNullable<TurnLedger['handoff']>, now: Date): Handoff
     queue: 'general',
     status: 'requested',
     owner: 'agent',
-    transitions: [{from: null, to: 'requested', by: 'prn_system', at: now.toISOString()}],
+    transitions: [
+      {from: null, to: 'requested', by: 'prn_system', at: now.toISOString()},
+    ],
     requestedAt: now,
     updatedAt: now,
   };
@@ -277,7 +340,10 @@ function toLedgerRows(l: TurnLedger): TurnLedgerRows {
   };
 }
 
-export async function agentTurn(request: TurnRequest, trace?: TraceHeader): Promise<TurnResult> {
+export async function agentTurn(
+  request: TurnRequest,
+  trace?: TraceHeader,
+): Promise<TurnResult> {
   const stopHeartbeat = startHeartbeat();
   try {
     return await runAgentTurn(request, trace);
@@ -286,8 +352,21 @@ export async function agentTurn(request: TurnRequest, trace?: TraceHeader): Prom
   }
 }
 
-async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<TurnResult> {
-  const {app, server, model, store, persistence, tracer, projector, credentials, mappingOverrides} = await boot();
+async function runAgentTurn(
+  request: TurnRequest,
+  trace?: TraceHeader,
+): Promise<TurnResult> {
+  const {
+    app,
+    server,
+    model,
+    store,
+    persistence,
+    tracer,
+    projector,
+    credentials,
+    mappingOverrides,
+  } = await boot();
   const tenantId = request.workspace.tenantRuntime.tenantId as TenantId;
   const scopes = request.workspace.principal.scopes as Scope[];
   const principalId = request.workspace.principal.id as PrincipalId;
@@ -302,7 +381,9 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
     deployment.agentEngine.contentHash,
   )) as unknown as AgentEngineContract;
   const capContracts = (await Promise.all(
-    deployment.capabilities.map(c => store.resolveContractCached(tenantId, c.definitionId, c.contentHash)),
+    deployment.capabilities.map(c =>
+      store.resolveContractCached(tenantId, c.definitionId, c.contentHash),
+    ),
   )) as unknown as CapabilityContract[];
   const policyPlan = (await store.resolvePlanCached(
     tenantId,
@@ -310,14 +391,27 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
     deployment.policy.contentHash,
   )) as unknown as CompiledPolicyPlan;
 
-  const eligibleDefaults = capabilitiesForEngine(engine.body.allowedCapabilities, capContracts, scopes);
+  const eligibleDefaults = capabilitiesForEngine(
+    engine.body.allowedCapabilities,
+    capContracts,
+    scopes,
+  );
   // Tenant provider-mapping overrides (CT3): substituted into the PINNED contracts before projection —
   // the contract stays immutable/content-hashed; the override is plain tenant-row CRUD applied at
   // turn assembly, mirroring the edge invoker. Absence of a row = the contract default.
   const eligible = await Promise.all(
     eligibleDefaults.map(async c => {
       const o = await mappingOverrides.find(tenantId, c.name);
-      return o ? {...c, providerMapping: {providers: o.providers, eligibility: o.eligibility, onNoProvider: o.onNoProvider}} : c;
+      return o
+        ? {
+            ...c,
+            providerMapping: {
+              providers: o.providers,
+              eligibility: o.eligibility,
+              onNoProvider: o.onNoProvider,
+            },
+          }
+        : c;
     }),
   );
   const byName = new Map(capContracts.map(c => [c.name, c]));
@@ -355,9 +449,12 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
     // capability with different arguments in a turn get distinct keys.
     idempotencyKeyFor: (capability, input) => {
       const contract = byName.get(capability);
-      return contract ? deriveIdempotencyKey(contract, input, request.turnId) : `${request.turnId}:${capability}`;
+      return contract
+        ? deriveIdempotencyKey(contract, input, request.turnId)
+        : `${request.turnId}:${capability}`;
     },
-    onProviderResolved: (capability, providerId) => servedBy.set(capability, providerId),
+    onProviderResolved: (capability, providerId) =>
+      servedBy.set(capability, providerId),
   });
   for (const s of projected.report.skipped) {
     turnLogger.log({
@@ -368,7 +465,8 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
       fields: {capability: s.capability, reason: s.reason},
     });
   }
-  const bindingSource: ToolBindingSource = (capability: CapabilityName) => projected.bindings.get(capability);
+  const bindingSource: ToolBindingSource = (capability: CapabilityName) =>
+    projected.bindings.get(capability);
 
   // The model only ever sees capabilities that BOTH pass the scope gate AND projected to a real
   // provider-backed tool. Offering a skipped capability would let dispatch fall through to whatever
@@ -456,7 +554,10 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
     result = await runTurn(request, {
       executor: tracingExecutor,
       decider,
-      policy: {plan: policyPlan, runtime: new ExpressionPolicyRuntime(builtinRegistry())},
+      policy: {
+        plan: policyPlan,
+        runtime: new ExpressionPolicyRuntime(builtinRegistry()),
+      },
       // Durable turn persistence (Tier 2, made ATOMIC in F3): ONE tenant-scoped transaction commits the
       // ledger, the initial handoff_tasks request, the append-only audit trail, the usage records, and an
       // event_outbox row per audit event (commit-and-publish) — a crash mid-persist leaves nothing, never
@@ -476,9 +577,16 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
               turnLedger.handoff && turnLedger.handoff.conversationId
                 ? toHandoffRow(turnLedger.handoff, now)
                 : undefined,
-            auditEvents: deriveAuditEvents(turnLedger, {principalId, conversationId, occurredAt}),
+            auditEvents: deriveAuditEvents(turnLedger, {
+              principalId,
+              conversationId,
+              occurredAt,
+            }),
             // Usage metering (exactly-once on dedupeKey) — model tokens/cost + tool-invocation count.
-            usageEvents: deriveUsageEvents(turnLedger, {principalId, occurredAt}),
+            usageEvents: deriveUsageEvents(turnLedger, {
+              principalId,
+              occurredAt,
+            }),
           },
           {tenantId},
         );
@@ -492,7 +600,13 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
 
   // Metrics catalogue (Tier 3.7): turn count/latency, per-tool invocation count/latency, per-gate decision
   // count — the SLO signals. Derived from the captured ledger + wall latency.
-  if (capturedLedger) emitTurnMetrics(meter, capturedLedger, result.outcome, Date.now() - startedMs);
+  if (capturedLedger)
+    emitTurnMetrics(
+      meter,
+      capturedLedger,
+      result.outcome,
+      Date.now() - startedMs,
+    );
 
   // Structured, correlation-tagged, PII-redacting completion log (the reply is masked before export).
   turnLogger.log({
@@ -500,7 +614,12 @@ async function runAgentTurn(request: TurnRequest, trace?: TraceHeader): Promise<
     message: 'agent turn complete',
     timestamp: new Date().toISOString(),
     correlation: correlationFromWorkspace(request.workspace, request.turnId),
-    fields: {outcome: result.outcome, reply: result.reply, toolCount: result.metrics.toolCount, steps: result.steps},
+    fields: {
+      outcome: result.outcome,
+      reply: result.reply,
+      toolCount: result.metrics.toolCount,
+      steps: result.steps,
+    },
   });
 
   const ok = result.outcome !== 'failed';

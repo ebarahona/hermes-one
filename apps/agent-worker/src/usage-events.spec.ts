@@ -1,5 +1,10 @@
 import {describe, expect, it} from 'vitest';
-import type {IsoTimestamp, PrincipalId, TenantId, TurnId} from '@platform/contracts';
+import type {
+  IsoTimestamp,
+  PrincipalId,
+  TenantId,
+  TurnId,
+} from '@platform/contracts';
 import type {TurnLedger} from '@platform-internal/agent-runtime';
 import {deriveUsageEvents} from './usage-events.js';
 
@@ -14,7 +19,12 @@ const ledger: TurnLedger = {
   toolExecutions: [],
   evidence: [],
   policyDecisions: [],
-  usage: {modelCostUsd: 0.0021, inputTokens: 1200, outputTokens: 340, toolCount: 2},
+  usage: {
+    modelCostUsd: 0.0021,
+    inputTokens: 1200,
+    outputTokens: 340,
+    toolCount: 2,
+  },
 };
 const ctx = {principalId: 'prn_u' as PrincipalId, occurredAt: NOW};
 
@@ -47,7 +57,10 @@ describe('deriveUsageEvents', () => {
 
   it('bills a second turn in the same workflow run separately (disjoint dedupeKeys per turn)', () => {
     const first = deriveUsageEvents(ledger, ctx);
-    const second = deriveUsageEvents({...ledger, turnId: 'trn_u2' as TurnId}, ctx);
+    const second = deriveUsageEvents(
+      {...ledger, turnId: 'trn_u2' as TurnId},
+      ctx,
+    );
     const firstKeys = new Set(first.map(e => e.dedupeKey));
     for (const e of second) expect(firstKeys.has(e.dedupeKey)).toBe(false);
   });

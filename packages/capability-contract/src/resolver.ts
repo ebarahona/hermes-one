@@ -50,15 +50,25 @@ export class ProviderResolver {
   ): Promise<ProviderAdapter> {
     // 1. Request-level eligibility: every rule must hold, else the capability is ineligible here.
     const failed = mapping.eligibility.filter(
-      rule => !evaluatePredicate(rule.when, {facts, parameters: {}, registry: this.operators}),
+      rule =>
+        !evaluatePredicate(rule.when, {
+          facts,
+          parameters: {},
+          registry: this.operators,
+        }),
     );
     if (failed.length > 0) {
-      throw new NoProviderError(capability, mapping.onNoProvider, failed.map(r => r.reason));
+      throw new NoProviderError(
+        capability,
+        mapping.onNoProvider,
+        failed.map(r => r.reason),
+      );
     }
 
     // 2. Rank by priority (desc), tie-broken deterministically by providerId (asc).
     const ranked = [...mapping.providers].sort(
-      (a, b) => b.priority - a.priority || a.providerId.localeCompare(b.providerId),
+      (a, b) =>
+        b.priority - a.priority || a.providerId.localeCompare(b.providerId),
     );
 
     // 3. First registered + healthy provider wins.
@@ -66,7 +76,8 @@ export class ProviderResolver {
       const adapter = this.providers.get(capability, ref.providerId);
       if (!adapter) continue;
       const status = await adapter.status();
-      if (status.health !== 'unavailable' && status.circuit !== 'open') return adapter;
+      if (status.health !== 'unavailable' && status.circuit !== 'open')
+        return adapter;
     }
 
     throw new NoProviderError(capability, mapping.onNoProvider, [

@@ -46,7 +46,10 @@ function toDto(row: UserRow): UserDto {
 }
 
 export class DrizzleUserRepository extends TenantAwareRepository {
-  async createUser(tenantId: TenantId, input: UserCreateInput): Promise<UserDto> {
+  async createUser(
+    tenantId: TenantId,
+    input: UserCreateInput,
+  ): Promise<UserDto> {
     const principalId = `prn_${randomUUID().replace(/-/g, '').slice(0, 24)}`;
     try {
       return await this.withTenant({tenantId}, async tx => {
@@ -67,12 +70,15 @@ export class DrizzleUserRepository extends TenantAwareRepository {
       });
     } catch (err) {
       // drizzle wraps the pg error ("Failed query: …") — the SQLSTATE is on the cause.
-      const code = (err as {code?: string}).code ?? (err as {cause?: {code?: string}}).cause?.code;
+      const code =
+        (err as {code?: string}).code ??
+        (err as {cause?: {code?: string}}).cause?.code;
       if (code === '23505') {
         throw new PlatformErrorException({
           category: 'conflict',
           code: 'idempotency_conflict', // closest fixed code; a duplicate email/handle/identity
-          message: 'A user with this email, handle, or identity already exists for the tenant.',
+          message:
+            'A user with this email, handle, or identity already exists for the tenant.',
           issues: [],
           retryable: false,
           httpStatus: 409,
@@ -84,7 +90,10 @@ export class DrizzleUserRepository extends TenantAwareRepository {
 
   async listUsers(tenantId: TenantId): Promise<UserDto[]> {
     return this.withTenant({tenantId}, async tx => {
-      const rows = await tx.select().from(users).where(eq(users.tenantId, tenantId));
+      const rows = await tx
+        .select()
+        .from(users)
+        .where(eq(users.tenantId, tenantId));
       return rows.map(toDto);
     });
   }

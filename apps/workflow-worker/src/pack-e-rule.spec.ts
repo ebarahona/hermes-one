@@ -12,11 +12,23 @@ import type {IsoTimestamp, PlanId, SemVer} from '@platform/contracts';
 const V1 = '1.0.0' as SemVer;
 const NOW = '2026-07-17T00:00:00.000Z' as IsoTimestamp;
 // Rules are pure over PROVIDED facts (ADR-015): time is a fact, and operators are version-pinned.
-const evalCtx = (intent: string) => ({facts: {intent}, parameters: {}, now: NOW, operatorRegistryVersion: V1});
+const evalCtx = (intent: string) => ({
+  facts: {intent},
+  parameters: {},
+  now: NOW,
+  operatorRegistryVersion: V1,
+});
 
 function triagePlan() {
-  const pack = JSON.parse(readFileSync(join(process.cwd(), 'verticals/electrician/pack.json'), 'utf8'));
-  const def = pack.definitions.rules.find((r: {name: string}) => r.name === 'electrician-triage');
+  const pack = JSON.parse(
+    readFileSync(
+      join(process.cwd(), 'verticals/electrician/pack.json'),
+      'utf8',
+    ),
+  );
+  const def = pack.definitions.rules.find(
+    (r: {name: string}) => r.name === 'electrician-triage',
+  );
   return compileRule(
     {
       ...def,
@@ -27,15 +39,26 @@ function triagePlan() {
       updatedAt: '2026-07-17T00:00:00.000Z',
       createdBy: 'prn_spec',
     } as never,
-    {registry: builtinRegistry(V1), compilerVersion: V1, planId: 'pln_triage_spec' as PlanId, compiledAt: NOW},
+    {
+      registry: builtinRegistry(V1),
+      compilerVersion: V1,
+      planId: 'pln_triage_spec' as PlanId,
+      compiledAt: NOW,
+    },
   );
 }
 
 describe('electrician-triage rule (pack data)', () => {
   const cases: Array<[string, string]> = [
-    ['my breaker keeps tripping and there is a faint burning smell near the panel', 'emergency'],
+    [
+      'my breaker keeps tripping and there is a faint burning smell near the panel',
+      'emergency',
+    ],
     ['I can see sparks coming from the outlet', 'emergency'],
-    ['nothing urgent — what appointment slots do you have open on 2026-07-20?', 'schedule'],
+    [
+      'nothing urgent — what appointment slots do you have open on 2026-07-20?',
+      'schedule',
+    ],
     ['can someone come out next week to look at a light switch?', 'schedule'],
     // Matches no term — the caller still reaches the dispatcher, which triages in prose.
     ['my outlet stopped working', 'schedule'],
@@ -51,7 +74,10 @@ describe('electrician-triage rule (pack data)', () => {
     const rt = createRuleRuntime(builtinRegistry(V1));
     const plan = triagePlan();
     const hazard = await rt.evaluate(plan, evalCtx('burning smell'));
-    const booking = await rt.evaluate(plan, evalCtx('what slots are available'));
+    const booking = await rt.evaluate(
+      plan,
+      evalCtx('what slots are available'),
+    );
     expect(hazard.outcome).not.toBe(booking.outcome);
   });
 
@@ -61,7 +87,9 @@ describe('electrician-triage rule (pack data)', () => {
     const rt = createRuleRuntime(builtinRegistry(V1));
     const r = await rt.evaluate(
       triagePlan(),
-      evalCtx('there is a burning smell — can I also book an appointment for next week?'),
+      evalCtx(
+        'there is a burning smell — can I also book an appointment for next week?',
+      ),
     );
     expect(r.outcome).toBe('emergency');
   });

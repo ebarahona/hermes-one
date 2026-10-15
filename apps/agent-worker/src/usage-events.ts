@@ -10,7 +10,11 @@
 // stream (T7). This build meters the turn's self-reported usage totals as an interim stand-in until that
 // stream is wired. message.sent / storage.vector meters belong to the channel / vector layers.
 import {createHash} from 'node:crypto';
-import {deriveDedupeKey, type MeterKind, type UsageEvent} from '@platform/contracts';
+import {
+  deriveDedupeKey,
+  type MeterKind,
+  type UsageEvent,
+} from '@platform/contracts';
 import type {TurnLedger} from '@platform-internal/agent-runtime';
 
 interface MeterInput {
@@ -18,10 +22,25 @@ interface MeterInput {
   occurredAt: UsageEvent['emittedAt'];
 }
 
-export function deriveUsageEvents(ledger: TurnLedger, ctx: MeterInput): UsageEvent[] {
-  const meters: {kind: MeterKind; quantity: number; unit: UsageEvent['unit']}[] = [
-    {kind: 'model.input.tokens', quantity: ledger.usage.inputTokens, unit: 'tokens'},
-    {kind: 'model.output.tokens', quantity: ledger.usage.outputTokens, unit: 'tokens'},
+export function deriveUsageEvents(
+  ledger: TurnLedger,
+  ctx: MeterInput,
+): UsageEvent[] {
+  const meters: {
+    kind: MeterKind;
+    quantity: number;
+    unit: UsageEvent['unit'];
+  }[] = [
+    {
+      kind: 'model.input.tokens',
+      quantity: ledger.usage.inputTokens,
+      unit: 'tokens',
+    },
+    {
+      kind: 'model.output.tokens',
+      quantity: ledger.usage.outputTokens,
+      unit: 'tokens',
+    },
     {kind: 'model.cost.usd', quantity: ledger.usage.modelCostUsd, unit: 'usd'},
     {kind: 'tool.invocation', quantity: ledger.usage.toolCount, unit: 'count'},
   ];
@@ -36,7 +55,8 @@ export function deriveUsageEvents(ledger: TurnLedger, ctx: MeterInput): UsageEve
       meterKind: m.kind,
       sequence: 0, // one aggregate per (turn, meterKind)
     });
-    const id = `usg_${createHash('sha256').update(dedupeKey).digest('hex').slice(0, 24)}` as UsageEvent['id'];
+    const id =
+      `usg_${createHash('sha256').update(dedupeKey).digest('hex').slice(0, 24)}` as UsageEvent['id'];
     return {
       id,
       tenantId: ledger.tenantId as UsageEvent['tenantId'],

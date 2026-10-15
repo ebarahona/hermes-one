@@ -17,9 +17,13 @@ export interface ResolvedIssuer {
 export class JoseJwtVerifier implements JwtVerifier {
   constructor(private readonly issuers: readonly ResolvedIssuer[]) {}
 
-  async verify(token: string, opts: {issuer: string; audience: string}): Promise<VerifiedClaims> {
+  async verify(
+    token: string,
+    opts: {issuer: string; audience: string},
+  ): Promise<VerifiedClaims> {
     const match = this.issuers.find(
-      i => i.config.issuer === opts.issuer && i.config.audience === opts.audience,
+      i =>
+        i.config.issuer === opts.issuer && i.config.audience === opts.audience,
     );
     if (!match) throw new Error(`no configured OIDC issuer for ${opts.issuer}`);
 

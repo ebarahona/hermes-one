@@ -19,7 +19,8 @@ export interface DefinitionRow {
   name: string;
   schemaRef: string;
   currentVersion: string;
-  status: 'draft' | 'validated' | 'compiled' | 'published' | 'deployed' | 'retired';
+  status:
+    'draft' | 'validated' | 'compiled' | 'published' | 'deployed' | 'retired';
   labels?: Record<string, string>;
   createdBy: string;
 }
@@ -60,7 +61,11 @@ export class DrizzleDefinitionRepository extends TenantAwareRepository {
         })
         .onConflictDoUpdate({
           target: definitions.definitionId,
-          set: {currentVersion: def.currentVersion, status: def.status, updatedAt: new Date()},
+          set: {
+            currentVersion: def.currentVersion,
+            status: def.status,
+            updatedAt: new Date(),
+          },
         });
 
       const versionRows = await tx
@@ -76,7 +81,9 @@ export class DrizzleDefinitionRepository extends TenantAwareRepository {
           diagnostics: version.diagnostics ?? [],
           createdBy: version.createdBy,
         })
-        .onConflictDoNothing({target: [definitionVersions.definitionId, definitionVersions.version]})
+        .onConflictDoNothing({
+          target: [definitionVersions.definitionId, definitionVersions.version],
+        })
         .returning({definitionId: definitionVersions.definitionId});
       const versionInserted = versionRows.length > 0;
 
@@ -100,7 +107,10 @@ export class DrizzleDefinitionRepository extends TenantAwareRepository {
     });
   }
 
-  async getDefinition(definitionId: string, scope: TenantScope): Promise<DefinitionRow | null> {
+  async getDefinition(
+    definitionId: string,
+    scope: TenantScope,
+  ): Promise<DefinitionRow | null> {
     return this.withTenant(scope, async tx => {
       const [row] = await tx
         .select()
@@ -144,7 +154,10 @@ export class DrizzleDeploymentRepository extends TenantAwareRepository {
   async latestVersion(scope: TenantScope): Promise<string | null> {
     return this.withTenant(scope, async tx => {
       const [row] = await tx
-        .select({version: deployments.version, createdAt: deployments.createdAt})
+        .select({
+          version: deployments.version,
+          createdAt: deployments.createdAt,
+        })
         .from(deployments)
         .where(eq(deployments.tenantId, scope.tenantId))
         .orderBy(desc(deployments.createdAt))
@@ -167,7 +180,12 @@ export class DrizzleDeploymentRepository extends TenantAwareRepository {
       await tx
         .update(deployments)
         .set({status: 'superseded'})
-        .where(and(eq(deployments.tenantId, scope.tenantId), eq(deployments.status, 'active')));
+        .where(
+          and(
+            eq(deployments.tenantId, scope.tenantId),
+            eq(deployments.status, 'active'),
+          ),
+        );
 
       await tx.insert(deployments).values({
         deploymentId: dep.deploymentId,
@@ -219,9 +237,15 @@ export class DrizzleDeploymentRepository extends TenantAwareRepository {
       const [src] = await tx
         .select()
         .from(deployments)
-        .where(and(eq(deployments.tenantId, scope.tenantId), eq(deployments.version, fromVersion)))
+        .where(
+          and(
+            eq(deployments.tenantId, scope.tenantId),
+            eq(deployments.version, fromVersion),
+          ),
+        )
         .limit(1);
-      if (!src) throw new Error(`rollback source version ${fromVersion} not found`);
+      if (!src)
+        throw new Error(`rollback source version ${fromVersion} not found`);
       const srcMembers = await tx
         .select()
         .from(deploymentMembers)
@@ -230,7 +254,12 @@ export class DrizzleDeploymentRepository extends TenantAwareRepository {
       await tx
         .update(deployments)
         .set({status: 'superseded'})
-        .where(and(eq(deployments.tenantId, scope.tenantId), eq(deployments.status, 'active')));
+        .where(
+          and(
+            eq(deployments.tenantId, scope.tenantId),
+            eq(deployments.status, 'active'),
+          ),
+        );
 
       await tx.insert(deployments).values({
         deploymentId: newDep.deploymentId,

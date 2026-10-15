@@ -35,7 +35,11 @@ export function testTurnRequest(
           createdAt: FIXED_NOW,
         },
         tenantId: 'tnt_test',
-        deployment: {deploymentId: 'dpl_test', tenantId: 'tnt_test', version: '1.0.0'},
+        deployment: {
+          deploymentId: 'dpl_test',
+          tenantId: 'tnt_test',
+          version: '1.0.0',
+        },
         quotaProfile: {
           profileId: 'qp_test',
           maxModelCostUsdPerDay: null,
@@ -66,7 +70,11 @@ export function testTurnRequest(
       channel: 'sms',
       correlationId: 'corr_test',
     },
-    agentEngine: {definitionId: 'def_engine', version: '1.0.0', contentHash: `sha256:${'0'.repeat(64)}`},
+    agentEngine: {
+      definitionId: 'def_engine',
+      version: '1.0.0',
+      contentHash: `sha256:${'0'.repeat(64)}`,
+    },
     inbound,
     objective,
     startedAt: '2026-07-17T00:00:00.000Z',

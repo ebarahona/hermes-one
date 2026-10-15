@@ -3,7 +3,10 @@
 // + DefinitionRegistry (Slice 8, put — authoring, with the logic-DSL compilers wired). Retires part
 // of ledger L1 (services were only ad-hoc-constructed in apps/workflow-worker/src/publish.ts).
 import {Binding, BindingScope, type Component} from '@loopback/core';
-import {DrizzleDefinitionRepository, DrizzleDeploymentRepository} from '@platform-internal/drizzle';
+import {
+  DrizzleDefinitionRepository,
+  DrizzleDeploymentRepository,
+} from '@platform-internal/drizzle';
 import {
   type CompileFn,
   DefinitionRegistry,
@@ -28,17 +31,36 @@ function buildCompilers(): DefinitionRegistryDeps['compilers'] {
   const opreg = builtinRegistry(COMPILER_VERSION);
   return {
     workflow: (def, ctx) =>
-      compileWorkflow(def as never, {compilerVersion: ctx.compilerVersion, planId: ctx.planId, compiledAt: ctx.compiledAt as never}),
+      compileWorkflow(def as never, {
+        compilerVersion: ctx.compilerVersion,
+        planId: ctx.planId,
+        compiledAt: ctx.compiledAt as never,
+      }),
     rule: (def, ctx) =>
-      compileRule(def as never, {registry: opreg, compilerVersion: ctx.compilerVersion, planId: ctx.planId, compiledAt: ctx.compiledAt as never}),
+      compileRule(def as never, {
+        registry: opreg,
+        compilerVersion: ctx.compilerVersion,
+        planId: ctx.planId,
+        compiledAt: ctx.compiledAt as never,
+      }),
     policy: (def, ctx) =>
-      compilePolicy(def as never, {registry: opreg, compilerVersion: ctx.compilerVersion, planId: ctx.planId, compiledAt: ctx.compiledAt as never}),
+      compilePolicy(def as never, {
+        registry: opreg,
+        compilerVersion: ctx.compilerVersion,
+        planId: ctx.planId,
+        compiledAt: ctx.compiledAt as never,
+      }),
   } satisfies Record<'workflow' | 'rule' | 'policy', CompileFn>;
 }
 
-export class SubstrateComponent implements Component, PlatformComponentBoundary {
+export class SubstrateComponent
+  implements Component, PlatformComponentBoundary
+{
   readonly plane = 'edge' as const;
-  readonly bindsKeys = [PlatformBindings.DEPLOYMENT_SERVICE.key, PlatformBindings.DEFINITION_REGISTRY.key];
+  readonly bindsKeys = [
+    PlatformBindings.DEPLOYMENT_SERVICE.key,
+    PlatformBindings.DEFINITION_REGISTRY.key,
+  ];
   readonly implementsExtensionPoints: readonly string[] = [];
   readonly consumesExtensionPoints: readonly string[] = [];
   readonly contributesTags: readonly string[] = [];
@@ -48,7 +70,9 @@ export class SubstrateComponent implements Component, PlatformComponentBoundary 
       .toDynamicValue(({context}) => {
         const deps: DeploymentServiceDeps = {
           store: context.getSync(PlatformBindings.COMPILED_PLAN_STORE),
-          deployments: new DrizzleDeploymentRepository(context.getSync(PlatformBindings.POSTGRES).db),
+          deployments: new DrizzleDeploymentRepository(
+            context.getSync(PlatformBindings.POSTGRES).db,
+          ),
           now: () => new Date().toISOString(),
         };
         return new DeploymentService(deps);
@@ -58,7 +82,9 @@ export class SubstrateComponent implements Component, PlatformComponentBoundary 
       .toDynamicValue(({context}) => {
         const deps: DefinitionRegistryDeps = {
           store: context.getSync(PlatformBindings.COMPILED_PLAN_STORE),
-          definitions: new DrizzleDefinitionRepository(context.getSync(PlatformBindings.POSTGRES).db),
+          definitions: new DrizzleDefinitionRepository(
+            context.getSync(PlatformBindings.POSTGRES).db,
+          ),
           compilers: buildCompilers(),
           compilerVersion: COMPILER_VERSION,
           now: () => new Date().toISOString(),

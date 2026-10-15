@@ -49,7 +49,10 @@ export interface SpanScope {
 export interface Tracer {
   /** Start a span. `parentTraceparent` (if a valid W3C header) makes this a child of that span's trace;
    *  absent/invalid → a new root trace. Attributes are set at start. */
-  startSpan(name: string, opts?: {parentTraceparent?: string; attributes?: SpanAttributes}): SpanScope;
+  startSpan(
+    name: string,
+    opts?: {parentTraceparent?: string; attributes?: SpanAttributes},
+  ): SpanScope;
 }
 
 const propagator = new W3CTraceContextPropagator();
@@ -57,7 +60,11 @@ const propagator = new W3CTraceContextPropagator();
 /** Build the W3C `traceparent` for a span (what downstream hops extract). Empty string if not recorded. */
 function traceparentOf(span: Span, parentContext = ROOT_CONTEXT): string {
   const carrier: Record<string, string> = {};
-  propagator.inject(trace.setSpan(parentContext, span), carrier, defaultTextMapSetter);
+  propagator.inject(
+    trace.setSpan(parentContext, span),
+    carrier,
+    defaultTextMapSetter,
+  );
   return carrier.traceparent ?? '';
 }
 
@@ -75,7 +82,10 @@ class OtelSpanScope implements SpanScope {
   end(opts?: {ok?: boolean; error?: Error}): void {
     if (opts?.error) this.span.recordException(opts.error);
     if (opts && opts.ok === false) {
-      this.span.setStatus({code: SpanStatusCode.ERROR, message: opts.error?.message});
+      this.span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: opts.error?.message,
+      });
     }
     this.span.end();
   }
@@ -85,19 +95,37 @@ class OtelSpanScope implements SpanScope {
 export class OtelTracer implements Tracer {
   constructor(private readonly otel: OtelApiTracer) {}
 
-  startSpan(name: string, opts?: {parentTraceparent?: string; attributes?: SpanAttributes}): SpanScope {
+  startSpan(
+    name: string,
+    opts?: {parentTraceparent?: string; attributes?: SpanAttributes},
+  ): SpanScope {
     const parentContext =
       opts?.parentTraceparent && opts.parentTraceparent.length > 0
-        ? propagator.extract(ROOT_CONTEXT, {traceparent: opts.parentTraceparent}, defaultTextMapGetter)
+        ? propagator.extract(
+            ROOT_CONTEXT,
+            {traceparent: opts.parentTraceparent},
+            defaultTextMapGetter,
+          )
         : ROOT_CONTEXT;
-    const span = this.otel.startSpan(name, {attributes: opts?.attributes}, parentContext);
-    return new OtelSpanScope(span, traceparentOf(span, parentContext), span.spanContext().traceId);
+    const span = this.otel.startSpan(
+      name,
+      {attributes: opts?.attributes},
+      parentContext,
+    );
+    return new OtelSpanScope(
+      span,
+      traceparentOf(span, parentContext),
+      span.spanContext().traceId,
+    );
   }
 }
 
 /** No-op tracer for when tracing is disabled — every span is a valid, empty scope (traceparent ''). */
 export class NoopTracer implements Tracer {
-  startSpan(_name?: string, _opts?: {parentTraceparent?: string; attributes?: SpanAttributes}): SpanScope {
+  startSpan(
+    _name?: string,
+    _opts?: {parentTraceparent?: string; attributes?: SpanAttributes},
+  ): SpanScope {
     return {
       traceparent: '',
       traceId: '',
@@ -126,10 +154,15 @@ export interface TracingHandle {
   shutdown(): Promise<void>;
 }
 
-function exporterFor(cfg: TracingConfig): {exporter: SpanExporter; batch: boolean} | null {
+function exporterFor(
+  cfg: TracingConfig,
+): {exporter: SpanExporter; batch: boolean} | null {
   switch (cfg.exporter) {
     case 'otlp':
-      return {exporter: new OTLPTraceExporter({url: cfg.otlpEndpoint}), batch: true};
+      return {
+        exporter: new OTLPTraceExporter({url: cfg.otlpEndpoint}),
+        batch: true,
+      };
     case 'console':
       return {exporter: new ConsoleSpanExporter(), batch: false};
     case 'none':
@@ -148,7 +181,11 @@ export function initTracing(cfg: TracingConfig): TracingHandle {
 
   const chosen = exporterFor(cfg);
   const processors: SpanProcessor[] = chosen
-    ? [chosen.batch ? new BatchSpanProcessor(chosen.exporter) : new SimpleSpanProcessor(chosen.exporter)]
+    ? [
+        chosen.batch
+          ? new BatchSpanProcessor(chosen.exporter)
+          : new SimpleSpanProcessor(chosen.exporter),
+      ]
     : [];
   const provider = new NodeTracerProvider({
     resource: resourceFromAttributes({[ATTR_SERVICE_NAME]: cfg.serviceName}),
@@ -187,13 +224,19 @@ export function createInMemoryTracing(serviceName = 'test'): {
     resource: resourceFromAttributes({[ATTR_SERVICE_NAME]: serviceName}),
     spanProcessors: [new SimpleSpanProcessor(exporter)],
   });
-  return {tracer: new OtelTracer(provider.getTracer('hermes')), exporter, shutdown: () => provider.shutdown()};
+  return {
+    tracer: new OtelTracer(provider.getTracer('hermes')),
+    exporter,
+    shutdown: () => provider.shutdown(),
+  };
 }
 
 /* ------------------------------ W3C traceparent helpers ------------------------------ */
 
 /** Read the incoming `traceparent` string as the platform's `TraceHeader` (null if absent/blank). */
-export function traceHeaderFrom(traceparent: string | undefined | null): TraceHeader | null {
+export function traceHeaderFrom(
+  traceparent: string | undefined | null,
+): TraceHeader | null {
   if (!traceparent || traceparent.length === 0) return null;
   return {traceparent};
 }

@@ -19,7 +19,9 @@ export interface AgentPlaneAppOptions {
  * Build the agent-plane app. stdio is disabled so in-process dispatch (`callTool`) never hijacks
  * stdout — configured before `start()` so the MCPServer picks it up.
  */
-export function createAgentPlaneApp(opts: AgentPlaneAppOptions = {}): MCPApplication {
+export function createAgentPlaneApp(
+  opts: AgentPlaneAppOptions = {},
+): MCPApplication {
   const app = new MCPApplication();
   app.configure(MCPBindings.SERVER).to({transports: {stdio: false}});
   if (opts.fixtures) app.service(SpikeBookingTools);

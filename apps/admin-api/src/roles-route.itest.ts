@@ -7,7 +7,10 @@
 import 'reflect-metadata';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {loadConfig} from '@platform-internal/config';
-import {PlatformBindings, type PlatformRestApplication} from '@platform-internal/loopback-core';
+import {
+  PlatformBindings,
+  type PlatformRestApplication,
+} from '@platform-internal/loopback-core';
 import type {ApiKeySeed} from '@platform-internal/auth';
 import type {
   PrincipalId,
@@ -56,7 +59,10 @@ beforeAll(async () => {
     apiKeySeeds: [
       key(KEY_READ, 'prn_svc_reader', ['tenant.role.read'] as Scope[]),
       key(KEY_NOSCOPE, 'prn_svc_noscope', ['tenant.user.read'] as Scope[]), // a scope, but NOT role.read
-      key(KEY_WRITE, 'prn_svc_writer', ['tenant.role.read', 'tenant.role.create'] as Scope[]),
+      key(KEY_WRITE, 'prn_svc_writer', [
+        'tenant.role.read',
+        'tenant.role.create',
+      ] as Scope[]),
     ],
   });
   app = root.createApp();
@@ -67,9 +73,15 @@ beforeAll(async () => {
 
   // Seed a tenant-scoped role through the RLS-enforced registry (idempotent across re-runs).
   const registry = await app.get<RoleAdmin>(PlatformBindings.ROLE_REGISTRY.key);
-  seededRoleId = `rol_${TENANT.replace(/[^a-z0-9]/gi, '')}_${SEED_ROLE}` as RoleId;
+  seededRoleId =
+    `rol_${TENANT.replace(/[^a-z0-9]/gi, '')}_${SEED_ROLE}` as RoleId;
   await registry.deleteFor(TENANT, seededRoleId).catch(() => void 0);
-  await registry.deleteFor(TENANT, `rol_${TENANT.replace(/[^a-z0-9]/gi, '')}_${CREATED_ROLE}` as RoleId).catch(() => void 0);
+  await registry
+    .deleteFor(
+      TENANT,
+      `rol_${TENANT.replace(/[^a-z0-9]/gi, '')}_${CREATED_ROLE}` as RoleId,
+    )
+    .catch(() => void 0);
   const created: RoleDefinition = await registry.create({
     tenantId: TENANT,
     name: SEED_ROLE,
@@ -81,10 +93,15 @@ beforeAll(async () => {
 
 afterAll(async () => {
   if (app) {
-    const registry = await app.get<RoleAdmin>(PlatformBindings.ROLE_REGISTRY.key);
+    const registry = await app.get<RoleAdmin>(
+      PlatformBindings.ROLE_REGISTRY.key,
+    );
     await registry.deleteFor(TENANT, seededRoleId).catch(() => void 0);
     await registry
-      .deleteFor(TENANT, `rol_${TENANT.replace(/[^a-z0-9]/gi, '')}_${CREATED_ROLE}` as RoleId)
+      .deleteFor(
+        TENANT,
+        `rol_${TENANT.replace(/[^a-z0-9]/gi, '')}_${CREATED_ROLE}` as RoleId,
+      )
       .catch(() => void 0);
     await app.stop();
   }
@@ -92,23 +109,37 @@ afterAll(async () => {
 
 describe('GET /v1/tenants/{tenantId}/roles (live)', () => {
   it('returns the tenant’s roles (seeded + platform) for a scoped principal', async () => {
-    const res = await fetch(`${base}/v1/tenants/${TENANT}/roles`, {headers: {'x-api-key': KEY_READ}});
+    const res = await fetch(`${base}/v1/tenants/${TENANT}/roles`, {
+      headers: {'x-api-key': KEY_READ},
+    });
     expect(res.status).toBe(200);
-    const roles = (await res.json()) as Array<{name: string; roleId: string; scopes: string[]}>;
+    const roles = (await res.json()) as Array<{
+      name: string;
+      roleId: string;
+      scopes: string[];
+    }>;
     expect(roles.some(r => r.name === SEED_ROLE)).toBe(true); // the tenant-scoped seed
     expect(roles.some(r => r.name === 'customer')).toBe(true); // a platform role (migration 0029)
   });
 
   it('rejects a principal without tenant.role.read → 403 forbidden_scope', async () => {
-    const res = await fetch(`${base}/v1/tenants/${TENANT}/roles`, {headers: {'x-api-key': KEY_NOSCOPE}});
+    const res = await fetch(`${base}/v1/tenants/${TENANT}/roles`, {
+      headers: {'x-api-key': KEY_NOSCOPE},
+    });
     expect(res.status).toBe(403);
-    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe('forbidden_scope');
+    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe(
+      'forbidden_scope',
+    );
   });
 
   it('rejects reading another tenant’s roles → 403 (tenant boundary, never the path’s tenant)', async () => {
-    const res = await fetch(`${base}/v1/tenants/${OTHER}/roles`, {headers: {'x-api-key': KEY_READ}});
+    const res = await fetch(`${base}/v1/tenants/${OTHER}/roles`, {
+      headers: {'x-api-key': KEY_READ},
+    });
     expect(res.status).toBe(403);
-    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe('forbidden_scope');
+    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe(
+      'forbidden_scope',
+    );
   });
 
   it('rejects an unauthenticated read → 401 (before routing)', async () => {
@@ -126,13 +157,24 @@ describe('POST /v1/tenants/{tenantId}/roles (live)', () => {
     });
 
   it('creates a tenant role (201) that then appears in the list', async () => {
-    const res = await post(KEY_WRITE, {name: CREATED_ROLE, scopes: ['tenant.role.read']});
+    const res = await post(KEY_WRITE, {
+      name: CREATED_ROLE,
+      scopes: ['tenant.role.read'],
+    });
     expect(res.status).toBe(201);
-    const created = (await res.json()) as {roleId: string; name: string; scopes: string[]};
+    const created = (await res.json()) as {
+      roleId: string;
+      name: string;
+      scopes: string[];
+    };
     expect(created.name).toBe(CREATED_ROLE);
     expect(created.roleId).toMatch(/^rol_/);
 
-    const list = (await (await fetch(`${base}/v1/tenants/${TENANT}/roles`, {headers: {'x-api-key': KEY_WRITE}})).json()) as Array<{name: string}>;
+    const list = (await (
+      await fetch(`${base}/v1/tenants/${TENANT}/roles`, {
+        headers: {'x-api-key': KEY_WRITE},
+      })
+    ).json()) as Array<{name: string}>;
     expect(list.some(r => r.name === CREATED_ROLE)).toBe(true);
   });
 
@@ -144,7 +186,9 @@ describe('POST /v1/tenants/{tenantId}/roles (live)', () => {
   it('rejects an invalid body → 422 validation_failed', async () => {
     const res = await post(KEY_WRITE, {scopes: ['x.y.z']}); // missing name
     expect(res.status).toBe(422);
-    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe('validation_failed');
+    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe(
+      'validation_failed',
+    );
   });
 
   it('rejects a principal without tenant.role.create → 403', async () => {

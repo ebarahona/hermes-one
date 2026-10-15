@@ -28,9 +28,20 @@ import type {
   TurnRequest,
 } from '@platform/contracts';
 import {capabilitiesForEngine} from '@platform/capability-contract';
-import type {Decider, DeciderTool, TurnDeps} from '@platform-internal/agent-runtime';
-import {TurnSimulationService, type TurnSimulationOutput} from './simulation.js';
-import {DefaultEvaluationRunner, DefaultRegressionGate, type SimulateTurnFn} from './runner.js';
+import type {
+  Decider,
+  DeciderTool,
+  TurnDeps,
+} from '@platform-internal/agent-runtime';
+import {
+  TurnSimulationService,
+  type TurnSimulationOutput,
+} from './simulation.js';
+import {
+  DefaultEvaluationRunner,
+  DefaultRegressionGate,
+  type SimulateTurnFn,
+} from './runner.js';
 import {runBehavioralRegression, type GateResult} from './gate-check.js';
 
 /** The candidate manifest's member refs — mirrors the PublishDeploymentInput the caller builds. */
@@ -44,8 +55,16 @@ export interface CandidateMemberRefs {
 export interface CandidateCheckDeps {
   members: CandidateMemberRefs;
   /** Hash-verified store loaders (CompiledPlanStore.resolveContractCached / resolvePlanCached shape). */
-  loadContract(tenantId: TenantId, definitionId: DefinitionId, contentHash: ContentHash): Promise<unknown>;
-  loadPlan(tenantId: TenantId, planId: PlanId, contentHash: ContentHash): Promise<unknown>;
+  loadContract(
+    tenantId: TenantId,
+    definitionId: DefinitionId,
+    contentHash: ContentHash,
+  ): Promise<unknown>;
+  loadPlan(
+    tenantId: TenantId,
+    planId: PlanId,
+    contentHash: ContentHash,
+  ): Promise<unknown>;
   /** The policy runtime evaluating the candidate's compiled plan (ADR-019). Omitted = ungated sim. */
   policyRuntime?: PolicyRuntime;
   /** The golden suite gating this publish. */
@@ -74,7 +93,9 @@ function mockExecutor(
           ok: true,
           output,
           sideEffect: contract?.sideEffect ?? 'read',
-          stateChanged: contract ? contract.sideEffect !== 'none' && contract.sideEffect !== 'read' : false,
+          stateChanged: contract
+            ? contract.sideEffect !== 'none' && contract.sideEffect !== 'read'
+            : false,
           changedDomains: contract ? [...contract.changedDomains] : ['none'],
           evidence: [
             {
@@ -93,7 +114,13 @@ function mockExecutor(
               observedAt: NOW,
             },
           ],
-          metrics: {latencyMs: 1, providerId: 'mock-provider', retries: 0, costUsd: 0, idempotentReplay: false},
+          metrics: {
+            latencyMs: 1,
+            providerId: 'mock-provider',
+            retries: 0,
+            costUsd: 0,
+            idempotentReplay: false,
+          },
           error: null,
         } as unknown as ToolResult,
       };
@@ -118,21 +145,55 @@ function simTurnRequest(
       workspaceId: `wsp_sim_${tenantId}`,
       tenantRuntime: {
         tenant: {
-          tenantId, slug: 'sim-tenant', displayName: 'Simulation', status: 'active',
-          dataResidency: 'us', features: {}, createdAt: NOW,
+          tenantId,
+          slug: 'sim-tenant',
+          displayName: 'Simulation',
+          status: 'active',
+          dataResidency: 'us',
+          features: {},
+          createdAt: NOW,
         },
         tenantId,
-        deployment: {deploymentId: candidate.deploymentId, tenantId, version: candidate.version},
-        quotaProfile: {profileId: 'qp_sim', maxModelCostUsdPerDay: null, maxTokensPerDay: null, maxTurnsPerConversation: null, maxMessagesPerDay: null},
-        budgets: {maxSteps: 5, deadlineMs: 30_000, maxInputTokens: 8000, maxOutputTokens: 2000, maxModelCostUsd: 1},
-        locale: 'en-US', timezone: 'UTC', operatorRegistryVersion: '1.0.0',
+        deployment: {
+          deploymentId: candidate.deploymentId,
+          tenantId,
+          version: candidate.version,
+        },
+        quotaProfile: {
+          profileId: 'qp_sim',
+          maxModelCostUsdPerDay: null,
+          maxTokensPerDay: null,
+          maxTurnsPerConversation: null,
+          maxMessagesPerDay: null,
+        },
+        budgets: {
+          maxSteps: 5,
+          deadlineMs: 30_000,
+          maxInputTokens: 8000,
+          maxOutputTokens: 2000,
+          maxModelCostUsd: 1,
+        },
+        locale: 'en-US',
+        timezone: 'UTC',
+        operatorRegistryVersion: '1.0.0',
       },
-      principal: {id: 'prn_sim_eval', tenantId, kind: 'system', roles: ['eval'], scopes, attributes: {}},
+      principal: {
+        id: 'prn_sim_eval',
+        tenantId,
+        kind: 'system',
+        roles: ['eval'],
+        scopes,
+        attributes: {},
+      },
       conversationId: null,
       channel: 'api',
       correlationId: `sim-${candidate.deploymentId}-${seq}`,
     },
-    agentEngine: {definitionId: engineRef.definitionId, version: '1.0.0', contentHash: engineRef.contentHash},
+    agentEngine: {
+      definitionId: engineRef.definitionId,
+      version: '1.0.0',
+      contentHash: engineRef.contentHash,
+    },
     inbound,
     objective: 'golden-case simulation',
   } as unknown as TurnRequest;
@@ -149,18 +210,28 @@ export function composeCandidateRegressionCheck(
   return async candidate => {
     const {members} = deps;
     const engine = (await deps.loadContract(
-      members.tenantId, members.agentEngine.definitionId, members.agentEngine.contentHash,
+      members.tenantId,
+      members.agentEngine.definitionId,
+      members.agentEngine.contentHash,
     )) as AgentEngineContract;
     const contracts = (await Promise.all(
-      members.capabilities.map(c => deps.loadContract(members.tenantId, c.definitionId, c.contentHash)),
+      members.capabilities.map(c =>
+        deps.loadContract(members.tenantId, c.definitionId, c.contentHash),
+      ),
     )) as CapabilityContract[];
     const policyPlan = (await deps.loadPlan(
-      members.tenantId, members.policy.planId, members.policy.contentHash,
+      members.tenantId,
+      members.policy.planId,
+      members.policy.contentHash,
     )) as CompiledPolicyPlan;
 
     // The eval principal carries the full allowed scope set (flagged above).
     const scopes = contracts.map(c => c.requiredScope);
-    const tools: DeciderTool[] = capabilitiesForEngine(engine.body.allowedCapabilities, contracts, scopes).map(c => ({
+    const tools: DeciderTool[] = capabilitiesForEngine(
+      engine.body.allowedCapabilities,
+      contracts,
+      scopes,
+    ).map(c => ({
       toolName: c.name.replace(/\./g, '_'),
       capability: c.name,
       description: c.description,
@@ -171,15 +242,26 @@ export function composeCandidateRegressionCheck(
     const sim = new TurnSimulationService();
 
     // Per-case scripted decider — rebuilt per simulate call so multi-turn scripts restart cleanly.
-    const simulateFor = (goldenCase: GoldenConversationCase): SimulateTurnFn => {
+    const simulateFor = (
+      goldenCase: GoldenConversationCase,
+    ): SimulateTurnFn => {
       let seq = 0;
       return async (inbound, ref) => {
         const out: TurnSimulationOutput = await sim.simulateTurn(
-          simTurnRequest(members.tenantId, ref, members.agentEngine, scopes, inbound, seq++),
+          simTurnRequest(
+            members.tenantId,
+            ref,
+            members.agentEngine,
+            scopes,
+            inbound,
+            seq++,
+          ),
           {
             executor,
             decider: deps.script(goldenCase, tools),
-            policy: deps.policyRuntime ? {plan: policyPlan, runtime: deps.policyRuntime} : undefined,
+            policy: deps.policyRuntime
+              ? {plan: policyPlan, runtime: deps.policyRuntime}
+              : undefined,
           },
         );
         return out;
@@ -190,7 +272,9 @@ export function composeCandidateRegressionCheck(
     const results: GateResult[] = [];
     for (const goldenCase of deps.suite) {
       const runner = new DefaultEvaluationRunner(simulateFor(goldenCase));
-      results.push(await runBehavioralRegression(runner, gate, [goldenCase], candidate));
+      results.push(
+        await runBehavioralRegression(runner, gate, [goldenCase], candidate),
+      );
     }
     const failed = results.filter(r => !r.pass);
     return failed.length === 0

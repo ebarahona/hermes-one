@@ -7,7 +7,10 @@ import {Pool} from 'pg';
 import {loadConfig} from '@platform-internal/config';
 import type {TenantId} from '@platform/contracts';
 import {runMigrations} from './migrate.js';
-import {createTurnLedgerRepository, type TurnLedgerRepositoryHandle} from './client.js';
+import {
+  createTurnLedgerRepository,
+  type TurnLedgerRepositoryHandle,
+} from './client.js';
 import type {TurnLedgerRows} from './turn-ledger-repository.js';
 
 const cfg = loadConfig();
@@ -31,7 +34,13 @@ const bundle: TurnLedgerRows = {
       sideEffect: 'read',
       stateChanged: false,
       changedDomains: ['none'],
-      metrics: {latencyMs: 12, providerId: 'appt-provider', retries: 0, costUsd: 0, idempotentReplay: false},
+      metrics: {
+        latencyMs: 12,
+        providerId: 'appt-provider',
+        retries: 0,
+        costUsd: 0,
+        idempotentReplay: false,
+      },
       proposedAt: new Date('2026-07-13T00:00:00.000Z'),
     },
   ],
@@ -74,7 +83,10 @@ const bundle: TurnLedgerRows = {
 };
 
 const countFor = async (table: string): Promise<number> => {
-  const r = await owner.query(`SELECT count(*)::int AS n FROM runtime.${table} WHERE tenant_id = $1`, [TENANT]);
+  const r = await owner.query(
+    `SELECT count(*)::int AS n FROM runtime.${table} WHERE tenant_id = $1`,
+    [TENANT],
+  );
   return r.rows[0].n as number;
 };
 
@@ -83,13 +95,17 @@ beforeAll(async () => {
   owner = new Pool({connectionString: PG, max: 2});
   ledger = createTurnLedgerRepository(PG);
   for (const t of ['tool_executions', 'evidence_records', 'policy_decisions']) {
-    await owner.query(`DELETE FROM runtime.${t} WHERE tenant_id = $1`, [TENANT]);
+    await owner.query(`DELETE FROM runtime.${t} WHERE tenant_id = $1`, [
+      TENANT,
+    ]);
   }
 });
 
 afterAll(async () => {
   for (const t of ['tool_executions', 'evidence_records', 'policy_decisions']) {
-    await owner.query(`DELETE FROM runtime.${t} WHERE tenant_id = $1`, [TENANT]);
+    await owner.query(`DELETE FROM runtime.${t} WHERE tenant_id = $1`, [
+      TENANT,
+    ]);
   }
   await owner.end();
   await ledger.close();
@@ -109,8 +125,12 @@ describe('DrizzleTurnLedgerRepository.persistTurn (live)', () => {
          FROM runtime.tool_executions WHERE tool_call_id = 'tc_ledger_1'`,
     );
     expect(te.rows[0]).toMatchObject({
-      tenant_id: TENANT, capability_name: 'appointment.slot.read', ok: true,
-      side_effect: 'read', changed_domains: ['none'], idempotency_key: 'idem-ledger-1',
+      tenant_id: TENANT,
+      capability_name: 'appointment.slot.read',
+      ok: true,
+      side_effect: 'read',
+      changed_domains: ['none'],
+      idempotency_key: 'idem-ledger-1',
     });
 
     // Both gate sites recorded.
@@ -133,11 +153,15 @@ describe('DrizzleTurnLedgerRepository.persistTurn (live)', () => {
     // NOTHING, not just the tool_call_id PK — else a Temporal retry throws and hangs the activity.
     const retried: TurnLedgerRows = {
       ...bundle,
-      toolExecutions: [{...bundle.toolExecutions[0], toolCallId: 'tc_ledger_1_retry'}],
+      toolExecutions: [
+        {...bundle.toolExecutions[0], toolCallId: 'tc_ledger_1_retry'},
+      ],
       evidence: [],
       policyDecisions: [],
     };
-    await expect(ledger.repo.persistTurn(retried, {tenantId: TENANT})).resolves.toBeUndefined();
+    await expect(
+      ledger.repo.persistTurn(retried, {tenantId: TENANT}),
+    ).resolves.toBeUndefined();
     expect(await countFor('tool_executions')).toBe(1); // same idempotency key → still one row
   });
 });

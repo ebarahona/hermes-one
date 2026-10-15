@@ -8,8 +8,17 @@
 import type {Client} from '@temporalio/client';
 import type {CompiledPlanStore} from '@platform-internal/drizzle';
 import type {DrizzleMessageRepository} from '@platform-internal/drizzle';
-import type {InboundMessage, PlanId, Principal, RoleRegistry, TenantId} from '@platform/contracts';
-import {WORKFLOW_QUEUE, type WorkflowRunRef} from '@platform-internal/workflow-worker';
+import type {
+  InboundMessage,
+  PlanId,
+  Principal,
+  RoleRegistry,
+  TenantId,
+} from '@platform/contracts';
+import {
+  WORKFLOW_QUEUE,
+  type WorkflowRunRef,
+} from '@platform-internal/workflow-worker';
 
 export interface IngestDeps {
   store: CompiledPlanStore;
@@ -57,7 +66,9 @@ export async function startFromInbound(
   const deployment = await deps.store.resolveActiveDeploymentCached(tenantId);
   const rule = deployment.rules[0];
   if (!deployment.workflow.planId || !rule?.planId) {
-    throw new Error(`deployment for ${tenantId} is missing a workflow or rule plan`);
+    throw new Error(
+      `deployment for ${tenantId} is missing a workflow or rule plan`,
+    );
   }
 
   // Mint the ACTING principal (AUTH-2, docs/design/001-edge-authn-design.md): the customer the
@@ -76,11 +87,17 @@ export async function startFromInbound(
   const meta = inbound.providerMeta as Record<string, unknown>;
   const ref: WorkflowRunRef = {
     tenantId,
-    workflow: {planId: deployment.workflow.planId as PlanId, contentHash: deployment.workflow.contentHash},
+    workflow: {
+      planId: deployment.workflow.planId as PlanId,
+      contentHash: deployment.workflow.contentHash,
+    },
     rule: {planId: rule.planId as PlanId, contentHash: rule.contentHash},
     // Resolve-active-and-PIN (D1): the run — including any agent turn — replays against this exact
     // deployment version even if a new one is published mid-conversation.
-    deployment: {deploymentId: deployment.deploymentId, version: deployment.version},
+    deployment: {
+      deploymentId: deployment.deploymentId,
+      version: deployment.version,
+    },
     principal,
     // The conversation minted above (and already persisted with the inbound message): threading it
     // onto the run means any agent turn's handoff outcome persists its durable handoff_tasks row
@@ -102,5 +119,9 @@ export async function startFromInbound(
     workflowId: `inbound-${short(inbound.providerMessageId)}`,
     args: [ref],
   });
-  return {workflowId: handle.workflowId, runId: handle.firstExecutionRunId, conversationId};
+  return {
+    workflowId: handle.workflowId,
+    runId: handle.firstExecutionRunId,
+    conversationId,
+  };
 }

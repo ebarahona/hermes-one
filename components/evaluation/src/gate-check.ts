@@ -24,7 +24,9 @@ export async function runBehavioralRegression(
 ): Promise<GateResult> {
   const results = await runner.runSuite(cases, deploymentRef);
   const g = gate.evaluate(results, cases);
-  return g.pass ? {pass: true} : {pass: false, reason: g.reason, failedCaseIds: g.failedCaseIds};
+  return g.pass
+    ? {pass: true}
+    : {pass: false, reason: g.reason, failedCaseIds: g.failedCaseIds};
 }
 
 /** AND several gate results — the publish passes only if every gate passes. */

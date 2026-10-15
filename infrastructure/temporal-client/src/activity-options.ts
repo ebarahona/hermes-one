@@ -8,7 +8,10 @@
 //   `ApplicationFailure` the registry's `nonRetryableErrorTypes` can match.
 import type {Duration} from '@temporalio/common';
 import {PlatformErrorException} from '@platform/contracts';
-import {toApplicationFailure, type ActivityOptionsSpec} from './retry-policy.js';
+import {
+  toApplicationFailure,
+  type ActivityOptionsSpec,
+} from './retry-policy.js';
 
 /** The subset of Temporal's ActivityOptions the registry drives (durations as Temporal strings). */
 export interface TemporalActivityOptions {
@@ -24,20 +27,27 @@ export interface TemporalActivityOptions {
   };
 }
 
-export function toTemporalActivityOptions(spec: ActivityOptionsSpec): TemporalActivityOptions {
+export function toTemporalActivityOptions(
+  spec: ActivityOptionsSpec,
+): TemporalActivityOptions {
   const {rationale: _rationale, retry, ...timeouts} = spec;
   // DurationString's regex (retry-policy.ts) guarantees the ms-compatible format Temporal's
   // template-literal Duration type encodes — the assertions narrow, they don't invent.
   return {
     ...timeouts,
-    retry: {...retry, nonRetryableErrorTypes: [...retry.nonRetryableErrorTypes]},
+    retry: {
+      ...retry,
+      nonRetryableErrorTypes: [...retry.nonRetryableErrorTypes],
+    },
   } as TemporalActivityOptions;
 }
 
 type AnyActivity = (...args: never[]) => Promise<unknown>;
 
 /** Wrap a worker's activity map so every thrown PlatformErrorException becomes a typed ApplicationFailure. */
-export function withPlatformFailures<T extends Record<string, AnyActivity>>(activities: T): T {
+export function withPlatformFailures<T extends Record<string, AnyActivity>>(
+  activities: T,
+): T {
   return Object.fromEntries(
     Object.entries(activities).map(([name, fn]) => [
       name,
@@ -45,7 +55,8 @@ export function withPlatformFailures<T extends Record<string, AnyActivity>>(acti
         try {
           return await fn(...args);
         } catch (err) {
-          if (err instanceof PlatformErrorException) throw toApplicationFailure(err.error);
+          if (err instanceof PlatformErrorException)
+            throw toApplicationFailure(err.error);
           throw err;
         }
       },

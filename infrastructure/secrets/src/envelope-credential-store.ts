@@ -29,7 +29,11 @@ export interface CredentialRow {
 
 /** Tenant-scoped row access — implemented by Drizzle over capability.provider_credentials. */
 export interface CredentialRowStore {
-  get(tenantId: TenantId, providerId: string, capability: CapabilityName): Promise<CredentialRow | null>;
+  get(
+    tenantId: TenantId,
+    providerId: string,
+    capability: CapabilityName,
+  ): Promise<CredentialRow | null>;
   /** Create-or-replace on the (tenant, provider, capability) unique key. */
   upsert(row: CredentialRow): Promise<void>;
   /** Returns whether an EXISTING row was updated — false when the tuple has no row at all. */
@@ -67,7 +71,11 @@ export class EnvelopeCredentialStore implements ProviderCredentialStore {
     const row = await this.rows.get(tenantId, providerId, capability);
     if (!row) throw new MissingCredentialsError(providerId);
     if (row.status === 'revoked') throw new RevokedCredentialsError(providerId);
-    const plaintext = await this.cipher.decrypt(tenantId, row.ciphertext, row.keyRef);
+    const plaintext = await this.cipher.decrypt(
+      tenantId,
+      row.ciphertext,
+      row.keyRef,
+    );
     return {
       tenantId,
       providerId,
@@ -84,7 +92,10 @@ export class EnvelopeCredentialStore implements ProviderCredentialStore {
     capability: CapabilityName,
     config: Readonly<Record<string, string>>,
   ): Promise<void> {
-    const {ciphertext, keyRef} = await this.cipher.encrypt(tenantId, JSON.stringify(config));
+    const {ciphertext, keyRef} = await this.cipher.encrypt(
+      tenantId,
+      JSON.stringify(config),
+    );
     await this.rows.upsert({
       credentialId: credentialIdFor(tenantId, providerId, capability),
       tenantId,
@@ -97,8 +108,17 @@ export class EnvelopeCredentialStore implements ProviderCredentialStore {
     });
   }
 
-  async revoke(tenantId: TenantId, providerId: string, capability: CapabilityName): Promise<void> {
-    const updated = await this.rows.setStatus(tenantId, providerId, capability, 'revoked');
+  async revoke(
+    tenantId: TenantId,
+    providerId: string,
+    capability: CapabilityName,
+  ): Promise<void> {
+    const updated = await this.rows.setStatus(
+      tenantId,
+      providerId,
+      capability,
+      'revoked',
+    );
     if (updated) return;
     // No row for the tuple: revocation intent must STILL stick durably (ADR-026 — revoke fail-closes,
     // never falls through). A bare no-op UPDATE here would leave nothing behind, and a layered store
@@ -120,7 +140,11 @@ export class EnvelopeCredentialStore implements ProviderCredentialStore {
 }
 
 /** Deterministic row id for the (tenant, provider, capability) tuple — satisfies the 'pvc_%' CHECK. */
-const credentialIdFor = (tenantId: TenantId, providerId: string, capability: CapabilityName): string =>
+const credentialIdFor = (
+  tenantId: TenantId,
+  providerId: string,
+  capability: CapabilityName,
+): string =>
   `pvc_${tenantId}_${providerId}_${capability}`.replace(/[^a-zA-Z0-9_]/g, '_');
 
 /** Sentinel for a revoked-with-no-prior-row tombstone — schema-legal, never decrypted. */
@@ -146,7 +170,8 @@ export class FallbackCredentialStore implements ProviderCredentialStore {
     try {
       return await this.primary.resolve(tenantId, providerId, capability);
     } catch (err) {
-      if (err instanceof MissingCredentialsError) return this.fallback.resolve(tenantId, providerId, capability);
+      if (err instanceof MissingCredentialsError)
+        return this.fallback.resolve(tenantId, providerId, capability);
       throw err; // revoked / cipher failures NEVER fall through
     }
   }
@@ -160,7 +185,11 @@ export class FallbackCredentialStore implements ProviderCredentialStore {
     return this.primary.rotate(tenantId, providerId, capability, config);
   }
 
-  revoke(tenantId: TenantId, providerId: string, capability: CapabilityName): Promise<void> {
+  revoke(
+    tenantId: TenantId,
+    providerId: string,
+    capability: CapabilityName,
+  ): Promise<void> {
     return this.primary.revoke(tenantId, providerId, capability);
   }
 }

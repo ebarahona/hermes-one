@@ -12,14 +12,24 @@ export function emitTurnMetrics(
   turnLatencyMs: number,
 ): void {
   meter.increment(MetricName.TURN_COUNT, {tenantId: ledger.tenantId, outcome});
-  meter.record(MetricName.TURN_LATENCY_MS, turnLatencyMs, {tenantId: ledger.tenantId});
+  meter.record(MetricName.TURN_LATENCY_MS, turnLatencyMs, {
+    tenantId: ledger.tenantId,
+  });
 
   for (const {result} of ledger.toolExecutions) {
-    meter.increment(MetricName.TOOL_INVOCATION_COUNT, {capability: result.capability, ok: String(result.ok)});
-    meter.record(MetricName.TOOL_LATENCY_MS, result.metrics.latencyMs, {capability: result.capability});
+    meter.increment(MetricName.TOOL_INVOCATION_COUNT, {
+      capability: result.capability,
+      ok: String(result.ok),
+    });
+    meter.record(MetricName.TOOL_LATENCY_MS, result.metrics.latencyMs, {
+      capability: result.capability,
+    });
   }
 
   for (const d of ledger.policyDecisions) {
-    meter.increment(MetricName.GATE_DECISION_COUNT, {site: d.site, outcome: d.decision.outcome});
+    meter.increment(MetricName.GATE_DECISION_COUNT, {
+      site: d.site,
+      outcome: d.decision.outcome,
+    });
   }
 }

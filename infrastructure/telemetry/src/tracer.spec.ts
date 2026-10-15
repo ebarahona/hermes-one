@@ -9,7 +9,9 @@ const spanIdOf = (tp: string) => tp.split('-')[2];
 describe('OtelTracer (explicit traceparent propagation)', () => {
   it('emits a well-formed traceparent whose traceId matches the span', async () => {
     const {tracer, exporter, shutdown} = createInMemoryTracing();
-    const s = tracer.startSpan('edge.request', {attributes: {'tenant.id': 'tnt_1'}});
+    const s = tracer.startSpan('edge.request', {
+      attributes: {'tenant.id': 'tnt_1'},
+    });
     expect(s.traceparent).toMatch(TRACEPARENT_RE);
     expect(traceIdOf(s.traceparent)).toBe(s.traceId);
     s.end();
@@ -25,8 +27,12 @@ describe('OtelTracer (explicit traceparent propagation)', () => {
     const {tracer, exporter, shutdown} = createInMemoryTracing();
     const parent = tracer.startSpan('temporal.activity.agentTurn');
     // Simulate the next hop: only the traceparent string crosses the boundary.
-    const child = tracer.startSpan('agent.turn', {parentTraceparent: parent.traceparent});
-    const tool = tracer.startSpan('agent.tool.messaging.reply.send', {parentTraceparent: child.traceparent});
+    const child = tracer.startSpan('agent.turn', {
+      parentTraceparent: parent.traceparent,
+    });
+    const tool = tracer.startSpan('agent.tool.messaging.reply.send', {
+      parentTraceparent: child.traceparent,
+    });
     tool.end();
     child.end();
     parent.end();
@@ -36,8 +42,12 @@ describe('OtelTracer (explicit traceparent propagation)', () => {
     expect(tool.traceId).toBe(parent.traceId);
 
     const byName = new Map(exporter.getFinishedSpans().map(s => [s.name, s]));
-    expect(byName.get('agent.turn')!.parentSpanContext?.spanId).toBe(spanIdOf(parent.traceparent));
-    expect(byName.get('agent.tool.messaging.reply.send')!.parentSpanContext?.spanId).toBe(spanIdOf(child.traceparent));
+    expect(byName.get('agent.turn')!.parentSpanContext?.spanId).toBe(
+      spanIdOf(parent.traceparent),
+    );
+    expect(
+      byName.get('agent.tool.messaging.reply.send')!.parentSpanContext?.spanId,
+    ).toBe(spanIdOf(child.traceparent));
     await shutdown();
   });
 
@@ -76,7 +86,9 @@ describe('NoopTracer', () => {
 
 describe('traceHeaderFrom', () => {
   it('wraps a present traceparent and nulls a blank one', () => {
-    expect(traceHeaderFrom('00-abc-def-01')).toEqual({traceparent: '00-abc-def-01'});
+    expect(traceHeaderFrom('00-abc-def-01')).toEqual({
+      traceparent: '00-abc-def-01',
+    });
     expect(traceHeaderFrom('')).toBeNull();
     expect(traceHeaderFrom(undefined)).toBeNull();
     expect(traceHeaderFrom(null)).toBeNull();

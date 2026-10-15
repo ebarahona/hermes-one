@@ -13,7 +13,10 @@ import type {IsoTimestamp, TenantId} from './substrate.js';
  *  provider-contract configKey resolve through this same grammar). */
 export const SecretRef = z
   .string()
-  .regex(/^secret:\/\/[a-z0-9][a-z0-9._-]*(\/[a-z0-9][a-z0-9._-]*)+$/, 'expected "secret://<store>/<path>"')
+  .regex(
+    /^secret:\/\/[a-z0-9][a-z0-9._-]*(\/[a-z0-9][a-z0-9._-]*)+$/,
+    'expected "secret://<store>/<path>"',
+  )
   .brand('SecretRef');
 export type SecretRef = z.infer<typeof SecretRef>;
 
@@ -78,5 +81,9 @@ export interface ProviderCredentialStore {
     config: Readonly<Record<string, string>>,
   ): Promise<void>;
   /** Kill-switch: subsequent resolves fail-closed until a new rotate(). */
-  revoke(tenantId: TenantId, providerId: string, capability: CapabilityName): Promise<void>;
+  revoke(
+    tenantId: TenantId,
+    providerId: string,
+    capability: CapabilityName,
+  ): Promise<void>;
 }

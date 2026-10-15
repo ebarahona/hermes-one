@@ -15,13 +15,13 @@ checks pass under `pnpm verify`.
 
 ## Verified integration contracts
 
-| #   | Contract                                                                                                                                                                                | Where                                             | Status |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- | ------ |
-| T1  | A `@tool` (Zod I/O) registers and dispatches via `callTool`, returning the unwrapped, output-validated result                                                                            | `agentback-runtime/src/spike-t1-dispatch.spec.ts` | ✅     |
-| T2  | The platform drives a bounded **single-step** loop — one decide→execute per step, no autonomy                                                                                            | `agent-runtime/src/single-step-turn.spec.ts` — `platform-owned single-step loop (ADR-021)` | ✅     |
-| T3  | The `ToolResult` envelope is synthesized **around** the unwrapped result — `sideEffect`/`changedDomains` from capability metadata, `evidence`/`metrics` from a dispatch hook (ADR-018)   | `tool-executor/src/envelope-synthesis.spec.ts` — `ToolResult envelope synthesis (ADR-018)` | ✅     |
-| T4  | The `confirm:` round-trip works: refuse + single-use token → identical retry executes (fingerprint binding is enforced by agentback; the mismatched-retry refusal is not separately asserted) | `agent-runtime/src/single-step-turn.spec.ts` — `confirm: round-trip` | ✅     |
-| T5  | `confirm:` tools **never project** to an autonomous agent → the platform owns the loop                                                                                                   | `agent-runtime/src/single-step-turn.spec.ts` — `confirm: tools never project to an autonomous agent` (also `agentback-runtime/src/tool-projection.spec.ts`) | ✅     |
+| #   | Contract                                                                                                                                                                                      | Where                                                                                                                                                       | Status |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| T1  | A `@tool` (Zod I/O) registers and dispatches via `callTool`, returning the unwrapped, output-validated result                                                                                 | `agentback-runtime/src/spike-t1-dispatch.spec.ts`                                                                                                           | ✅     |
+| T2  | The platform drives a bounded **single-step** loop — one decide→execute per step, no autonomy                                                                                                 | `agent-runtime/src/single-step-turn.spec.ts` — `platform-owned single-step loop (ADR-021)`                                                                  | ✅     |
+| T3  | The `ToolResult` envelope is synthesized **around** the unwrapped result — `sideEffect`/`changedDomains` from capability metadata, `evidence`/`metrics` from a dispatch hook (ADR-018)        | `tool-executor/src/envelope-synthesis.spec.ts` — `ToolResult envelope synthesis (ADR-018)`                                                                  | ✅     |
+| T4  | The `confirm:` round-trip works: refuse + single-use token → identical retry executes (fingerprint binding is enforced by agentback; the mismatched-retry refusal is not separately asserted) | `agent-runtime/src/single-step-turn.spec.ts` — `confirm: round-trip`                                                                                        | ✅     |
+| T5  | `confirm:` tools **never project** to an autonomous agent → the platform owns the loop                                                                                                        | `agent-runtime/src/single-step-turn.spec.ts` — `confirm: tools never project to an autonomous agent` (also `agentback-runtime/src/tool-projection.spec.ts`) | ✅     |
 
 ## Integration notes — where the library sharpened the specification
 
@@ -31,7 +31,7 @@ enforced, not remembered.
 
 1. **The public dispatch seam is `MCPServer.callTool`.** ADR-018's draft wording said "wrap
    `invokeTool`"; the library's public in-process seam is `callTool(name, input, {ctx, principal,
-   binding})`, which returns the **bare, output-validated method result** (not an MCP
+binding})`, which returns the **bare, output-validated method result** (not an MCP
    `CallToolResult` envelope). The platform `ToolExecutor` wraps `callTool` — the cleaner surface.
 
 2. **The dispatch hook is the envelope seam.** `McpDispatchHook` values tagged

@@ -8,12 +8,25 @@
 // Flagged: the list returns a full PageResponse envelope but cursor pagination is not implemented
 // (all users in one page) — the cursor logic lands with the shared pagination helper.
 import {inject} from '@loopback/core';
-import {get, param, post, requestBody, RestBindings, type Response} from '@loopback/rest';
+import {
+  get,
+  param,
+  post,
+  requestBody,
+  RestBindings,
+  type Response,
+} from '@loopback/rest';
 import {z} from 'zod';
 import {PlatformBindings} from '@platform-internal/loopback-core';
 import {assertScope, forbiddenScopeError} from '@platform-internal/auth';
 import type {DrizzleUserRepository, UserDto} from '@platform-internal/drizzle';
-import {type ErrorIssue, PlatformErrorException, type Principal, type Scope, type TenantId} from '@platform/contracts';
+import {
+  type ErrorIssue,
+  PlatformErrorException,
+  type Principal,
+  type Scope,
+  type TenantId,
+} from '@platform/contracts';
 
 const CREATE_USER = 'tenant.user.create' as Scope;
 const READ_USER = 'tenant.user.read' as Scope;
@@ -25,7 +38,12 @@ const CreateUserRequest = z.object({
   email: z.string().email().optional(),
   externalHandle: z.string().optional(),
   roleNames: z.array(z.string()).default([]),
-  attributes: z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).default({}),
+  attributes: z
+    .record(
+      z.string(),
+      z.union([z.string(), z.number(), z.boolean(), z.null()]),
+    )
+    .default({}),
 });
 
 interface PageResponse<T> {
@@ -35,7 +53,10 @@ interface PageResponse<T> {
 }
 
 function validationFailed(err: z.ZodError): PlatformErrorException {
-  const issues: ErrorIssue[] = err.issues.map(i => ({path: `/${i.path.join('/')}`, message: i.message}));
+  const issues: ErrorIssue[] = err.issues.map(i => ({
+    path: `/${i.path.join('/')}`,
+    message: i.message,
+  }));
   return new PlatformErrorException({
     category: 'validation',
     code: 'validation_failed',
@@ -48,8 +69,10 @@ function validationFailed(err: z.ZodError): PlatformErrorException {
 
 export class UserController {
   constructor(
-    @inject(PlatformBindings.REQUEST_PRINCIPAL) private readonly principal: Principal,
-    @inject(PlatformBindings.USER_REPOSITORY) private readonly users: DrizzleUserRepository,
+    @inject(PlatformBindings.REQUEST_PRINCIPAL)
+    private readonly principal: Principal,
+    @inject(PlatformBindings.USER_REPOSITORY)
+    private readonly users: DrizzleUserRepository,
   ) {}
 
   private assertOwnTenant(tenantId: string, scope: Scope): TenantId {
@@ -61,7 +84,13 @@ export class UserController {
   @post('/v1/tenants/{tenantId}/users')
   async createUser(
     @param.path.string('tenantId') tenantId: string,
-    @requestBody({content: {'application/json': {schema: {type: 'object', additionalProperties: true}}}})
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {type: 'object', additionalProperties: true},
+        },
+      },
+    })
     body: unknown,
     @inject(RestBindings.Http.RESPONSE) response: Response,
   ): Promise<UserDto> {
@@ -74,7 +103,9 @@ export class UserController {
   }
 
   @get('/v1/tenants/{tenantId}/users')
-  async listUsers(@param.path.string('tenantId') tenantId: string): Promise<PageResponse<UserDto>> {
+  async listUsers(
+    @param.path.string('tenantId') tenantId: string,
+  ): Promise<PageResponse<UserDto>> {
     const owner = this.assertOwnTenant(tenantId, READ_USER);
     const items = await this.users.listUsers(owner);
     return {items, nextCursor: null, hasMore: false}; // cursor paging simplified (flagged)

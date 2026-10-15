@@ -4,7 +4,12 @@
 // tests drive runTurn and inspect the TurnResult.
 import {describe, it, expect} from 'vitest';
 import {createTestApp} from '@agentback/testing';
-import {MCPBindings, MCP_DISPATCH_HOOK_TAG, selectTools, type MCPServer} from '@agentback/mcp';
+import {
+  MCPBindings,
+  MCP_DISPATCH_HOOK_TAG,
+  selectTools,
+  type MCPServer,
+} from '@agentback/mcp';
 import type {Context} from '@agentback/context';
 import {createAgentPlaneApp} from '@platform-internal/agentback-runtime';
 import {
@@ -21,28 +26,55 @@ import type {CompiledPolicyPlan, PolicyRuntime} from '@platform/contracts';
 // A trivial always-allow policy runtime — enough to exercise pre/post-gate decision recording without
 // pulling the policy compiler into this unit test (the real runtime is covered in policy-dsl specs).
 const allowRuntime: PolicyRuntime = {
-  evaluatePreGates: () => ({outcome: 'allow', policyRuleId: '<default>', reason: 'ok', decidedAt: FIXED_NOW}),
-  evaluatePostGates: () => ({outcome: 'allow', policyRuleId: '<default>', reason: 'ok', decidedAt: FIXED_NOW}),
+  evaluatePreGates: () => ({
+    outcome: 'allow',
+    policyRuleId: '<default>',
+    reason: 'ok',
+    decidedAt: FIXED_NOW,
+  }),
+  evaluatePostGates: () => ({
+    outcome: 'allow',
+    policyRuleId: '<default>',
+    reason: 'ok',
+    decidedAt: FIXED_NOW,
+  }),
   toVoters: () => [],
 };
 // A pre-gate that always hands off — drives the turn to outcome='handoff' at step 0.
 const handoffRuntime: PolicyRuntime = {
-  evaluatePreGates: () => ({outcome: 'handoff', policyRuleId: 'r_needs_human', reason: 'needs a human', decidedAt: FIXED_NOW}),
-  evaluatePostGates: () => ({outcome: 'allow', policyRuleId: '<default>', reason: 'ok', decidedAt: FIXED_NOW}),
+  evaluatePreGates: () => ({
+    outcome: 'handoff',
+    policyRuleId: 'r_needs_human',
+    reason: 'needs a human',
+    decidedAt: FIXED_NOW,
+  }),
+  evaluatePostGates: () => ({
+    outcome: 'allow',
+    policyRuleId: '<default>',
+    reason: 'ok',
+    decidedAt: FIXED_NOW,
+  }),
   toVoters: () => [],
 };
 const emptyPolicyPlan = {} as CompiledPolicyPlan;
 
 const META: Record<string, CapabilityMeta> = {
   'appointment.slot.read': {sideEffect: 'read', changedDomains: ['none']},
-  'appointment.booking.create': {sideEffect: 'write', changedDomains: ['appointment', 'conversation']},
+  'appointment.booking.create': {
+    sideEffect: 'write',
+    changedDomains: ['appointment', 'conversation'],
+  },
 };
-const metaSource: CapabilityMetaSource = n => META[n] ?? {sideEffect: 'read', changedDomains: ['none']};
+const metaSource: CapabilityMetaSource = n =>
+  META[n] ?? {sideEffect: 'read', changedDomains: ['none']};
 const execCtx = {turnId: 'trn_exec'} as unknown as TurnContext;
 
 function boot() {
   const app = createAgentPlaneApp({fixtures: true});
-  app.bind('platform.hook.envelope').to(createEnvelopeHook()).tag(MCP_DISPATCH_HOOK_TAG);
+  app
+    .bind('platform.hook.envelope')
+    .to(createEnvelopeHook())
+    .tag(MCP_DISPATCH_HOOK_TAG);
   return app;
 }
 
@@ -60,14 +92,20 @@ const bookingInput = {slot: '2026-07-12T14:00:00-05:00', customer: 'Ada'};
 
 const stepThen = (first: ToolCall): Decider => ({
   propose: step =>
-    step === 0 ? {kind: 'tool', call: first, usage: noUsage} : {kind: 'done', usage: noUsage},
+    step === 0
+      ? {kind: 'tool', call: first, usage: noUsage}
+      : {kind: 'done', usage: noUsage},
 });
 
 describe('platform-owned single-step loop (ADR-021)', () => {
   it('drives one decide→execute per step and composes from evidence', async () => {
     await using t = await createTestApp(boot);
     const server = await t.app.get<MCPServer>(MCPBindings.SERVER);
-    const exec = new PlatformToolExecutor(server, t.app as unknown as Context, metaSource);
+    const exec = new PlatformToolExecutor(
+      server,
+      t.app as unknown as Context,
+      metaSource,
+    );
 
     const result = await runTurn(testTurnRequest('list slots'), {
       executor: exec,
@@ -96,32 +134,55 @@ describe('confirm: round-trip', () => {
       token = (e as {confirmationToken?: string}).confirmationToken ?? '';
     }
     expect(token).toBeTruthy();
-    const output = await server.callTool('appointment.booking.create', {...bookingInput, confirmationToken: token});
+    const output = await server.callTool('appointment.booking.create', {
+      ...bookingInput,
+      confirmationToken: token,
+    });
     expect(output).toMatchObject({slot: bookingInput.slot});
   });
 
   it('executor surfaces the pending confirmation, then the retry state-changes', async () => {
     await using t = await createTestApp(boot);
     const server = await t.app.get<MCPServer>(MCPBindings.SERVER);
-    const exec = new PlatformToolExecutor(server, t.app as unknown as Context, metaSource);
+    const exec = new PlatformToolExecutor(
+      server,
+      t.app as unknown as Context,
+      metaSource,
+    );
 
-    const first = await exec.dispatch(call('appointment.booking.create', bookingInput), execCtx);
+    const first = await exec.dispatch(
+      call('appointment.booking.create', bookingInput),
+      execCtx,
+    );
     expect(first.pendingConfirmation?.token).toBeTruthy();
     expect(first.result.stateChanged).toBe(false);
 
     const retry = await exec.dispatch(
-      {...call('appointment.booking.create', bookingInput), input: {...bookingInput, confirmationToken: first.pendingConfirmation!.token}},
+      {
+        ...call('appointment.booking.create', bookingInput),
+        input: {
+          ...bookingInput,
+          confirmationToken: first.pendingConfirmation!.token,
+        },
+      },
       execCtx,
     );
     expect(retry.result.ok).toBe(true);
     expect(retry.result.stateChanged).toBe(true);
-    expect(retry.result.changedDomains).toEqual(['appointment', 'conversation']);
+    expect(retry.result.changedDomains).toEqual([
+      'appointment',
+      'conversation',
+    ]);
   });
 
   it('the turn drives approval → retry to a replied outcome', async () => {
     await using t = await createTestApp(boot);
     const server = await t.app.get<MCPServer>(MCPBindings.SERVER);
-    const exec = new PlatformToolExecutor(server, t.app as unknown as Context, metaSource);
+    const exec = new PlatformToolExecutor(
+      server,
+      t.app as unknown as Context,
+      metaSource,
+    );
 
     const result = await runTurn(testTurnRequest('book it'), {
       executor: exec,
@@ -130,13 +191,19 @@ describe('confirm: round-trip', () => {
       clock: {nowMs: () => 0},
     });
     expect(result.outcome).toBe('replied');
-    expect(result.toolCalls.map(c => c.capability)).toContain('appointment.booking.create');
+    expect(result.toolCalls.map(c => c.capability)).toContain(
+      'appointment.booking.create',
+    );
   });
 
   it('a denied approval hands off and records the approval decision (side effect unexecuted)', async () => {
     await using t = await createTestApp(boot);
     const server = await t.app.get<MCPServer>(MCPBindings.SERVER);
-    const exec = new PlatformToolExecutor(server, t.app as unknown as Context, metaSource);
+    const exec = new PlatformToolExecutor(
+      server,
+      t.app as unknown as Context,
+      metaSource,
+    );
 
     const result = await runTurn(testTurnRequest('book it'), {
       executor: exec,
@@ -153,14 +220,20 @@ describe('durable turn ledger (Tier 2)', () => {
   it('emits tool executions, evidence, and every gate decision to onPersist', async () => {
     await using t = await createTestApp(boot);
     const server = await t.app.get<MCPServer>(MCPBindings.SERVER);
-    const exec = new PlatformToolExecutor(server, t.app as unknown as Context, metaSource);
+    const exec = new PlatformToolExecutor(
+      server,
+      t.app as unknown as Context,
+      metaSource,
+    );
 
     let captured: TurnLedger | undefined;
     const result = await runTurn(testTurnRequest('list slots'), {
       executor: exec,
       decider: stepThen(call('appointment.slot.read', {date: '2026-07-12'})),
       policy: {plan: emptyPolicyPlan, runtime: allowRuntime},
-      onPersist: async l => { captured = l; },
+      onPersist: async l => {
+        captured = l;
+      },
       clock: {nowMs: () => 0},
     });
 
@@ -184,20 +257,28 @@ describe('durable turn ledger (Tier 2)', () => {
     const sites = captured!.policyDecisions.map(d => d.site);
     expect(sites).toContain('preGate');
     expect(sites).toContain('postGate');
-    expect(captured!.policyDecisions.every(d => d.decisionId.startsWith('pld_'))).toBe(true);
+    expect(
+      captured!.policyDecisions.every(d => d.decisionId.startsWith('pld_')),
+    ).toBe(true);
   });
 
   it('emits an initial handoff request when the turn hands off', async () => {
     await using t = await createTestApp(boot);
     const server = await t.app.get<MCPServer>(MCPBindings.SERVER);
-    const exec = new PlatformToolExecutor(server, t.app as unknown as Context, metaSource);
+    const exec = new PlatformToolExecutor(
+      server,
+      t.app as unknown as Context,
+      metaSource,
+    );
 
     let captured: TurnLedger | undefined;
     const result = await runTurn(testTurnRequest('book it'), {
       executor: exec,
       decider: stepThen(call('appointment.slot.read', {date: '2026-07-12'})),
       policy: {plan: emptyPolicyPlan, runtime: handoffRuntime},
-      onPersist: async l => { captured = l; },
+      onPersist: async l => {
+        captured = l;
+      },
       clock: {nowMs: () => 0},
     });
 
@@ -215,14 +296,20 @@ describe('durable turn ledger (Tier 2)', () => {
   it('omits handoff from the ledger on a normal replied turn', async () => {
     await using t = await createTestApp(boot);
     const server = await t.app.get<MCPServer>(MCPBindings.SERVER);
-    const exec = new PlatformToolExecutor(server, t.app as unknown as Context, metaSource);
+    const exec = new PlatformToolExecutor(
+      server,
+      t.app as unknown as Context,
+      metaSource,
+    );
 
     let captured: TurnLedger | undefined;
     await runTurn(testTurnRequest('list slots'), {
       executor: exec,
       decider: stepThen(call('appointment.slot.read', {date: '2026-07-12'})),
       policy: {plan: emptyPolicyPlan, runtime: allowRuntime},
-      onPersist: async l => { captured = l; },
+      onPersist: async l => {
+        captured = l;
+      },
       clock: {nowMs: () => 0},
     });
     expect(captured!.handoff).toBeUndefined();
@@ -232,20 +319,28 @@ describe('durable turn ledger (Tier 2)', () => {
     const runOnce = async (): Promise<TurnLedger> => {
       await using t = await createTestApp(boot);
       const server = await t.app.get<MCPServer>(MCPBindings.SERVER);
-      const exec = new PlatformToolExecutor(server, t.app as unknown as Context, metaSource);
+      const exec = new PlatformToolExecutor(
+        server,
+        t.app as unknown as Context,
+        metaSource,
+      );
       let captured: TurnLedger | undefined;
       await runTurn(testTurnRequest('list slots'), {
         executor: exec,
         decider: stepThen(call('appointment.slot.read', {date: '2026-07-12'})),
         policy: {plan: emptyPolicyPlan, runtime: allowRuntime},
-        onPersist: async l => { captured = l; },
+        onPersist: async l => {
+          captured = l;
+        },
         clock: {nowMs: () => 0},
       });
       return captured!;
     };
     const a = await runOnce();
     const b = await runOnce();
-    expect(a.policyDecisions.map(d => d.decisionId)).toEqual(b.policyDecisions.map(d => d.decisionId));
+    expect(a.policyDecisions.map(d => d.decisionId)).toEqual(
+      b.policyDecisions.map(d => d.decisionId),
+    );
   });
 });
 
@@ -258,24 +353,49 @@ describe('confirm: tools never project to an autonomous agent', () => {
     const projected = selectTools(tools).map(x => x.meta.name);
     expect(projected).toContain('appointment.slot.read');
     expect(projected).not.toContain('appointment.booking.create');
-    expect(() => selectTools(tools, {include: ['appointment.booking.create']})).toThrow(/confirm:/);
+    expect(() =>
+      selectTools(tools, {include: ['appointment.booking.create']}),
+    ).toThrow(/confirm:/);
   });
 });
 
 describe('bounded post-gate repair (ADR-019, A2)', () => {
   // A composer that HONORS the repair instruction (a model-backed composer would); used to prove the
   // repaired reply is delivered when the re-gate then allows it.
-  const repairingComposer = (ctx: TurnContext, _obj: string, fallback?: string, instruction?: string) =>
-    instruction ? `repaired(${instruction}): ${fallback ?? 'ok'}` : (fallback ?? 'ok');
+  const repairingComposer = (
+    ctx: TurnContext,
+    _obj: string,
+    fallback?: string,
+    instruction?: string,
+  ) =>
+    instruction
+      ? `repaired(${instruction}): ${fallback ?? 'ok'}`
+      : (fallback ?? 'ok');
 
   // Post-gate: 'repair' on the first (un-repaired) draft, 'allow' once the reply is repaired.
   const repairThenAllow: PolicyRuntime = {
-    evaluatePreGates: () => ({outcome: 'allow', policyRuleId: '<default>', reason: 'ok', decidedAt: FIXED_NOW}),
+    evaluatePreGates: () => ({
+      outcome: 'allow',
+      policyRuleId: '<default>',
+      reason: 'ok',
+      decidedAt: FIXED_NOW,
+    }),
     evaluatePostGates: (_p, c) => {
       const reply = String((c as {draftReply?: string}).draftReply ?? '');
       return reply.startsWith('repaired(')
-        ? {outcome: 'allow', policyRuleId: 'r_tone', reason: 'repaired ok', decidedAt: FIXED_NOW}
-        : {outcome: 'repair', policyRuleId: 'r_tone', reason: 'soften tone', detail: {repairInstruction: 'soften tone'}, decidedAt: FIXED_NOW};
+        ? {
+            outcome: 'allow',
+            policyRuleId: 'r_tone',
+            reason: 'repaired ok',
+            decidedAt: FIXED_NOW,
+          }
+        : {
+            outcome: 'repair',
+            policyRuleId: 'r_tone',
+            reason: 'soften tone',
+            detail: {repairInstruction: 'soften tone'},
+            decidedAt: FIXED_NOW,
+          };
     },
     toVoters: () => [],
   };
@@ -283,11 +403,35 @@ describe('bounded post-gate repair (ADR-019, A2)', () => {
   it('re-composes ONCE under the repair instruction and delivers the repaired reply when it passes', async () => {
     let captured: TurnLedger | undefined;
     const result = await runTurn(testTurnRequest('reply please'), {
-      executor: {dispatch: async () => ({result: {toolCallId: 'tc_x', capability: 'noop' as CapabilityName, ok: true, output: {}, sideEffect: 'read', stateChanged: false, changedDomains: [], evidence: [], metrics: {latencyMs: 0, retries: 0, costUsd: 0, idempotentReplay: false}, error: null}})} as never,
-      decider: {propose: () => ({kind: 'done', reply: 'blunt reply', usage: noUsage})},
+      executor: {
+        dispatch: async () => ({
+          result: {
+            toolCallId: 'tc_x',
+            capability: 'noop' as CapabilityName,
+            ok: true,
+            output: {},
+            sideEffect: 'read',
+            stateChanged: false,
+            changedDomains: [],
+            evidence: [],
+            metrics: {
+              latencyMs: 0,
+              retries: 0,
+              costUsd: 0,
+              idempotentReplay: false,
+            },
+            error: null,
+          },
+        }),
+      } as never,
+      decider: {
+        propose: () => ({kind: 'done', reply: 'blunt reply', usage: noUsage}),
+      },
       policy: {plan: emptyPolicyPlan, runtime: repairThenAllow},
       compose: repairingComposer,
-      onPersist: async l => { captured = l; },
+      onPersist: async l => {
+        captured = l;
+      },
       clock: {nowMs: () => 0},
     });
     expect(result.outcome).toBe('replied');
@@ -300,10 +444,34 @@ describe('bounded post-gate repair (ADR-019, A2)', () => {
   it('escalates to a human when the (default, non-reshaping) composer cannot satisfy the repair', async () => {
     let captured: TurnLedger | undefined;
     const result = await runTurn(testTurnRequest('reply please'), {
-      executor: {dispatch: async () => ({result: {toolCallId: 'tc_x', capability: 'noop' as CapabilityName, ok: true, output: {}, sideEffect: 'read', stateChanged: false, changedDomains: [], evidence: [], metrics: {latencyMs: 0, retries: 0, costUsd: 0, idempotentReplay: false}, error: null}})} as never,
-      decider: {propose: () => ({kind: 'done', reply: 'blunt reply', usage: noUsage})},
+      executor: {
+        dispatch: async () => ({
+          result: {
+            toolCallId: 'tc_x',
+            capability: 'noop' as CapabilityName,
+            ok: true,
+            output: {},
+            sideEffect: 'read',
+            stateChanged: false,
+            changedDomains: [],
+            evidence: [],
+            metrics: {
+              latencyMs: 0,
+              retries: 0,
+              costUsd: 0,
+              idempotentReplay: false,
+            },
+            error: null,
+          },
+        }),
+      } as never,
+      decider: {
+        propose: () => ({kind: 'done', reply: 'blunt reply', usage: noUsage}),
+      },
       policy: {plan: emptyPolicyPlan, runtime: repairThenAllow}, // default composer never yields "repaired(" → stays repair
-      onPersist: async l => { captured = l; },
+      onPersist: async l => {
+        captured = l;
+      },
       clock: {nowMs: () => 0},
     });
     expect(result.outcome).toBe('handoff');
@@ -315,33 +483,66 @@ describe('turn budget enforcement (over-budget short-circuits, agent-runtime-con
   // The fixture's budgets: maxInputTokens 8000, maxOutputTokens 2000, maxModelCostUsd 1.
   const costly = {inputTokens: 10, outputTokens: 10, costUsd: 2}; // over maxModelCostUsd
   const modest = {inputTokens: 100, outputTokens: 50, costUsd: 0.01}; // within every bound
-  const okResult = (c: ToolCall) => ({toolCallId: c.toolCallId, capability: c.capability, ok: true, output: {}, sideEffect: 'read' as const, stateChanged: false, changedDomains: [], evidence: [], metrics: {latencyMs: 0, retries: 0, costUsd: 0, idempotentReplay: false}, error: null});
+  const okResult = (c: ToolCall) => ({
+    toolCallId: c.toolCallId,
+    capability: c.capability,
+    ok: true,
+    output: {},
+    sideEffect: 'read' as const,
+    stateChanged: false,
+    changedDomains: [],
+    evidence: [],
+    metrics: {latencyMs: 0, retries: 0, costUsd: 0, idempotentReplay: false},
+    error: null,
+  });
 
   it("usage over maxModelCostUsd short-circuits to 'failed' (no reply) and records why on the ledger", async () => {
     let captured: TurnLedger | undefined;
     const result = await runTurn(testTurnRequest('list slots'), {
-      executor: {dispatch: async () => { throw new Error('unreachable'); }} as never,
-      decider: {propose: () => ({kind: 'done', reply: 'a pricey reply', usage: costly})},
-      onPersist: async l => { captured = l; },
+      executor: {
+        dispatch: async () => {
+          throw new Error('unreachable');
+        },
+      } as never,
+      decider: {
+        propose: () => ({kind: 'done', reply: 'a pricey reply', usage: costly}),
+      },
+      onPersist: async l => {
+        captured = l;
+      },
       clock: {nowMs: () => 0},
     });
     expect(result.outcome).toBe('failed');
     expect(result.reply).toBeUndefined(); // over budget never delivers a reply
-    const record = result.evidence.find(e => e.kind === 'system' && e.statement.includes('budget'));
+    const record = result.evidence.find(
+      e => e.kind === 'system' && e.statement.includes('budget'),
+    );
     expect(record?.statement).toContain('maxModelCostUsd');
     // the short-circuit is on the durable ledger: the system evidence row + the accumulated usage
-    expect(captured!.evidence.some(e => e.kind === 'system' && e.statement.includes('maxModelCostUsd'))).toBe(true);
+    expect(
+      captured!.evidence.some(
+        e => e.kind === 'system' && e.statement.includes('maxModelCostUsd'),
+      ),
+    ).toBe(true);
     expect(captured!.usage.modelCostUsd).toBe(2);
   });
 
   it('stops BEFORE buying another model call once accumulated usage is over budget', async () => {
     let proposals = 0;
     const result = await runTurn(testTurnRequest('list slots'), {
-      executor: {dispatch: async (c: ToolCall) => ({result: okResult(c)})} as never,
-      decider: {propose: () => {
-        proposals += 1;
-        return {kind: 'tool' as const, call: call('appointment.slot.read', {date: '2026-07-12'}), usage: costly};
-      }},
+      executor: {
+        dispatch: async (c: ToolCall) => ({result: okResult(c)}),
+      } as never,
+      decider: {
+        propose: () => {
+          proposals += 1;
+          return {
+            kind: 'tool' as const,
+            call: call('appointment.slot.read', {date: '2026-07-12'}),
+            usage: costly,
+          };
+        },
+      },
       clock: {nowMs: () => 0},
     });
     expect(result.outcome).toBe('failed');
@@ -351,8 +552,14 @@ describe('turn budget enforcement (over-budget short-circuits, agent-runtime-con
 
   it('a turn within its budgets behaves exactly as before — replied, no budget evidence', async () => {
     const result = await runTurn(testTurnRequest('list slots'), {
-      executor: {dispatch: async () => { throw new Error('unreachable'); }} as never,
-      decider: {propose: () => ({kind: 'done', reply: 'all good', usage: modest})},
+      executor: {
+        dispatch: async () => {
+          throw new Error('unreachable');
+        },
+      } as never,
+      decider: {
+        propose: () => ({kind: 'done', reply: 'all good', usage: modest}),
+      },
       clock: {nowMs: () => 0},
     });
     expect(result.outcome).toBe('replied');
@@ -367,17 +574,41 @@ describe('provider onNoProvider:handoff routes the turn to a human (PE6)', () =>
     let captured: TurnLedger | undefined;
     // The stub echoes the proposed call's id, exactly as the real executor does — so the failed
     // result pairs into the ledger's toolExecutions for audit.
-    const failed = (c: ToolCall) => ({toolCallId: c.toolCallId, capability: c.capability, ok: false, output: null, sideEffect: 'read' as const, stateChanged: false, changedDomains: [], evidence: [], metrics: {latencyMs: 0, retries: 0, costUsd: 0, idempotentReplay: false}, error: {code: 'no_provider', message: 'all providers unhealthy', retryable: false}});
+    const failed = (c: ToolCall) => ({
+      toolCallId: c.toolCallId,
+      capability: c.capability,
+      ok: false,
+      output: null,
+      sideEffect: 'read' as const,
+      stateChanged: false,
+      changedDomains: [],
+      evidence: [],
+      metrics: {latencyMs: 0, retries: 0, costUsd: 0, idempotentReplay: false},
+      error: {
+        code: 'no_provider',
+        message: 'all providers unhealthy',
+        retryable: false,
+      },
+    });
     const result = await runTurn(testTurnRequest('book me'), {
-      executor: {dispatch: async (c: ToolCall) => ({result: failed(c), pendingHandoff: {reason: 'all providers unhealthy'}})} as never,
+      executor: {
+        dispatch: async (c: ToolCall) => ({
+          result: failed(c),
+          pendingHandoff: {reason: 'all providers unhealthy'},
+        }),
+      } as never,
       decider: stepThen(call('appointment.slot.read', {date: '2026-07-12'})),
       policy: {plan: emptyPolicyPlan, runtime: allowRuntime},
-      onPersist: async l => { captured = l; },
+      onPersist: async l => {
+        captured = l;
+      },
       clock: {nowMs: () => 0},
     });
     expect(result.outcome).toBe('handoff');
     expect(captured!.handoff?.reason).toBe('error-escalation');
-    expect(captured!.handoff?.summary).toContain('No provider available for appointment.slot.read');
+    expect(captured!.handoff?.summary).toContain(
+      'No provider available for appointment.slot.read',
+    );
     // the failed tool result is still on the ledger for audit
     expect(captured!.toolExecutions).toHaveLength(1);
     expect(captured!.toolExecutions[0].result.ok).toBe(false);

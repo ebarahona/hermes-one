@@ -5,7 +5,11 @@
 // action — carries the header (the "Correlation-always" law).
 import {randomUUID} from 'node:crypto';
 import {injectable, type Provider} from '@loopback/core';
-import {asMiddleware, type Middleware, type MiddlewareContext} from '@loopback/rest';
+import {
+  asMiddleware,
+  type Middleware,
+  type MiddlewareContext,
+} from '@loopback/rest';
 import {PlatformBindings} from '../bindings.js';
 import {PlatformSequenceGroups} from './sequence-groups.js';
 
@@ -24,11 +28,14 @@ export class CorrelationMiddleware implements Provider<Middleware> {
   value(): Middleware {
     return async (ctx: MiddlewareContext, next) => {
       const inbound = ctx.request.headers['x-correlation-id'];
-      const correlationId = (Array.isArray(inbound) ? inbound[0] : inbound) || randomUUID();
+      const correlationId =
+        (Array.isArray(inbound) ? inbound[0] : inbound) || randomUUID();
       ctx.bind(PlatformBindings.CORRELATION_ID.key).to(correlationId);
       // Stash on the raw request so the single error exit (PlatformReject) can read it without a
       // per-request Context resolve.
-      (ctx.request as unknown as Record<string, unknown>)[CORRELATION_ID_REQUEST_KEY] = correlationId;
+      (ctx.request as unknown as Record<string, unknown>)[
+        CORRELATION_ID_REQUEST_KEY
+      ] = correlationId;
       ctx.response.setHeader('X-Correlation-Id', correlationId);
       return next();
     };

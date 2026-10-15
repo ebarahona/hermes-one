@@ -53,7 +53,10 @@ export class AdminApiRoot implements CompositionRoot<PlatformRestApplication> {
   private readonly authConfig: AuthConfig;
   private readonly jwtVerifier?: JwtVerifier;
 
-  constructor(private readonly config: HermesConfig, opts: AdminApiRootOptions = {}) {
+  constructor(
+    private readonly config: HermesConfig,
+    opts: AdminApiRootOptions = {},
+  ) {
     this.apiKeySeeds = opts.apiKeySeeds ?? [];
     this.withPersistence = opts.withPersistence ?? true;
     this.authConfig = opts.authConfig ?? AuthConfig.parse({apiKey: {}});
@@ -70,9 +73,12 @@ export class AdminApiRoot implements CompositionRoot<PlatformRestApplication> {
     app.bind(PlatformBindings.CONFIG.key).to(this.config);
     // AUTH-3 config + stores (request-shaped bits the AuthComponent can't supply).
     app.bind(AuthBindings.CONFIG.key).to(this.authConfig);
-    app.bind(AuthBindings.API_KEY_STORE.key).to(new StaticApiKeyStore(this.apiKeySeeds));
+    app
+      .bind(AuthBindings.API_KEY_STORE.key)
+      .to(new StaticApiKeyStore(this.apiKeySeeds));
     // The oidc strategy stays inert unless a verifier is bound (docs/design/001-edge-authn-design.md).
-    if (this.jwtVerifier) app.bind(AuthBindings.JWT_VERIFIER.key).to(this.jwtVerifier);
+    if (this.jwtVerifier)
+      app.bind(AuthBindings.JWT_VERIFIER.key).to(this.jwtVerifier);
   }
 
   registerComponents(app: PlatformRestApplication): void {

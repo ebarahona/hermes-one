@@ -19,7 +19,9 @@ let app: PlatformDbHandle;
 async function asTenant<T>(tenant: string, q: string): Promise<T[]> {
   const client = await app.pool.connect();
   try {
-    await client.query(`select set_config('app.tenant_id', $1, false)`, [tenant]);
+    await client.query(`select set_config('app.tenant_id', $1, false)`, [
+      tenant,
+    ]);
     const r = await client.query(q);
     return r.rows as T[];
   } finally {
@@ -28,7 +30,10 @@ async function asTenant<T>(tenant: string, q: string): Promise<T[]> {
 }
 
 const wipe = async () => {
-  await owner.query(`DELETE FROM tenant.tenants WHERE tenant_id IN ($1,$2)`, [A, B]);
+  await owner.query(`DELETE FROM tenant.tenants WHERE tenant_id IN ($1,$2)`, [
+    A,
+    B,
+  ]);
 };
 
 beforeAll(async () => {
@@ -51,12 +56,18 @@ afterAll(async () => {
 
 describe('tenant.tenants text-brand ids (CT1, migration 0028)', () => {
   it('a text-GUC session SEES its own tenant row (the pre-CT1 fail-closed defect is fixed)', async () => {
-    const rows = await asTenant<{id: string; slug: string}>(A, `SELECT id, slug FROM tenant.tenants`);
+    const rows = await asTenant<{id: string; slug: string}>(
+      A,
+      `SELECT id, slug FROM tenant.tenants`,
+    );
     expect(rows).toEqual([{id: A, slug: 'ct1-a'}]);
   });
 
   it('cross-tenant rows stay invisible (strict RLS, plain text compare)', async () => {
-    const rows = await asTenant<{id: string}>(B, `SELECT id FROM tenant.tenants`);
+    const rows = await asTenant<{id: string}>(
+      B,
+      `SELECT id FROM tenant.tenants`,
+    );
     expect(rows).toEqual([{id: B}]);
   });
 

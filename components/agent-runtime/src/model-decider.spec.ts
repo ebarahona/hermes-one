@@ -21,7 +21,9 @@ describe('model-backed decider', () => {
     const decider = createModelDecider({
       model: fakeModel({
         text: '',
-        toolCalls: [{name: 'appointment_slot_read', arguments: {date: '2026-07-12'}}],
+        toolCalls: [
+          {name: 'appointment_slot_read', arguments: {date: '2026-07-12'}},
+        ],
         usage: noUsage,
       }),
       objective: 'help',
@@ -43,7 +45,9 @@ describe('model-backed decider', () => {
       createModelDecider({
         model: fakeModel({
           text: '',
-          toolCalls: [{name: 'appointment_slot_read', arguments: {date: '2026-07-12'}}],
+          toolCalls: [
+            {name: 'appointment_slot_read', arguments: {date: '2026-07-12'}},
+          ],
           usage: noUsage,
         }),
         objective: 'help',
@@ -71,7 +75,11 @@ describe('model-backed decider', () => {
 
   it('finishes the turn when the model returns text and no tool call', async () => {
     const decider = createModelDecider({
-      model: fakeModel({text: 'All set — Tuesday works.', toolCalls: [], usage: noUsage}),
+      model: fakeModel({
+        text: 'All set — Tuesday works.',
+        toolCalls: [],
+        usage: noUsage,
+      }),
       objective: 'help',
       tools: TOOLS,
       turnId: TURN,
@@ -84,7 +92,11 @@ describe('model-backed decider', () => {
 
   it('ignores a tool call for an unknown tool (finishes instead)', async () => {
     const decider = createModelDecider({
-      model: fakeModel({text: 'hmm', toolCalls: [{name: 'unknown_tool', arguments: {}}], usage: noUsage}),
+      model: fakeModel({
+        text: 'hmm',
+        toolCalls: [{name: 'unknown_tool', arguments: {}}],
+        usage: noUsage,
+      }),
       objective: 'help',
       tools: TOOLS,
       turnId: TURN,

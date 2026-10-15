@@ -13,7 +13,11 @@ import {builtinRegistry} from '@platform/expression-core';
 import {compileRule} from '@platform/rule-dsl';
 import {compileWorkflow} from '@platform/workflow-dsl';
 import {compilePolicy} from '@platform/policy-dsl';
-import {DefinitionRegistry, DeploymentService, type CompileFn} from '@platform/definition-substrate';
+import {
+  DefinitionRegistry,
+  DeploymentService,
+  type CompileFn,
+} from '@platform/definition-substrate';
 import {ExpressionPolicyRuntime} from '@platform/policy-dsl';
 import {composeCandidateRegressionCheck} from '@platform-internal/evaluation';
 import type {Decider} from '@platform-internal/agent-runtime';
@@ -52,7 +56,14 @@ export async function publishBundle(
            (definition_id, tenant_id, kind, name, schema_ref, current_version, status, created_by)
          VALUES ($1, $2, $3, $4, $5, $6, 'published', 'prn_seed')
          ON CONFLICT (definition_id) DO NOTHING`,
-        [plan.definitionId, tenantId, plan.kind, plan.definitionId, `e2e.${plan.kind}/v1`, plan.version],
+        [
+          plan.definitionId,
+          tenantId,
+          plan.kind,
+          plan.definitionId,
+          `e2e.${plan.kind}/v1`,
+          plan.version,
+        ],
       );
     }
   } finally {
@@ -62,8 +73,14 @@ export async function publishBundle(
   // Content-addressed plan store (as platform_app).
   const {store, close} = createCompiledPlanStore(pgUrl, redisUrl);
   try {
-    await store.putCompiledPlan(bundle.workflowPlan, JSON.stringify(bundle.workflowPlan).length);
-    await store.putCompiledPlan(bundle.rulePlan, JSON.stringify(bundle.rulePlan).length);
+    await store.putCompiledPlan(
+      bundle.workflowPlan,
+      JSON.stringify(bundle.workflowPlan).length,
+    );
+    await store.putCompiledPlan(
+      bundle.rulePlan,
+      JSON.stringify(bundle.rulePlan).length,
+    );
   } finally {
     await close();
   }
@@ -85,7 +102,11 @@ const goldenBookingCase: GoldenConversationCase = {
   severity: 'required',
   turns: [{text: 'I need to reschedule my appointment', attachments: []}],
   assertions: [
-    {kind: 'tool-called', capability: 'appointment.slot.read', atStepOrLater: 0},
+    {
+      kind: 'tool-called',
+      capability: 'appointment.slot.read',
+      atStepOrLater: 0,
+    },
     {kind: 'turn-outcome', outcome: 'replied'},
     {kind: 'reply-matches', pattern: '9am|slot'},
   ],
@@ -109,10 +130,20 @@ const goldenBookingScript = (): Decider => ({
           } as unknown as ToolCall,
           usage: {inputTokens: 10, outputTokens: 5, costUsd: 0},
         }
-      : {kind: 'done', reply: 'You are booked for 9am.', usage: {inputTokens: 4, outputTokens: 6, costUsd: 0}},
+      : {
+          kind: 'done',
+          reply: 'You are booked for 9am.',
+          usage: {inputTokens: 4, outputTokens: 6, costUsd: 0},
+        },
 });
 
-const authored = (id: string, kind: Definition['kind'], name: string, body: unknown, tenantId: string): Definition =>
+const authored = (
+  id: string,
+  kind: Definition['kind'],
+  name: string,
+  body: unknown,
+  tenantId: string,
+): Definition =>
   ({
     definitionId: id,
     tenantId,
@@ -145,53 +176,125 @@ export async function publishAgentDeployment(
   const write = createSubstrateWrite(pgUrl);
   const opreg = builtinRegistry(V1);
   const compilers: Record<'workflow' | 'rule' | 'policy', CompileFn> = {
-    workflow: (def, ctx) => compileWorkflow(def as never, {compilerVersion: ctx.compilerVersion, planId: ctx.planId, compiledAt: ctx.compiledAt as never}),
-    rule: (def, ctx) => compileRule(def as never, {registry: opreg, compilerVersion: ctx.compilerVersion, planId: ctx.planId, compiledAt: ctx.compiledAt as never}),
-    policy: (def, ctx) => compilePolicy(def as never, {registry: opreg, compilerVersion: ctx.compilerVersion, planId: ctx.planId, compiledAt: ctx.compiledAt as never}),
+    workflow: (def, ctx) =>
+      compileWorkflow(def as never, {
+        compilerVersion: ctx.compilerVersion,
+        planId: ctx.planId,
+        compiledAt: ctx.compiledAt as never,
+      }),
+    rule: (def, ctx) =>
+      compileRule(def as never, {
+        registry: opreg,
+        compilerVersion: ctx.compilerVersion,
+        planId: ctx.planId,
+        compiledAt: ctx.compiledAt as never,
+      }),
+    policy: (def, ctx) =>
+      compilePolicy(def as never, {
+        registry: opreg,
+        compilerVersion: ctx.compilerVersion,
+        planId: ctx.planId,
+        compiledAt: ctx.compiledAt as never,
+      }),
   };
-  const registry = new DefinitionRegistry({store, definitions: write.definitions, compilers, compilerVersion: V1, now: () => AT});
+  const registry = new DefinitionRegistry({
+    store,
+    definitions: write.definitions,
+    compilers,
+    compilerVersion: V1,
+    now: () => AT,
+  });
 
   try {
     // Permissive policy: a single preGate that never fires → all gates allow.
     const pol = await registry.put(
-      authored('def_e2e_policy', 'policy', 'permissive', {
-        rules: [{id: 'noop', site: 'preGate', appliesTo: [], when: {type: 'literal', value: false}, effect: 'deny', reason: 'noop'}],
-        defaultVoterVerdict: 'deny',
-        parameters: [],
-      }, tenantId),
+      authored(
+        'def_e2e_policy',
+        'policy',
+        'permissive',
+        {
+          rules: [
+            {
+              id: 'noop',
+              site: 'preGate',
+              appliesTo: [],
+              when: {type: 'literal', value: false},
+              effect: 'deny',
+              reason: 'noop',
+            },
+          ],
+          defaultVoterVerdict: 'deny',
+          parameters: [],
+        },
+        tenantId,
+      ),
       ACTOR,
     );
     // The capability the engine may use — a real agentback @tool (appointment.slot.read).
     const cap = await registry.put(
-      authored('def_e2e_slot_read', 'capability', 'appointment-slot-read', {
-        name: 'appointment.slot.read',
-        title: 'Read appointment slots',
-        description: 'List open appointment slots for a given date.',
-        inputJsonSchema: {type: 'object', required: ['date'], properties: {date: {type: 'string'}}},
-        outputJsonSchema: {type: 'object', properties: {slots: {type: 'array'}}},
-        sideEffect: 'read',
-        changedDomains: ['none'],
-        idempotency: {required: false, keyFields: [], ttlSeconds: 86400},
-        confirm: false,
-        requiredScope: 'appointment.slot.read',
-        providerMapping: {providers: [{providerId: 'internal-scheduler', priority: 100}], eligibility: [], onNoProvider: 'fail'},
-      }, tenantId),
+      authored(
+        'def_e2e_slot_read',
+        'capability',
+        'appointment-slot-read',
+        {
+          name: 'appointment.slot.read',
+          title: 'Read appointment slots',
+          description: 'List open appointment slots for a given date.',
+          inputJsonSchema: {
+            type: 'object',
+            required: ['date'],
+            properties: {date: {type: 'string'}},
+          },
+          outputJsonSchema: {
+            type: 'object',
+            properties: {slots: {type: 'array'}},
+          },
+          sideEffect: 'read',
+          changedDomains: ['none'],
+          idempotency: {required: false, keyFields: [], ttlSeconds: 86400},
+          confirm: false,
+          requiredScope: 'appointment.slot.read',
+          providerMapping: {
+            providers: [{providerId: 'internal-scheduler', priority: 100}],
+            eligibility: [],
+            onNoProvider: 'fail',
+          },
+        },
+        tenantId,
+      ),
       ACTOR,
     );
     const eng = await registry.put(
-      authored('def_e2e_engine', 'agent-engine', 'assistant', {
-        persona: 'A concise scheduling assistant.',
-        objectives: ['help the customer reschedule'],
-        allowedCapabilities: ['appointment.slot.read'],
-        referencedRules: [],
-        model: {provider: 'local', model: 'x', temperature: 0},
-        promptTemplateIds: [],
-      }, tenantId),
+      authored(
+        'def_e2e_engine',
+        'agent-engine',
+        'assistant',
+        {
+          persona: 'A concise scheduling assistant.',
+          objectives: ['help the customer reschedule'],
+          allowedCapabilities: ['appointment.slot.read'],
+          referencedRules: [],
+          model: {provider: 'local', model: 'x', temperature: 0},
+          promptTemplateIds: [],
+        },
+        tenantId,
+      ),
       ACTOR,
     );
 
-    const m = (kind: DeploymentMember['kind'], definitionId: string, planId: PlanId | null, contentHash: string): DeploymentMember =>
-      ({kind, definitionId, planId, version: V1, contentHash}) as DeploymentMember;
+    const m = (
+      kind: DeploymentMember['kind'],
+      definitionId: string,
+      planId: PlanId | null,
+      contentHash: string,
+    ): DeploymentMember =>
+      ({
+        kind,
+        definitionId,
+        planId,
+        version: V1,
+        contentHash,
+      }) as DeploymentMember;
 
     // OB6: the REAL regression gate — the candidate's own engine/capabilities/policy are loaded from
     // the substrate (already content-addressed; the deployment row doesn't exist yet) and the golden
@@ -201,9 +304,20 @@ export async function publishAgentDeployment(
     const regressionCheck = composeCandidateRegressionCheck({
       members: {
         tenantId: tenantId as TenantId,
-        agentEngine: {definitionId: 'def_e2e_engine' as DefinitionId, contentHash: eng.contentHash as ContentHash},
-        policy: {planId: pol.planId as PlanId, contentHash: pol.contentHash as ContentHash},
-        capabilities: [{definitionId: 'def_e2e_slot_read' as DefinitionId, contentHash: cap.contentHash as ContentHash}],
+        agentEngine: {
+          definitionId: 'def_e2e_engine' as DefinitionId,
+          contentHash: eng.contentHash as ContentHash,
+        },
+        policy: {
+          planId: pol.planId as PlanId,
+          contentHash: pol.contentHash as ContentHash,
+        },
+        capabilities: [
+          {
+            definitionId: 'def_e2e_slot_read' as DefinitionId,
+            contentHash: cap.contentHash as ContentHash,
+          },
+        ],
       },
       loadContract: (t, d, h) => store.resolveContractCached(t, d, h),
       loadPlan: (t, p, h) => store.resolvePlanCached(t, p, h),
@@ -229,11 +343,25 @@ export async function publishAgentDeployment(
 
     return await service.publish({
       tenantId: tenantId as TenantId,
-      workflow: m('workflow', bundle.workflowPlan.definitionId, bundle.workflowPlan.planId, bundle.workflowPlan.contentHash),
+      workflow: m(
+        'workflow',
+        bundle.workflowPlan.definitionId,
+        bundle.workflowPlan.planId,
+        bundle.workflowPlan.contentHash,
+      ),
       agentEngine: m('agent-engine', 'def_e2e_engine', null, eng.contentHash),
       policy: m('policy', 'def_e2e_policy', pol.planId, pol.contentHash),
-      rules: [m('rule', bundle.rulePlan.definitionId, bundle.rulePlan.planId, bundle.rulePlan.contentHash)],
-      capabilities: [m('capability', 'def_e2e_slot_read', null, cap.contentHash)],
+      rules: [
+        m(
+          'rule',
+          bundle.rulePlan.definitionId,
+          bundle.rulePlan.planId,
+          bundle.rulePlan.contentHash,
+        ),
+      ],
+      capabilities: [
+        m('capability', 'def_e2e_slot_read', null, cap.contentHash),
+      ],
       operatorRegistryVersion: V1,
       actor: ACTOR,
     });

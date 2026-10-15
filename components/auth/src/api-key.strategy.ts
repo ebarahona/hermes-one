@@ -34,15 +34,21 @@ export class ApiKeyStrategy implements AuthStrategy {
     return typeof request.headers[this.header()] === 'string';
   }
 
-  async authenticate(request: Request): Promise<AuthenticatedIdentity | undefined> {
+  async authenticate(
+    request: Request,
+  ): Promise<AuthenticatedIdentity | undefined> {
     const raw = request.headers[this.header()];
     const presented = Array.isArray(raw) ? raw[0] : raw;
     if (!presented) return undefined; // shape didn't apply after all
 
     const record = await this.store.resolve(presented);
     // Fail-closed: unknown, revoked, or expired key → unauthorized (never distinguish which).
-    if (!record || record.status !== 'active') throw unauthorizedError('api_key_unknown_or_revoked');
-    if (record.expiresAt !== null && Date.parse(record.expiresAt) <= Date.now()) {
+    if (!record || record.status !== 'active')
+      throw unauthorizedError('api_key_unknown_or_revoked');
+    if (
+      record.expiresAt !== null &&
+      Date.parse(record.expiresAt) <= Date.now()
+    ) {
       throw unauthorizedError('api_key_expired');
     }
 

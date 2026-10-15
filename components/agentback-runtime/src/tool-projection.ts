@@ -65,7 +65,11 @@ export interface ToolRegistration {
 export interface ToolProjectionReport {
   registered: ToolRegistration[];
   skipped: Array<{capability: CapabilityName; reason: string}>;
-  conflicts: Array<{capability: CapabilityName; existingHash: string; incomingHash: string}>;
+  conflicts: Array<{
+    capability: CapabilityName;
+    existingHash: string;
+    incomingHash: string;
+  }>;
 }
 
 export interface CapabilityMetadata {
@@ -90,7 +94,9 @@ export class CapabilityMetadataIndex {
 
   /** Every capability whose confirm === false — the autonomously-projectable subset. */
   autonomous(): CapabilityName[] {
-    return [...this.byName.values()].filter(m => !m.confirm).map(m => m.capability);
+    return [...this.byName.values()]
+      .filter(m => !m.confirm)
+      .map(m => m.capability);
   }
 }
 
@@ -108,7 +114,10 @@ export interface ProjectionContext {
    * a provider with no bundle throws; a credential-less internal provider is an explicit `{}`.
    * Never logged, never in the contract.
    */
-  providerConfigFor: (capability: CapabilityName, providerId: string) => Promise<Readonly<Record<string, string>>>;
+  providerConfigFor: (
+    capability: CapabilityName,
+    providerId: string,
+  ) => Promise<Readonly<Record<string, string>>>;
   /**
    * Derived from the capability's IdempotencySpec — `turnId + name + keyFields` values
    * (deriveIdempotencyKey). It takes the INPUT because the
@@ -116,7 +125,10 @@ export interface ProjectionContext {
    * in the same turn would share a key, and a keyed provider (e.g. messaging.reply.send deriving its
    * messageId from the key) would treat the second as a replay of the first.
    */
-  idempotencyKeyFor: (capability: CapabilityName, input: Record<string, unknown>) => string;
+  idempotencyKeyFor: (
+    capability: CapabilityName,
+    input: Record<string, unknown>,
+  ) => string;
   /**
    * Reports which adapter actually served a dispatch. The generic body resolves the ranked provider
    * privately, so without this the synthesized ToolResult could not name it — and `metrics.providerId`
@@ -159,8 +171,16 @@ export class CapabilityToolProjector {
   project(
     contracts: readonly CapabilityContract[],
     ctx: ProjectionContext,
-  ): {report: ToolProjectionReport; bindings: Map<string, ToolBinding>; metadata: CapabilityMetadataIndex} {
-    const report: ToolProjectionReport = {registered: [], skipped: [], conflicts: []};
+  ): {
+    report: ToolProjectionReport;
+    bindings: Map<string, ToolBinding>;
+    metadata: CapabilityMetadataIndex;
+  } {
+    const report: ToolProjectionReport = {
+      registered: [],
+      skipped: [],
+      conflicts: [],
+    };
     const bindings = new Map<string, ToolBinding>();
     const metadata = new CapabilityMetadataIndex();
 
@@ -168,14 +188,17 @@ export class CapabilityToolProjector {
     // a shared base would inherit the base's tool metadata (MethodDecoratorFactory.allowInheritance
     // defaults true) and produce duplicate tool names.
     class ProjectedCapabilities {}
-    Object.defineProperty(ProjectedCapabilities, 'name', {value: 'ProjectedCapabilities'});
+    Object.defineProperty(ProjectedCapabilities, 'name', {
+      value: 'ProjectedCapabilities',
+    });
 
     contracts.forEach((contract, i) => {
       const seen = bindings.get(contract.name);
       if (seen) {
         report.conflicts.push({
           capability: contract.name,
-          existingHash: (seen.meta as {contentHash?: string}).contentHash ?? 'unknown',
+          existingHash:
+            (seen.meta as {contentHash?: string}).contentHash ?? 'unknown',
           incomingHash: contract.contentHash ?? 'unknown',
         });
         return;
@@ -185,21 +208,33 @@ export class CapabilityToolProjector {
       try {
         opts = this.toToolOptions(contract);
       } catch (err) {
-        report.skipped.push({capability: contract.name, reason: (err as Error).message});
+        report.skipped.push({
+          capability: contract.name,
+          reason: (err as Error).message,
+        });
         return;
       }
 
       const method = methodNameFor(i);
       const resolve = this.resolve;
       Object.defineProperty(ProjectedCapabilities.prototype, method, {
-        value: async function (input: Record<string, unknown>): Promise<unknown> {
+        value: async function (
+          input: Record<string, unknown>,
+        ): Promise<unknown> {
           // The generic body: resolve the ranked adapter, call it, return the
           // UNWRAPPED output. A NoProviderError carries its `code` + onNoProvider out to the executor,
           // which normalizes it into ToolResult.error (routing the 'handoff' disposition to an actual
           // handoff is NOT yet wired — flagged, see DEFERRED-AND-FLAGGED PE6).
-          const adapter = await resolve(contract.name, contract.providerMapping, ctx.facts);
+          const adapter = await resolve(
+            contract.name,
+            contract.providerMapping,
+            ctx.facts,
+          );
           ctx.onProviderResolved?.(contract.name, adapter.providerId);
-          const config = await ctx.providerConfigFor(contract.name, adapter.providerId);
+          const config = await ctx.providerConfigFor(
+            contract.name,
+            adapter.providerId,
+          );
           return adapter.execute(input, {
             tenantId: ctx.tenantId,
             capability: contract.name,
@@ -214,7 +249,12 @@ export class CapabilityToolProjector {
 
       // Apply the SHIPPED decorator programmatically — it writes ToolMetadata under 'mcp:tool'. Zod
       // schemas survive the factory's deep-clone by identity (it bails on class instances).
-      (tool as unknown as (name: string, o: Record<string, unknown>) => MethodDecorator)(contract.name, {
+      (
+        tool as unknown as (
+          name: string,
+          o: Record<string, unknown>,
+        ) => MethodDecorator
+      )(contract.name, {
         input: opts.input,
         output: opts.output,
         description: opts.description,
@@ -223,7 +263,10 @@ export class CapabilityToolProjector {
       })(
         ProjectedCapabilities.prototype,
         method,
-        Object.getOwnPropertyDescriptor(ProjectedCapabilities.prototype, method)!,
+        Object.getOwnPropertyDescriptor(
+          ProjectedCapabilities.prototype,
+          method,
+        )!,
       );
 
       bindings.set(contract.name, {

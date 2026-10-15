@@ -43,7 +43,11 @@ describe('DrizzleRoleRegistry (live)', () => {
     await sut.repo.create({
       tenantId: T,
       name: 'customer',
-      scopes: ['appointment.slot.read', 'appointment.booking.create', 'appointment.booking.cancel'] as never,
+      scopes: [
+        'appointment.slot.read',
+        'appointment.booking.create',
+        'appointment.booking.cancel',
+      ] as never,
       description: 'tenant lets customers self-cancel',
     });
     const scopes = await sut.repo.resolveScopes(T, ['customer']);
@@ -63,7 +67,10 @@ describe('DrizzleRoleRegistry (live)', () => {
 
   it('unknown roles resolve to no scopes; unions dedupe across roles', async () => {
     expect(await sut.repo.resolveScopes(T, ['nope'])).toEqual([]);
-    const union = await sut.repo.resolveScopes(T, ['customer', 'inbound-source']);
+    const union = await sut.repo.resolveScopes(T, [
+      'customer',
+      'inbound-source',
+    ]);
     expect(union).toContain('appointment.slot.read'); // tenant customer (post-edit)
     expect(union).toContain('channel.inbound.ingest'); // platform inbound-source
     expect(new Set(union).size).toBe(union.length); // deduped
@@ -73,6 +80,8 @@ describe('DrizzleRoleRegistry (live)', () => {
     const all = await sut.repo.list(T);
     const customer = all.find(r => r.name === 'customer');
     expect(customer?.tenantId).toBe(T); // shadowed
-    expect(all.some(r => r.name === 'inbound-source' && r.tenantId === null)).toBe(true);
+    expect(
+      all.some(r => r.name === 'inbound-source' && r.tenantId === null),
+    ).toBe(true);
   });
 });

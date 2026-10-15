@@ -26,9 +26,10 @@ export interface SlotReadResult {
 }
 
 /** Config-driven appointment.slot.read stand-in — see file header for why this isn't table-backed. */
-export class InternalSchedulerProvider
-  implements ProviderAdapter<SlotReadInput, SlotReadResult>
-{
+export class InternalSchedulerProvider implements ProviderAdapter<
+  SlotReadInput,
+  SlotReadResult
+> {
   readonly providerId = 'internal-scheduler';
   readonly capability = 'appointment.slot.read' as CapabilityName;
 
@@ -43,7 +44,10 @@ export class InternalSchedulerProvider
     };
   }
 
-  async execute(input: SlotReadInput, ctx: ProviderExecutionContext): Promise<SlotReadResult> {
+  async execute(
+    input: SlotReadInput,
+    ctx: ProviderExecutionContext,
+  ): Promise<SlotReadResult> {
     if (!input.date || typeof input.date !== 'string') {
       throw new PlatformErrorException({
         category: 'validation',

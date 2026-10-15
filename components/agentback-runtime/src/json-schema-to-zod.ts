@@ -29,7 +29,15 @@ export class UnsupportedSchemaError extends Error {
 type Json = Record<string, unknown>;
 
 /** Carry no validation semantics — safe to ignore (dropping them cannot weaken the validator). */
-const ANNOTATION_KEYWORDS = new Set(['$schema', '$id', 'title', 'description', 'examples', 'readOnly', 'writeOnly']);
+const ANNOTATION_KEYWORDS = new Set([
+  '$schema',
+  '$id',
+  'title',
+  'description',
+  'examples',
+  'readOnly',
+  'writeOnly',
+]);
 
 /** Keywords this rebuilder actually enforces. Anything outside both sets throws. */
 const APPLIED_KEYWORDS = new Set([
@@ -92,12 +100,18 @@ function baseForFormat(format: string | undefined, path: string): StringLike {
     case 'ipv6':
       return z.ipv6();
     default:
-      throw new UnsupportedSchemaError(path, `unknown string format '${format}'`);
+      throw new UnsupportedSchemaError(
+        path,
+        `unknown string format '${format}'`,
+      );
   }
 }
 
 function buildString(node: Json, path: string): z.ZodTypeAny {
-  let s = baseForFormat(typeof node.format === 'string' ? node.format : undefined, path);
+  let s = baseForFormat(
+    typeof node.format === 'string' ? node.format : undefined,
+    path,
+  );
   if (typeof node.minLength === 'number') s = s.min(node.minLength);
   if (typeof node.maxLength === 'number') s = s.max(node.maxLength);
   // The generator emits `pattern` ALONGSIDE `format`; applying both just adds an equivalent check.
@@ -110,8 +124,10 @@ function buildNumber(node: Json, isInt: boolean): z.ZodTypeAny {
   if (isInt) n = n.int();
   if (typeof node.minimum === 'number') n = n.min(node.minimum);
   if (typeof node.maximum === 'number') n = n.max(node.maximum);
-  if (typeof node.exclusiveMinimum === 'number') n = n.gt(node.exclusiveMinimum);
-  if (typeof node.exclusiveMaximum === 'number') n = n.lt(node.exclusiveMaximum);
+  if (typeof node.exclusiveMinimum === 'number')
+    n = n.gt(node.exclusiveMinimum);
+  if (typeof node.exclusiveMaximum === 'number')
+    n = n.lt(node.exclusiveMaximum);
   if (typeof node.multipleOf === 'number') n = n.multipleOf(node.multipleOf);
   return n;
 }
@@ -129,7 +145,10 @@ function scalar(node: Json, path: string): z.ZodTypeAny {
     case 'null':
       return z.null();
     default:
-      throw new UnsupportedSchemaError(path, `unknown type ${JSON.stringify(node.type)}`);
+      throw new UnsupportedSchemaError(
+        path,
+        `unknown type ${JSON.stringify(node.type)}`,
+      );
   }
 }
 
@@ -148,14 +167,19 @@ function buildObject(node: Json, path: string): z.ZodTypeAny {
   }
 
   const required = new Set<string>(
-    Array.isArray(node.required) ? (node.required as unknown[]).filter((r): r is string => typeof r === 'string') : [],
+    Array.isArray(node.required)
+      ? (node.required as unknown[]).filter(
+          (r): r is string => typeof r === 'string',
+        )
+      : [],
   );
   const shape: Record<string, z.ZodTypeAny> = {};
   for (const [key, sub] of Object.entries(node.properties as Json)) {
     const built = jsonSchemaToZod(sub, path ? `${path}.${key}` : key);
     // A `default` makes an absent key resolvable, so it is NOT optional — dropping the default would
     // hand the provider `undefined` where the contract guaranteed a value.
-    const hasDefault = sub && typeof sub === 'object' && 'default' in (sub as Json);
+    const hasDefault =
+      sub && typeof sub === 'object' && 'default' in (sub as Json);
     shape[key] = required.has(key) || hasDefault ? built : built.optional();
   }
 
@@ -180,7 +204,10 @@ export function jsonSchemaToZod(schema: unknown, path = ''): z.ZodTypeAny {
 
   for (const key of Object.keys(node)) {
     if (!APPLIED_KEYWORDS.has(key) && !ANNOTATION_KEYWORDS.has(key)) {
-      throw new UnsupportedSchemaError(path, `keyword '${key}' is outside the projector allow-list`);
+      throw new UnsupportedSchemaError(
+        path,
+        `keyword '${key}' is outside the projector allow-list`,
+      );
     }
   }
 
@@ -192,7 +219,8 @@ export function jsonSchemaToZod(schema: unknown, path = ''): z.ZodTypeAny {
   // `enum` is authoritative over `type` when both are present.
   if (Array.isArray(node.enum)) {
     const values = node.enum;
-    if (values.length === 0) throw new UnsupportedSchemaError(path, 'empty enum');
+    if (values.length === 0)
+      throw new UnsupportedSchemaError(path, 'empty enum');
     if (!values.every(v => typeof v === 'string')) {
       throw new UnsupportedSchemaError(path, 'only string enums are supported');
     }
@@ -204,11 +232,18 @@ export function jsonSchemaToZod(schema: unknown, path = ''): z.ZodTypeAny {
     built = buildObject(node, path);
   } else if (node.type === 'array') {
     // `items` omitted → an array of anything; the contract asserts only arrayness.
-    let arr = z.array(node.items === undefined ? z.unknown() : jsonSchemaToZod(node.items, `${path}[]`));
+    let arr = z.array(
+      node.items === undefined
+        ? z.unknown()
+        : jsonSchemaToZod(node.items, `${path}[]`),
+    );
     if (typeof node.minItems === 'number') arr = arr.min(node.minItems);
     if (typeof node.maxItems === 'number') arr = arr.max(node.maxItems);
     if (node.uniqueItems === true) {
-      throw new UnsupportedSchemaError(path, 'uniqueItems is not representable');
+      throw new UnsupportedSchemaError(
+        path,
+        'uniqueItems is not representable',
+      );
     }
     built = arr;
   } else {

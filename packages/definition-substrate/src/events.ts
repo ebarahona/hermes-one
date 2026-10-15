@@ -14,17 +14,36 @@
 // correlationId is the OPERATION's durable id (deploymentId / definitionId@version), so
 // composeTimeline("what happened to deployment X?") queries it directly.
 import {createHash} from 'node:crypto';
-import type {AuditEvent, IsoTimestamp, PrincipalId, TenantId} from '@platform/contracts';
+import type {
+  AuditEvent,
+  IsoTimestamp,
+  PrincipalId,
+  TenantId,
+} from '@platform/contracts';
 
 const sha256hex = (s: string) => createHash('sha256').update(s).digest('hex');
 
-function auditIdentity(row: Omit<AuditEvent, 'id' | 'integrityHash'>): AuditEvent {
+function auditIdentity(
+  row: Omit<AuditEvent, 'id' | 'integrityHash'>,
+): AuditEvent {
   const canonical = JSON.stringify([
-    row.tenantId, row.principalId, row.action, row.correlationId, row.turnId, row.conversationId,
-    row.subject, row.detail, row.outcome, row.occurredAt,
+    row.tenantId,
+    row.principalId,
+    row.action,
+    row.correlationId,
+    row.turnId,
+    row.conversationId,
+    row.subject,
+    row.detail,
+    row.outcome,
+    row.occurredAt,
   ]);
   const id = `aud_${sha256hex(`${row.correlationId}:${row.action}:${row.subject}:${row.occurredAt}`).slice(0, 24)}`;
-  return {...row, id, integrityHash: `sha256:${sha256hex(canonical)}`} as AuditEvent;
+  return {
+    ...row,
+    id,
+    integrityHash: `sha256:${sha256hex(canonical)}`,
+  } as AuditEvent;
 }
 
 export function definitionPublishedEvent(args: {
@@ -44,7 +63,11 @@ export function definitionPublishedEvent(args: {
     turnId: null,
     conversationId: null,
     subject: args.name, // the capability NAME — the payload is the CapabilityContract summary
-    detail: {definitionId: args.definitionId, version: args.version, contentHash: args.contentHash},
+    detail: {
+      definitionId: args.definitionId,
+      version: args.version,
+      contentHash: args.contentHash,
+    },
     outcome: 'success',
     occurredAt: args.occurredAt,
   } as Omit<AuditEvent, 'id' | 'integrityHash'>);

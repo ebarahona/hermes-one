@@ -24,10 +24,17 @@ const issuerConfig = OidcIssuerConfig.parse({
 
 // A shared keypair + local JWKS + signer for the suite.
 const {publicKey, privateKey} = await generateKeyPair('RS256');
-const jwks = createLocalJWKSet({keys: [{...(await exportJWK(publicKey)), alg: 'RS256', kid: 'test'}]});
-const verifier = new JoseJwtVerifier([{config: issuerConfig, jwks} satisfies ResolvedIssuer]);
+const jwks = createLocalJWKSet({
+  keys: [{...(await exportJWK(publicKey)), alg: 'RS256', kid: 'test'}],
+});
+const verifier = new JoseJwtVerifier([
+  {config: issuerConfig, jwks} satisfies ResolvedIssuer,
+]);
 
-async function sign(claims: Record<string, unknown>, opts: {aud?: string; expInPast?: boolean} = {}) {
+async function sign(
+  claims: Record<string, unknown>,
+  opts: {aud?: string; expInPast?: boolean} = {},
+) {
   const now = Math.floor(Date.now() / 1000);
   return new SignJWT(claims)
     .setProtectedHeader({alg: 'RS256', kid: 'test'})
@@ -39,12 +46,20 @@ async function sign(claims: Record<string, unknown>, opts: {aud?: string; expInP
     .sign(privateKey);
 }
 
-const bearer = (token: string): Request => ({headers: {authorization: `Bearer ${token}`}}) as unknown as Request;
+const bearer = (token: string): Request =>
+  ({headers: {authorization: `Bearer ${token}`}}) as unknown as Request;
 
 describe('JoseJwtVerifier', () => {
   it('verifies a well-formed token and maps the configured claim names', async () => {
-    const token = await sign({[TID_CLAIM]: 'tnt_oidc', [ROLES_CLAIM]: ['tenant-admin'], amr: ['pwd', 'otp']});
-    const claims = await verifier.verify(token, {issuer: ISSUER, audience: AUDIENCE});
+    const token = await sign({
+      [TID_CLAIM]: 'tnt_oidc',
+      [ROLES_CLAIM]: ['tenant-admin'],
+      amr: ['pwd', 'otp'],
+    });
+    const claims = await verifier.verify(token, {
+      issuer: ISSUER,
+      audience: AUDIENCE,
+    });
     expect(claims.tid).toBe('tnt_oidc');
     expect(claims.roles).toEqual(['tenant-admin']);
     expect(claims.amr).toEqual(['pwd', 'otp']);
@@ -52,10 +67,16 @@ describe('JoseJwtVerifier', () => {
 
   it('rejects a wrong audience and an expired token', async () => {
     await expect(
-      verifier.verify(await sign({[TID_CLAIM]: 'tnt_oidc'}, {aud: 'someone-else'}), {issuer: ISSUER, audience: AUDIENCE}),
+      verifier.verify(
+        await sign({[TID_CLAIM]: 'tnt_oidc'}, {aud: 'someone-else'}),
+        {issuer: ISSUER, audience: AUDIENCE},
+      ),
     ).rejects.toBeTruthy();
     await expect(
-      verifier.verify(await sign({[TID_CLAIM]: 'tnt_oidc'}, {expInPast: true}), {issuer: ISSUER, audience: AUDIENCE}),
+      verifier.verify(
+        await sign({[TID_CLAIM]: 'tnt_oidc'}, {expInPast: true}),
+        {issuer: ISSUER, audience: AUDIENCE},
+      ),
     ).rejects.toBeTruthy();
   });
 });
@@ -65,17 +86,26 @@ describe('OidcStrategy', () => {
     resolveScopes: async (_t: TenantId, names: readonly string[]) =>
       (names.includes('tenant-admin') ? ['tenant.role.read'] : []) as Scope[],
   } as unknown as RoleRegistry;
-  const config = AuthConfig.parse({apiKey: {}, oidc: {issuers: [issuerConfig]}});
+  const config = AuthConfig.parse({
+    apiKey: {},
+    oidc: {issuers: [issuerConfig]},
+  });
   const strat = new OidcStrategy(verifier, config, roles);
 
   it('is inert without a verifier/config, and applies() only to Bearer tokens', () => {
-    expect(new OidcStrategy(undefined, config, roles).applies(bearer('x'))).toBe(false); // no verifier
+    expect(
+      new OidcStrategy(undefined, config, roles).applies(bearer('x')),
+    ).toBe(false); // no verifier
     expect(strat.applies({headers: {}} as unknown as Request)).toBe(false); // no bearer
     expect(strat.applies(bearer('x'))).toBe(true);
   });
 
   it('mints a user Principal with per-request resolved scopes and amr-derived strength', async () => {
-    const token = await sign({[TID_CLAIM]: 'tnt_oidc', [ROLES_CLAIM]: ['tenant-admin'], amr: ['pwd', 'otp']});
+    const token = await sign({
+      [TID_CLAIM]: 'tnt_oidc',
+      [ROLES_CLAIM]: ['tenant-admin'],
+      amr: ['pwd', 'otp'],
+    });
     const id = await strat.authenticate(bearer(token));
     expect(id?.method).toBe('oidc');
     expect(id?.authStrength).toBe('mfa'); // amr includes otp

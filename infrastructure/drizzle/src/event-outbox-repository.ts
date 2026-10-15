@@ -25,7 +25,11 @@ import type {
   TenantId,
 } from '@platform/contracts';
 import {toEventEnvelope} from '@platform/contracts';
-import {TenantAwareRepository, type PlatformDb, type PlatformTx} from './tenant-aware.repository.js';
+import {
+  TenantAwareRepository,
+  type PlatformDb,
+  type PlatformTx,
+} from './tenant-aware.repository.js';
 import {eventOutbox} from './schema/event.schema.js';
 
 export type OutboxEnqueueRow = Pick<
@@ -37,7 +41,10 @@ export type OutboxEnqueueRow = Pick<
  * Tx-scoped write core: insert one pending outbox row inside the caller's open tenant transaction.
  * The deterministic `outboxId` is the replay-collapse key (ON CONFLICT DO NOTHING on the PK).
  */
-export async function enqueueOutboxRow(tx: PlatformTx, row: OutboxEnqueueRow): Promise<void> {
+export async function enqueueOutboxRow(
+  tx: PlatformTx,
+  row: OutboxEnqueueRow,
+): Promise<void> {
   await tx
     .insert(eventOutbox)
     .values({
@@ -62,7 +69,10 @@ export interface OutboxDrainResult {
   failed: number;
 }
 
-export class DrizzleEventOutboxRepository extends TenantAwareRepository implements EventOutboxRepository {
+export class DrizzleEventOutboxRepository
+  extends TenantAwareRepository
+  implements EventOutboxRepository
+{
   constructor(
     db: PlatformDb,
     /** `outboxMaxAttempts` (EventEnvelopeConfig, default 10): pending→failed threshold. */
@@ -73,10 +83,16 @@ export class DrizzleEventOutboxRepository extends TenantAwareRepository implemen
 
   /** Canonical port shape: joins the caller's open transaction; derives the outbox id from the aggregate. */
   async enqueue(
-    row: Pick<EventOutboxRow, 'tenantId' | 'aggregateType' | 'aggregateId' | 'eventType' | 'payload'>,
+    row: Pick<
+      EventOutboxRow,
+      'tenantId' | 'aggregateType' | 'aggregateId' | 'eventType' | 'payload'
+    >,
     tx: unknown,
   ): Promise<void> {
-    await enqueueOutboxRow(tx as PlatformTx, {...row, outboxId: deriveOutboxId(row.aggregateId)});
+    await enqueueOutboxRow(tx as PlatformTx, {
+      ...row,
+      outboxId: deriveOutboxId(row.aggregateId),
+    });
   }
 
   /**
@@ -84,7 +100,10 @@ export class DrizzleEventOutboxRepository extends TenantAwareRepository implemen
    * no-tenant port overload fail-closes to [] under strict RLS as platform_app (flagged above).
    */
   async pollPending(limit: number): Promise<EventOutboxRow[]>;
-  async pollPending(limit: number, tenantId?: TenantId): Promise<EventOutboxRow[]> {
+  async pollPending(
+    limit: number,
+    tenantId?: TenantId,
+  ): Promise<EventOutboxRow[]> {
     const run = async (tx: PlatformTx) => {
       const rows = await tx
         .select()
@@ -133,7 +152,12 @@ export class DrizzleEventOutboxRepository extends TenantAwareRepository implemen
       const rows = await tx
         .select()
         .from(eventOutbox)
-        .where(and(eq(eventOutbox.status, 'pending'), eq(eventOutbox.tenantId, tenantId)))
+        .where(
+          and(
+            eq(eventOutbox.status, 'pending'),
+            eq(eventOutbox.tenantId, tenantId),
+          ),
+        )
         .orderBy(asc(eventOutbox.sequence))
         .limit(limit)
         .for('update', {skipLocked: true});
@@ -177,7 +201,8 @@ export class DrizzleEventOutboxRepository extends TenantAwareRepository implemen
       attempts: r.attempts,
       lastError: r.lastError ?? null,
       createdAt: r.createdAt.toISOString() as IsoTimestamp,
-      publishedAt: (r.publishedAt?.toISOString() ?? null) as IsoTimestamp | null,
+      publishedAt: (r.publishedAt?.toISOString() ??
+        null) as IsoTimestamp | null,
     };
   }
 }

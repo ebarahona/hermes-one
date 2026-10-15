@@ -69,20 +69,30 @@ function checkExpression(
             `POLICY_TYPE_MISMATCH: operator '${expr.op}' expects ${spec.arity} argument(s), got ${expr.args.length}`,
           );
         }
-        if (booleanContext && spec.returns !== 'boolean' && spec.returns !== 'unknown') {
+        if (
+          booleanContext &&
+          spec.returns !== 'boolean' &&
+          spec.returns !== 'unknown'
+        ) {
           throw new PolicyCompileError(
             `POLICY_TYPE_MISMATCH: operator '${expr.op}' returns '${spec.returns}' where a boolean is required`,
           );
         }
       }
-      expr.args.forEach(a => checkExpression(a, registry, depth + 1, maxDepth, false));
+      expr.args.forEach(a =>
+        checkExpression(a, registry, depth + 1, maxDepth, false),
+      );
       break;
     }
     case 'and':
-      expr.all.forEach(a => checkExpression(a, registry, depth + 1, maxDepth, true));
+      expr.all.forEach(a =>
+        checkExpression(a, registry, depth + 1, maxDepth, true),
+      );
       break;
     case 'or':
-      expr.any.forEach(a => checkExpression(a, registry, depth + 1, maxDepth, true));
+      expr.any.forEach(a =>
+        checkExpression(a, registry, depth + 1, maxDepth, true),
+      );
       break;
     case 'not':
       checkExpression(expr.expr, registry, depth + 1, maxDepth, true);
@@ -94,16 +104,24 @@ function checkExpression(
 /** Stage 5 (constrainSites): voter effect ∈ {allow,deny}; repair postGate-only;
  * defer/approval/handoff preGate-only. */
 function constrainSites(rule: PolicyRule): void {
-  if (rule.site === 'voter' && rule.effect !== 'allow' && rule.effect !== 'deny') {
+  if (
+    rule.site === 'voter' &&
+    rule.effect !== 'allow' &&
+    rule.effect !== 'deny'
+  ) {
     throw new PolicyCompileError(
       `voter rule '${rule.id}' effect must be allow/deny, got '${rule.effect}'`,
     );
   }
   if (rule.effect === 'repair' && rule.site !== 'postGate') {
-    throw new PolicyCompileError(`rule '${rule.id}': effect 'repair' is postGate-only`);
+    throw new PolicyCompileError(
+      `rule '${rule.id}': effect 'repair' is postGate-only`,
+    );
   }
   if (
-    (rule.effect === 'defer' || rule.effect === 'approval' || rule.effect === 'handoff') &&
+    (rule.effect === 'defer' ||
+      rule.effect === 'approval' ||
+      rule.effect === 'handoff') &&
     rule.site !== 'preGate'
   ) {
     throw new PolicyCompileError(
@@ -140,7 +158,10 @@ export function compilePolicy(
   for (const rule of def.body.rules) collectOps(rule.when, opNames);
   const operatorRefs = [...opNames].sort().map(op => {
     const version = opts.registry.versionOf(op);
-    if (!version) throw new PolicyCompileError(`unknown operator '${op}' (not in registry)`);
+    if (!version)
+      throw new PolicyCompileError(
+        `unknown operator '${op}' (not in registry)`,
+      );
     return {op, version};
   });
 

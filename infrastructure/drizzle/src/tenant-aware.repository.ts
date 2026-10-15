@@ -11,7 +11,9 @@ import type {TenantScope} from '@platform/contracts';
 export type PlatformDb = NodePgDatabase<Record<string, never>>;
 
 /** A transaction-bound Drizzle handle passed into `withTenant`'s callback. */
-export type PlatformTx = Parameters<Parameters<PlatformDb['transaction']>[0]>[0];
+export type PlatformTx = Parameters<
+  Parameters<PlatformDb['transaction']>[0]
+>[0];
 
 /**
  * Base for every Drizzle repository adapter. Stateless singleton (no identity map, no tenant field).
@@ -43,7 +45,9 @@ export abstract class TenantAwareRepository {
     }
     return this.db.transaction(async tx => {
       // Parameterized to avoid injection; set_config(local=true) === SET LOCAL.
-      await tx.execute(sql`select set_config('app.tenant_id', ${tenantId}, true)`);
+      await tx.execute(
+        sql`select set_config('app.tenant_id', ${tenantId}, true)`,
+      );
       return fn(tx);
     });
   }

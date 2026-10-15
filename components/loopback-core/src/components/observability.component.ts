@@ -8,9 +8,14 @@ import type {Logger} from '@platform/contracts';
 import {PlatformBindings} from '../bindings.js';
 import type {PlatformComponentBoundary} from '../boundary.js';
 
-export class ObservabilityComponent implements Component, PlatformComponentBoundary {
+export class ObservabilityComponent
+  implements Component, PlatformComponentBoundary
+{
   readonly plane = 'edge' as const;
-  readonly bindsKeys = [PlatformBindings.LOGGER.key, PlatformBindings.METER.key];
+  readonly bindsKeys = [
+    PlatformBindings.LOGGER.key,
+    PlatformBindings.METER.key,
+  ];
   readonly implementsExtensionPoints: readonly string[] = [];
   readonly consumesExtensionPoints: readonly string[] = [];
   readonly contributesTags: readonly string[] = [];
@@ -20,7 +25,12 @@ export class ObservabilityComponent implements Component, PlatformComponentBound
       .toDynamicValue(() => new JsonLogger('info'))
       .inScope(BindingScope.SINGLETON),
     Binding.bind(PlatformBindings.METER.key)
-      .toDynamicValue(({context}) => new LoggingMeter(context.getSync<Logger>(PlatformBindings.LOGGER.key)))
+      .toDynamicValue(
+        ({context}) =>
+          new LoggingMeter(
+            context.getSync<Logger>(PlatformBindings.LOGGER.key),
+          ),
+      )
       .inScope(BindingScope.SINGLETON),
   ];
 }

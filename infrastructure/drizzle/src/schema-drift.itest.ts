@@ -19,7 +19,14 @@ import * as event from './schema/event.schema.js';
 const PG = loadConfig().stores.authoritative.url;
 
 /** Every modeled table across all schema modules (excludes pgSchema/relation/zod exports). */
-const MODELED: readonly PgTable[] = [substrate, runtime, audit, tenant, capability, event]
+const MODELED: readonly PgTable[] = [
+  substrate,
+  runtime,
+  audit,
+  tenant,
+  capability,
+  event,
+]
   .flatMap(mod => Object.values(mod))
   .filter((v): v is PgTable => is(v, PgTable));
 
@@ -64,7 +71,12 @@ describe('schema↔DB drift gate (live)', () => {
     expect(MODELED.length).toBeGreaterThanOrEqual(15);
   });
 
-  it.each(MODELED.map(t => [`${getTableConfig(t).schema}.${getTableConfig(t).name}`, t] as const))(
+  it.each(
+    MODELED.map(
+      t =>
+        [`${getTableConfig(t).schema}.${getTableConfig(t).name}`, t] as const,
+    ),
+  )(
     '%s columns/types/nullability match the applied migration',
     async (_label, table) => {
       const cfg = getTableConfig(table);
@@ -82,12 +94,19 @@ describe('schema↔DB drift gate (live)', () => {
         [schemaName, cfg.name],
       );
       // The table must exist (migrations built it).
-      expect(res.rowCount, `${schemaName}.${cfg.name} is not present in the DB`).toBeGreaterThan(0);
+      expect(
+        res.rowCount,
+        `${schemaName}.${cfg.name} is not present in the DB`,
+      ).toBeGreaterThan(0);
 
       const dbCols = new Map<string, DbColumn>(
         res.rows.map(r => [
           r.column_name,
-          {dataType: r.data_type.toLowerCase(), udtName: r.udt_name.toLowerCase(), nullable: r.is_nullable === 'YES'},
+          {
+            dataType: r.data_type.toLowerCase(),
+            udtName: r.udt_name.toLowerCase(),
+            nullable: r.is_nullable === 'YES',
+          },
         ]),
       );
 
@@ -100,20 +119,31 @@ describe('schema↔DB drift gate (live)', () => {
 
       for (const col of cfg.columns) {
         const db = dbCols.get(col.name);
-        expect(db, `column ${cfg.name}.${col.name} missing in DB`).toBeDefined();
+        expect(
+          db,
+          `column ${cfg.name}.${col.name} missing in DB`,
+        ).toBeDefined();
         if (!db) continue;
 
-        expect(dbType(db), `type mismatch on ${cfg.name}.${col.name}`).toBe(drizzleType(col));
+        expect(dbType(db), `type mismatch on ${cfg.name}.${col.name}`).toBe(
+          drizzleType(col),
+        );
 
         const modeledNotNull = col.notNull || pkCols.has(col.name);
-        expect(db.nullable, `nullability mismatch on ${cfg.name}.${col.name}`).toBe(!modeledNotNull);
+        expect(
+          db.nullable,
+          `nullability mismatch on ${cfg.name}.${col.name}`,
+        ).toBe(!modeledNotNull);
       }
 
       // Reverse drift: a migration adding a column the schema def doesn't model would make the app
       // blind to it — flag that too.
       const modeledNames = new Set(cfg.columns.map(c => c.name));
       const unmodeled = [...dbCols.keys()].filter(n => !modeledNames.has(n));
-      expect(unmodeled, `DB has columns ${cfg.name} schema def does not model`).toEqual([]);
+      expect(
+        unmodeled,
+        `DB has columns ${cfg.name} schema def does not model`,
+      ).toEqual([]);
     },
   );
 });

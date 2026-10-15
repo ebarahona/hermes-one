@@ -1,7 +1,11 @@
 // Unit tests for the billing event fan-out contract.
 import {describe, expect, it} from 'vitest';
 import type {UsageRecord} from './index.js';
-import {BillingPeriodSummary, assertValidMeterTotals, toUsageRecordOutboxInput} from './index.js';
+import {
+  BillingPeriodSummary,
+  assertValidMeterTotals,
+  toUsageRecordOutboxInput,
+} from './index.js';
 
 const record = {
   dedupeKey: 'prn_x:trn_y:tool.invocation:0',
@@ -28,8 +32,12 @@ describe('billing events', () => {
   });
 
   it('assertValidMeterTotals accepts MeterKind keys and rejects strangers', () => {
-    expect(() => assertValidMeterTotals({'model.cost.usd': 1.2, 'tool.invocation': 3})).not.toThrow();
-    expect(() => assertValidMeterTotals({'made.up.meter': 1})).toThrow(/invalid meterKind/);
+    expect(() =>
+      assertValidMeterTotals({'model.cost.usd': 1.2, 'tool.invocation': 3}),
+    ).not.toThrow();
+    expect(() => assertValidMeterTotals({'made.up.meter': 1})).toThrow(
+      /invalid meterKind/,
+    );
   });
 
   it('BillingPeriodSummary validates the summarize() wrapper shape', () => {
@@ -42,7 +50,12 @@ describe('billing events', () => {
       }),
     ).not.toThrow();
     expect(() =>
-      BillingPeriodSummary.parse({tenantId: 'tnt_bill', period: 'july', totals: {}, summarizedAt: 'x'}),
+      BillingPeriodSummary.parse({
+        tenantId: 'tnt_bill',
+        period: 'july',
+        totals: {},
+        summarizedAt: 'x',
+      }),
     ).toThrow();
   });
 });

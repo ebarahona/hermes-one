@@ -5,7 +5,10 @@
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {Pool} from 'pg';
 import {loadConfig} from '@platform-internal/config';
-import {createUsageMeter, type UsageMeterHandle} from '@platform-internal/drizzle';
+import {
+  createUsageMeter,
+  type UsageMeterHandle,
+} from '@platform-internal/drizzle';
 import type {MeterKind, TenantId} from '@platform/contracts';
 import {UsageCostAnalyticsService} from './cost-analytics.js';
 
@@ -20,7 +23,9 @@ let meter: UsageMeterHandle;
 beforeAll(async () => {
   owner = new Pool({connectionString: PG, max: 2});
   meter = createUsageMeter(PG);
-  await owner.query(`DELETE FROM audit.usage_records WHERE tenant_id = $1`, [TENANT]);
+  await owner.query(`DELETE FROM audit.usage_records WHERE tenant_id = $1`, [
+    TENANT,
+  ]);
   // Seed deduped usage rows (owner bypasses RLS).
   await owner.query(
     `INSERT INTO audit.usage_records (dedupe_key, tenant_id, principal_id, meter_kind, quantity, unit, correlation_id, turn_id, period)
@@ -32,7 +37,9 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await owner.query(`DELETE FROM audit.usage_records WHERE tenant_id = $1`, [TENANT]);
+  await owner.query(`DELETE FROM audit.usage_records WHERE tenant_id = $1`, [
+    TENANT,
+  ]);
   await owner.end();
   await meter.close();
 });
@@ -49,7 +56,12 @@ describe('UsageCostAnalyticsService (live)', () => {
   it('reconcile reports ok when agentback matches the platform totals', async () => {
     const svc = new UsageCostAnalyticsService(
       meter.repo,
-      async () => ({'model.input.tokens': 1000, 'model.output.tokens': 400, 'model.cost.usd': 0.02}) as Partial<Record<MeterKind, number>>,
+      async () =>
+        ({
+          'model.input.tokens': 1000,
+          'model.output.tokens': 400,
+          'model.cost.usd': 0.02,
+        }) as Partial<Record<MeterKind, number>>,
       {toleranceDiffPct: 1},
     );
     const r = await svc.reconcile(TENANT, PERIOD);
@@ -60,7 +72,12 @@ describe('UsageCostAnalyticsService (live)', () => {
   it('reconcile reports drift when agentback disagrees beyond tolerance', async () => {
     const svc = new UsageCostAnalyticsService(
       meter.repo,
-      async () => ({'model.input.tokens': 1000, 'model.output.tokens': 400, 'model.cost.usd': 0.03}) as Partial<Record<MeterKind, number>>,
+      async () =>
+        ({
+          'model.input.tokens': 1000,
+          'model.output.tokens': 400,
+          'model.cost.usd': 0.03,
+        }) as Partial<Record<MeterKind, number>>,
       {toleranceDiffPct: 1},
     );
     const r = await svc.reconcile(TENANT, PERIOD);

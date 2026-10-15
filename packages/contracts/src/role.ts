@@ -15,7 +15,11 @@ export const RoleDefinition = z.object({
   /** null = platform-defined, available to every tenant (mirrors substrate.definitions nullable-tenant). */
   tenantId: TenantId.nullable(),
   /** The join key `Principal.roles` / `tenant.users.role_names` reference by string. Immutable after create. */
-  name: z.string().min(1).max(100).regex(/^[a-z][a-z0-9-]*$/),
+  name: z
+    .string()
+    .min(1)
+    .max(100)
+    .regex(/^[a-z][a-z0-9-]*$/),
   scopes: z.array(Scope),
   description: z.string().max(500).optional(),
   createdAt: IsoTimestamp,
@@ -23,9 +27,14 @@ export const RoleDefinition = z.object({
 });
 export type RoleDefinition = z.infer<typeof RoleDefinition>;
 
-export type RoleCreateInput = Omit<RoleDefinition, 'roleId' | 'createdAt' | 'updatedAt'>;
+export type RoleCreateInput = Omit<
+  RoleDefinition,
+  'roleId' | 'createdAt' | 'updatedAt'
+>;
 /** `name` excluded — rename is forbidden (role matrix). */
-export type RoleUpdateInput = Partial<Pick<RoleDefinition, 'scopes' | 'description'>>;
+export type RoleUpdateInput = Partial<
+  Pick<RoleDefinition, 'scopes' | 'description'>
+>;
 
 /**
  * Authors roles and resolves role NAMES → scopes at runtime. Bound at platform.tenant.roleRegistry,
@@ -41,5 +50,8 @@ export interface RoleRegistry {
   /** Deleting a platform role (tenantId=null) is rejected outside a platform-admin migration path. */
   delete(roleId: RoleId): Promise<void>;
   /** Runtime resolution: role NAMES (Principal.roles) → deduped, unioned Scope[]. Never cached. */
-  resolveScopes(tenantId: TenantId, roleNames: readonly string[]): Promise<Scope[]>;
+  resolveScopes(
+    tenantId: TenantId,
+    roleNames: readonly string[],
+  ): Promise<Scope[]>;
 }

@@ -5,7 +5,12 @@
 // idiom) and discovered here at first resolution — no name→provider Map, no hardcoded list.
 import {Binding, CoreTags, type Component} from '@loopback/core';
 import {BindingScope} from '@loopback/context';
-import type {CapabilityContract, CapabilityName, ProviderAdapter, ProviderMapping} from '@platform/contracts';
+import type {
+  CapabilityContract,
+  CapabilityName,
+  ProviderAdapter,
+  ProviderMapping,
+} from '@platform/contracts';
 import {
   CapabilityInvoker,
   InMemoryCapabilityRegistry,
@@ -28,10 +33,13 @@ export class IndexedCapabilityRegistry extends InMemoryCapabilityRegistry {
     this.latestByName.set(cap.name, cap);
   }
 
-  lookup = (name: CapabilityName): CapabilityContract | undefined => this.latestByName.get(name);
+  lookup = (name: CapabilityName): CapabilityContract | undefined =>
+    this.latestByName.get(name);
 }
 
-export class CapabilityRegistryComponent implements Component, PlatformComponentBoundary {
+export class CapabilityRegistryComponent
+  implements Component, PlatformComponentBoundary
+{
   readonly plane = 'edge' as const;
   readonly bindsKeys = [
     PlatformBindings.CAPABILITY_REGISTRY.key,
@@ -40,7 +48,9 @@ export class CapabilityRegistryComponent implements Component, PlatformComponent
     PlatformBindings.CAPABILITY_INVOKER.key,
   ];
   readonly implementsExtensionPoints: readonly string[] = [];
-  readonly consumesExtensionPoints = [PlatformExtensionPoints.PROVIDER_ADAPTERS];
+  readonly consumesExtensionPoints = [
+    PlatformExtensionPoints.PROVIDER_ADAPTERS,
+  ];
   readonly contributesTags: readonly string[] = [];
 
   bindings: Binding[] = [
@@ -51,22 +61,39 @@ export class CapabilityRegistryComponent implements Component, PlatformComponent
       .toDynamicValue(({context}) => {
         // Discover every provider adapter contributed to the extension point (tagged bindings).
         const adapters = context
-          .findByTag<ProviderAdapter>({[CoreTags.EXTENSION_FOR]: PlatformExtensionPoints.PROVIDER_ADAPTERS})
+          .findByTag<ProviderAdapter>({
+            [CoreTags.EXTENSION_FOR]: PlatformExtensionPoints.PROVIDER_ADAPTERS,
+          })
           .map(b => context.getSync<ProviderAdapter>(b.key));
         return new ProviderRegistry(adapters);
       })
       .inScope(BindingScope.SINGLETON),
     Binding.bind(PlatformBindings.CAPABILITY_RESOLVER.key)
-      .toDynamicValue(({context}) => new ProviderResolver(context.getSync(PlatformBindings.PROVIDER_REGISTRY)))
+      .toDynamicValue(
+        ({context}) =>
+          new ProviderResolver(
+            context.getSync(PlatformBindings.PROVIDER_REGISTRY),
+          ),
+      )
       .inScope(BindingScope.SINGLETON),
     Binding.bind(PlatformBindings.CAPABILITY_INVOKER.key)
       .toDynamicValue(({context}) => {
-        const registry = context.getSync(PlatformBindings.CAPABILITY_REGISTRY) as IndexedCapabilityRegistry;
+        const registry = context.getSync(
+          PlatformBindings.CAPABILITY_REGISTRY,
+        ) as IndexedCapabilityRegistry;
         // Tenant provider-mapping overrides (CT3): consulted at INVOCATION time, before ranking —
         // absence of a row (or of the repository binding itself) means the contract default.
-        const overrides = context.isBound(PlatformBindings.PROVIDER_MAPPING_REPOSITORY.key)
+        const overrides = context.isBound(
+          PlatformBindings.PROVIDER_MAPPING_REPOSITORY.key,
+        )
           ? (context.getSync(PlatformBindings.PROVIDER_MAPPING_REPOSITORY) as {
-              find(t: unknown, n: unknown): Promise<(ProviderMapping & {updatedAt: string; updatedBy: string}) | null>;
+              find(
+                t: unknown,
+                n: unknown,
+              ): Promise<
+                | (ProviderMapping & {updatedAt: string; updatedBy: string})
+                | null
+              >;
             })
           : undefined;
         return new CapabilityInvoker(
@@ -75,7 +102,13 @@ export class CapabilityRegistryComponent implements Component, PlatformComponent
           overrides
             ? async (tenantId, capability) => {
                 const o = await overrides.find(tenantId, capability);
-                return o ? {providers: o.providers, eligibility: o.eligibility, onNoProvider: o.onNoProvider} : null;
+                return o
+                  ? {
+                      providers: o.providers,
+                      eligibility: o.eligibility,
+                      onNoProvider: o.onNoProvider,
+                    }
+                  : null;
               }
             : undefined,
         );

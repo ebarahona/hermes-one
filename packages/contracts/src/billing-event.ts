@@ -30,7 +30,9 @@ export interface BillingEventPayloadMap {
   'billing.period.summarized': BillingPeriodSummary;
 }
 
-export type BillingEventEnvelope<T extends BillingEventType = BillingEventType> = EventEnvelope & {
+export type BillingEventEnvelope<
+  T extends BillingEventType = BillingEventType,
+> = EventEnvelope & {
   type: T;
   payload: BillingEventPayloadMap[T];
 };

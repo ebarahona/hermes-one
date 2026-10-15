@@ -17,13 +17,20 @@ import {
   PlatformBindings,
 } from '@platform-internal/loopback-core';
 import {RedisNonceStore} from '@platform-internal/redis';
-import {SmsChannelTransport, type TenantByNumber} from '@platform-internal/channels';
+import {
+  SmsChannelTransport,
+  type TenantByNumber,
+} from '@platform-internal/channels';
 import {initTracing, tracingConfigFor} from '@platform-internal/telemetry';
 import {SecretRef, type TenantId} from '@platform/contracts';
 import {createGatewayServer} from './server.js';
 
 export {createGatewayServer, type GatewayDeps} from './server.js';
-export {startFromInbound, type IngestDeps, type StartedWorkflow} from './ingestor.js';
+export {
+  startFromInbound,
+  type IngestDeps,
+  type StartedWorkflow,
+} from './ingestor.js';
 
 export interface GatewayConfig {
   /** Inline HMAC secret (dev/e2e). When absent, the signing secret resolves via SecretRef —
@@ -41,7 +48,9 @@ export interface GatewayHandle {
 }
 
 /** Wire the inbound gateway from config. Callers `listen()` on the returned server. */
-export async function createInboundGateway(gw: GatewayConfig): Promise<GatewayHandle> {
+export async function createInboundGateway(
+  gw: GatewayConfig,
+): Promise<GatewayHandle> {
   const cfg = loadConfig();
   const app = new PlatformApplication();
   app.bind(PlatformBindings.CONFIG.key).to(cfg);
@@ -66,7 +75,10 @@ export async function createInboundGateway(gw: GatewayConfig): Promise<GatewayHa
   const transport = new SmsChannelTransport({
     ...(gw.signingSecret
       ? {signingSecret: gw.signingSecret}
-      : {signingSecretRef: SecretRef.parse('secret://env/sms-webhook-signing'), secrets: new EnvSecretProvider()}),
+      : {
+          signingSecretRef: SecretRef.parse('secret://env/sms-webhook-signing'),
+          secrets: new EnvSecretProvider(),
+        }),
     signatureHeader: 'x-signature',
     nonces: new RedisNonceStore(redis),
     tenantByNumber: gw.tenantByNumber,

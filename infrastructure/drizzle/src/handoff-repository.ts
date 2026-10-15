@@ -4,20 +4,34 @@
 // (assign/takeover/resolve via Temporal signals + admin inbox) is a later build (flagged). Idempotent on
 // handoff_id so a replayed turn collapses. All access goes through withTenant → set_config('app.tenant_id').
 import type {TenantId, TenantScope} from '@platform/contracts';
-import {TenantAwareRepository, type PlatformTx} from './tenant-aware.repository.js';
+import {
+  TenantAwareRepository,
+  type PlatformTx,
+} from './tenant-aware.repository.js';
 import {handoffTasks} from './schema/runtime.schema.js';
 
 export interface HandoffTaskRow {
   handoffId: string;
   conversationId: string;
   triggeringTurnId?: string;
-  reason: 'policy-required' | 'agent-uncertain' | 'customer-requested' | 'error-escalation' | 'high-value';
+  reason:
+    | 'policy-required'
+    | 'agent-uncertain'
+    | 'customer-requested'
+    | 'error-escalation'
+    | 'high-value';
   priority: 'low' | 'normal' | 'high' | 'urgent';
   summary: string;
   evidenceSnapshot: unknown[];
   queue: string;
   operatorId?: string;
-  status: 'requested' | 'assigned' | 'human_owned' | 'resolved' | 'returned' | 'expired';
+  status:
+    | 'requested'
+    | 'assigned'
+    | 'human_owned'
+    | 'resolved'
+    | 'returned'
+    | 'expired';
   owner: 'agent' | 'human';
   transitions: unknown[];
   requestedAt: Date;
@@ -26,7 +40,11 @@ export interface HandoffTaskRow {
 }
 
 /** Tx-scoped write core (shared with the atomic DrizzleTurnPersistence writer). */
-export async function insertHandoffRequest(tx: PlatformTx, tenantId: TenantId, row: HandoffTaskRow): Promise<void> {
+export async function insertHandoffRequest(
+  tx: PlatformTx,
+  tenantId: TenantId,
+  row: HandoffTaskRow,
+): Promise<void> {
   await tx
     .insert(handoffTasks)
     .values({
@@ -53,6 +71,8 @@ export async function insertHandoffRequest(tx: PlatformTx, tenantId: TenantId, r
 export class DrizzleHandoffRepository extends TenantAwareRepository {
   /** Persist a handoff request for a tenant. Idempotent — a replayed turn collapses (ON CONFLICT DO NOTHING). */
   async requestHandoff(row: HandoffTaskRow, scope: TenantScope): Promise<void> {
-    await this.withTenant(scope, tx => insertHandoffRequest(tx, scope.tenantId, row));
+    await this.withTenant(scope, tx =>
+      insertHandoffRequest(tx, scope.tenantId, row),
+    );
   }
 }

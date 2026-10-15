@@ -11,12 +11,24 @@
 // TurnRequest.startedAt (Phase 2a) — a wall-clock producer would make every re-execution look like
 // tampering and poison the enclosing persistTurnAtomic transaction.
 import {and, eq, sql} from 'drizzle-orm';
-import {PlatformErrorException, type AuditAction, type AuditEvent, type AuditSink, type TenantId} from '@platform/contracts';
-import {TenantAwareRepository, type PlatformTx} from './tenant-aware.repository.js';
+import {
+  PlatformErrorException,
+  type AuditAction,
+  type AuditEvent,
+  type AuditSink,
+  type TenantId,
+} from '@platform/contracts';
+import {
+  TenantAwareRepository,
+  type PlatformTx,
+} from './tenant-aware.repository.js';
 import {auditEvents} from './schema/audit.schema.js';
 
 /** Raised when an existing audit id is re-appended with different content (tamper/id-collision). */
-function auditIntegrityConflict(event: AuditEvent, existingHash: string): PlatformErrorException {
+function auditIntegrityConflict(
+  event: AuditEvent,
+  existingHash: string,
+): PlatformErrorException {
   return new PlatformErrorException({
     category: 'conflict',
     code: 'idempotency_conflict',
@@ -31,7 +43,10 @@ function auditIntegrityConflict(event: AuditEvent, existingHash: string): Platfo
 }
 
 /** Tx-scoped write core (shared with the atomic DrizzleTurnPersistence writer). */
-export async function insertAuditEvent(tx: PlatformTx, event: AuditEvent): Promise<void> {
+export async function insertAuditEvent(
+  tx: PlatformTx,
+  event: AuditEvent,
+): Promise<void> {
   const inserted = await tx
     .insert(auditEvents)
     .values({
@@ -62,18 +77,30 @@ export async function insertAuditEvent(tx: PlatformTx, event: AuditEvent): Promi
   // No visible row despite the conflict = another tenant owns this id (RLS hides it). Same verdict:
   // the id is taken by content we cannot vouch for — refuse rather than silently drop the event.
   if (existingHash !== event.integrityHash) {
-    throw auditIntegrityConflict(event, existingHash ?? '<not visible to this tenant>');
+    throw auditIntegrityConflict(
+      event,
+      existingHash ?? '<not visible to this tenant>',
+    );
   }
 }
 
-export class DrizzleAuditSink extends TenantAwareRepository implements AuditSink {
+export class DrizzleAuditSink
+  extends TenantAwareRepository
+  implements AuditSink
+{
   /** Append one immutable audit event. Idempotent on a true replay; rejects a mutated re-append. */
   async append(event: AuditEvent): Promise<void> {
-    await this.withTenant({tenantId: event.tenantId}, tx => insertAuditEvent(tx, event));
+    await this.withTenant({tenantId: event.tenantId}, tx =>
+      insertAuditEvent(tx, event),
+    );
   }
 
   /** Count events of one action for a tenant in a billing period ('YYYY-MM'). Feeds scalability KPIs. */
-  async countByAction(tenantId: TenantId, action: AuditAction, period: string): Promise<number> {
+  async countByAction(
+    tenantId: TenantId,
+    action: AuditAction,
+    period: string,
+  ): Promise<number> {
     return this.withTenant({tenantId}, async tx => {
       const rows = await tx
         .select({n: sql<number>`count(*)::int`})
@@ -90,12 +117,20 @@ export class DrizzleAuditSink extends TenantAwareRepository implements AuditSink
   }
 
   /** Tenant-scoped read of the audit trail, optionally filtered by correlation/action. */
-  async query(filter: {tenantId: TenantId; correlationId?: string; action?: AuditAction}): Promise<AuditEvent[]> {
+  async query(filter: {
+    tenantId: TenantId;
+    correlationId?: string;
+    action?: AuditAction;
+  }): Promise<AuditEvent[]> {
     return this.withTenant({tenantId: filter.tenantId}, async tx => {
       const conds = [eq(auditEvents.tenantId, filter.tenantId)];
-      if (filter.correlationId) conds.push(eq(auditEvents.correlationId, filter.correlationId));
+      if (filter.correlationId)
+        conds.push(eq(auditEvents.correlationId, filter.correlationId));
       if (filter.action) conds.push(eq(auditEvents.action, filter.action));
-      const rows = await tx.select().from(auditEvents).where(and(...conds));
+      const rows = await tx
+        .select()
+        .from(auditEvents)
+        .where(and(...conds));
       return rows.map(r => ({
         id: r.id,
         tenantId: r.tenantId,

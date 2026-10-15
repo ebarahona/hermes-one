@@ -18,7 +18,10 @@ import {OidcStrategy} from './oidc.strategy.js';
 
 export class AuthComponent implements Component, PlatformComponentBoundary {
   readonly plane = 'edge' as const;
-  readonly bindsKeys = [AuthBindings.STRATEGY_REGISTRY.key, AuthBindings.PRINCIPAL_MAPPER.key];
+  readonly bindsKeys = [
+    AuthBindings.STRATEGY_REGISTRY.key,
+    AuthBindings.PRINCIPAL_MAPPER.key,
+  ];
   readonly implementsExtensionPoints = [AUTH_STRATEGIES_EXTENSION_POINT];
   readonly consumesExtensionPoints: readonly string[] = [];
   readonly contributesTags = [AUTH_STRATEGY_EXTENSION_TYPE];
@@ -36,12 +39,20 @@ export class AuthComponent implements Component, PlatformComponentBoundary {
     Binding.bind('platform.auth.strategy.api-key')
       .toClass(ApiKeyStrategy)
       .tag({[CoreTags.EXTENSION_FOR]: AUTH_STRATEGIES_EXTENSION_POINT})
-      .tag({extensionType: AUTH_STRATEGY_EXTENSION_TYPE, name: 'api-key', version: '1.0.0'})
+      .tag({
+        extensionType: AUTH_STRATEGY_EXTENSION_TYPE,
+        name: 'api-key',
+        version: '1.0.0',
+      })
       .inScope(BindingScope.SINGLETON),
     Binding.bind('platform.auth.strategy.oidc')
       .toClass(OidcStrategy)
       .tag({[CoreTags.EXTENSION_FOR]: AUTH_STRATEGIES_EXTENSION_POINT})
-      .tag({extensionType: AUTH_STRATEGY_EXTENSION_TYPE, name: 'oidc', version: '1.0.0'})
+      .tag({
+        extensionType: AUTH_STRATEGY_EXTENSION_TYPE,
+        name: 'oidc',
+        version: '1.0.0',
+      })
       .inScope(BindingScope.SINGLETON),
   ];
 }

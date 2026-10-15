@@ -55,26 +55,42 @@ afterAll(async () => {
 
 describe('GET /v1/deployments/active (live)', () => {
   it('a scoped principal on a tenant with no deployment → 404 (round-trip through the store)', async () => {
-    const res = await fetch(`${base}/v1/deployments/active?tenantId=${TENANT}`, {headers: {'x-api-key': KEY_READ}});
+    const res = await fetch(
+      `${base}/v1/deployments/active?tenantId=${TENANT}`,
+      {headers: {'x-api-key': KEY_READ}},
+    );
     expect(res.status).toBe(404);
-    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe('not_found');
+    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe(
+      'not_found',
+    );
   });
 
   it('a specific version that does not exist → 404', async () => {
-    const res = await fetch(`${base}/v1/deployments/${TENANT}/9.9.9`, {headers: {'x-api-key': KEY_READ}});
+    const res = await fetch(`${base}/v1/deployments/${TENANT}/9.9.9`, {
+      headers: {'x-api-key': KEY_READ},
+    });
     expect(res.status).toBe(404);
   });
 
   it('a principal without deployment.read → 403 forbidden_scope', async () => {
-    const res = await fetch(`${base}/v1/deployments/active?tenantId=${TENANT}`, {headers: {'x-api-key': KEY_NOSCOPE}});
+    const res = await fetch(
+      `${base}/v1/deployments/active?tenantId=${TENANT}`,
+      {headers: {'x-api-key': KEY_NOSCOPE}},
+    );
     expect(res.status).toBe(403);
-    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe('forbidden_scope');
+    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe(
+      'forbidden_scope',
+    );
   });
 
   it('reading another tenant’s deployment → 403 (tenant boundary, never the query’s tenant)', async () => {
-    const res = await fetch(`${base}/v1/deployments/active?tenantId=${OTHER}`, {headers: {'x-api-key': KEY_READ}});
+    const res = await fetch(`${base}/v1/deployments/active?tenantId=${OTHER}`, {
+      headers: {'x-api-key': KEY_READ},
+    });
     expect(res.status).toBe(403);
-    const byVersion = await fetch(`${base}/v1/deployments/${OTHER}/1.0.0`, {headers: {'x-api-key': KEY_READ}});
+    const byVersion = await fetch(`${base}/v1/deployments/${OTHER}/1.0.0`, {
+      headers: {'x-api-key': KEY_READ},
+    });
     expect(byVersion.status).toBe(403);
   });
 

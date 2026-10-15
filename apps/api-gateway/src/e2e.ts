@@ -29,8 +29,16 @@ async function main() {
 
   // Publish a real active deployment for the tenant (missed-call workflow + rule + policy/engine/capability).
   const bundle = buildBundle({});
-  await publishBundle(bundle, cfg.stores.authoritative.url, cfg.stores.ephemeral.url);
-  await publishAgentDeployment(bundle, cfg.stores.authoritative.url, cfg.stores.ephemeral.url);
+  await publishBundle(
+    bundle,
+    cfg.stores.authoritative.url,
+    cfg.stores.ephemeral.url,
+  );
+  await publishAgentDeployment(
+    bundle,
+    cfg.stores.authoritative.url,
+    cfg.stores.ephemeral.url,
+  );
 
   const workflowWorker = await createWorkflowWorker();
   const activityWorker = await createActivityWorker();
@@ -48,21 +56,48 @@ async function main() {
     // A real inbound missed call from a customer in-area (eligible → the platform texts them back).
     // AUTH-1 posture: the timestamp is INSIDE the signed material (rawBody + '.' + ts) and the
     // signature is single-use (Redis replay guard) — a replayed identical request must 401.
-    const payload = {From: '+15125559999', To: TO, Body: 'missed you', MessageSid: `SM_${Date.now()}`, Zip: '75001', Answered: false};
+    const payload = {
+      From: '+15125559999',
+      To: TO,
+      Body: 'missed you',
+      MessageSid: `SM_${Date.now()}`,
+      Zip: '75001',
+      Answered: false,
+    };
     const rawBody = JSON.stringify(payload);
     const timestamp = String(Math.floor(Date.now() / 1000));
-    const signature = createHmac('sha256', SECRET).update(smsSignedMaterial(rawBody, timestamp)).digest('hex');
-    const headers = {'content-type': 'application/json', 'x-signature': signature, 'x-timestamp': timestamp};
+    const signature = createHmac('sha256', SECRET)
+      .update(smsSignedMaterial(rawBody, timestamp))
+      .digest('hex');
+    const headers = {
+      'content-type': 'application/json',
+      'x-signature': signature,
+      'x-timestamp': timestamp,
+    };
 
-    const res = await fetch(`http://127.0.0.1:${PORT}/webhooks/sms`, {method: 'POST', headers, body: rawBody});
-    if (res.status !== 202) throw new Error(`gateway returned ${res.status}: ${await res.text()}`);
+    const res = await fetch(`http://127.0.0.1:${PORT}/webhooks/sms`, {
+      method: 'POST',
+      headers,
+      body: rawBody,
+    });
+    if (res.status !== 202)
+      throw new Error(`gateway returned ${res.status}: ${await res.text()}`);
     const {workflowId} = (await res.json()) as {workflowId: string};
 
     // Replay the byte-identical request: the nonce guard must reject it (401), never a second start.
-    const replay = await fetch(`http://127.0.0.1:${PORT}/webhooks/sms`, {method: 'POST', headers, body: rawBody});
-    if (replay.status !== 401) throw new Error(`replayed webhook returned ${replay.status}, expected 401`);
+    const replay = await fetch(`http://127.0.0.1:${PORT}/webhooks/sms`, {
+      method: 'POST',
+      headers,
+      body: rawBody,
+    });
+    if (replay.status !== 401)
+      throw new Error(
+        `replayed webhook returned ${replay.status}, expected 401`,
+      );
 
-    const result = (await client.workflow.getHandle(workflowId).result()) as {path: string[]};
+    const result = (await client.workflow.getHandle(workflowId).result()) as {
+      path: string[];
+    };
     return {workflowId, path: result.path};
   })();
 
@@ -74,7 +109,9 @@ async function main() {
 
   const expected = ['eligibility', 'reply', 'end'];
   const pass = JSON.stringify(out.path) === JSON.stringify(expected);
-  console.log(`${pass ? '✅ PASS' : '❌ FAIL'} inbound webhook → workflow: path=${JSON.stringify(out.path)} (id=${out.workflowId})`);
+  console.log(
+    `${pass ? '✅ PASS' : '❌ FAIL'} inbound webhook → workflow: path=${JSON.stringify(out.path)} (id=${out.workflowId})`,
+  );
 
   await connection.close();
   await gateway.close();
@@ -82,7 +119,9 @@ async function main() {
     console.error('E2E FAILED');
     process.exit(1);
   }
-  console.log('\nE2E OK — a signed inbound webhook drove the missed-call workflow on real Temporal.');
+  console.log(
+    '\nE2E OK — a signed inbound webhook drove the missed-call workflow on real Temporal.',
+  );
   process.exit(0);
 }
 

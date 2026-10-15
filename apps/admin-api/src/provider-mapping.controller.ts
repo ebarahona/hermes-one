@@ -35,15 +35,23 @@ const WRITE_PROVIDER_MAPPING = 'tenant.provider-mapping.write' as Scope;
 /** PUT body — mirrors the CapabilityProviderOverride config shape
  * and capability.provider_mappings columns. */
 export const PutProviderMappingRequest = z.object({
-  providers: z.array(z.object({
-    providerId: z.string().min(1),
-    priority: z.number().int(),
-    configKey: z.string().optional(),
-  })).min(1),
-  eligibility: z.array(z.object({when: z.unknown(), reason: z.string().max(200)})).default([]),
+  providers: z
+    .array(
+      z.object({
+        providerId: z.string().min(1),
+        priority: z.number().int(),
+        configKey: z.string().optional(),
+      }),
+    )
+    .min(1),
+  eligibility: z
+    .array(z.object({when: z.unknown(), reason: z.string().max(200)}))
+    .default([]),
   onNoProvider: z.enum(['fail', 'handoff']).default('fail'),
 });
-export type PutProviderMappingRequest = z.infer<typeof PutProviderMappingRequest>;
+export type PutProviderMappingRequest = z.infer<
+  typeof PutProviderMappingRequest
+>;
 
 export interface EffectiveProviderMappingResponse {
   source: 'contract-default' | 'tenant-override';
@@ -53,7 +61,10 @@ export interface EffectiveProviderMappingResponse {
 }
 
 function validationFailed(err: z.ZodError): PlatformErrorException {
-  const issues: ErrorIssue[] = err.issues.map(i => ({path: `/${i.path.join('/')}`, message: i.message}));
+  const issues: ErrorIssue[] = err.issues.map(i => ({
+    path: `/${i.path.join('/')}`,
+    message: i.message,
+  }));
   return new PlatformErrorException({
     category: 'validation',
     code: 'validation_failed',
@@ -83,7 +94,8 @@ export class ProviderMappingController {
   // CapabilityRegistryComponent is registered here) — injecting it would fail every request with a
   // ResolutionError. Omitted.
   constructor(
-    @inject(PlatformBindings.REQUEST_PRINCIPAL) private readonly principal: Principal,
+    @inject(PlatformBindings.REQUEST_PRINCIPAL)
+    private readonly principal: Principal,
     @inject(PlatformBindings.PROVIDER_MAPPING_REPOSITORY)
     private readonly overrides: DrizzleProviderMappingRepository,
   ) {}
@@ -104,12 +116,19 @@ export class ProviderMappingController {
     if (override) {
       return {
         source: 'tenant-override',
-        mapping: {providers: override.providers, eligibility: override.eligibility, onNoProvider: override.onNoProvider},
+        mapping: {
+          providers: override.providers,
+          eligibility: override.eligibility,
+          onNoProvider: override.onNoProvider,
+        },
         updatedAt: override.updatedAt,
         updatedBy: override.updatedBy,
       };
     }
-    const contractDefault = await this.overrides.findContractDefault(owner, name);
+    const contractDefault = await this.overrides.findContractDefault(
+      owner,
+      name,
+    );
     if (!contractDefault) throw notFound(name);
     return {source: 'contract-default', mapping: contractDefault};
   }

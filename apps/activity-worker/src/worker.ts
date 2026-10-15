@@ -36,7 +36,10 @@ import {
 } from '@platform-internal/drizzle';
 import {RedisPubSubEventPublisher} from '@platform-internal/redis';
 import type {TenantId} from '@platform/contracts';
-import {ChannelComponent, messagingReplySendContract} from '@platform-internal/channels';
+import {
+  ChannelComponent,
+  messagingReplySendContract,
+} from '@platform-internal/channels';
 import {withPlatformFailures} from '@platform-internal/temporal-client';
 import {createRuleActivities} from './activities.js';
 import {createPlanActivities} from './plan-activities.js';
@@ -49,7 +52,9 @@ export const ACTIVITY_QUEUE = 'hermes-activity';
  * Build the activity-worker's PlatformApplication: bind config, register the component subset,
  * and contribute the channel providers to the capability plane's extension point.
  */
-export function createActivityWorkerApp(cfg: HermesConfig): PlatformApplication {
+export function createActivityWorkerApp(
+  cfg: HermesConfig,
+): PlatformApplication {
   const app = new PlatformApplication();
   app.bind(PlatformBindings.CONFIG.key).to(cfg); // constant value — scope-independent
 
@@ -74,30 +79,44 @@ export async function createActivityWorker(): Promise<Worker> {
 
   // Seed the capability plane from the pinned contract (in production the active deployment's
   // CapabilityManifest seeds this — unchanged from the pre-migration wiring, flagged).
-  const registry = (await app.get(PlatformBindings.CAPABILITY_REGISTRY)) as IndexedCapabilityRegistry;
+  const registry = (await app.get(
+    PlatformBindings.CAPABILITY_REGISTRY,
+  )) as IndexedCapabilityRegistry;
   await registry.register(messagingReplySendContract());
 
   const plans = await app.get(PlatformBindings.COMPILED_PLAN_STORE);
   const invoker = await app.get(PlatformBindings.CAPABILITY_INVOKER);
-  const audit = (await app.get(PlatformBindings.AUDIT_SINK)) as DrizzleAuditSink;
+  const audit = (await app.get(
+    PlatformBindings.AUDIT_SINK,
+  )) as DrizzleAuditSink;
   const ruleRuntime = await app.get(PlatformBindings.RULE_RUNTIME);
 
   // Transactional-outbox publisher (event envelope): opt-in via HERMES_OUTBOX_TENANTS
   // (per-tenant RLS drain; the cross-tenant relay role is an open question — flagged).
   if (cfg.outbox.tenants.length > 0) {
-    const outbox = (await app.get(PlatformBindings.EVENT_OUTBOX_REPOSITORY)) as DrizzleEventOutboxRepository;
+    const outbox = (await app.get(
+      PlatformBindings.EVENT_OUTBOX_REPOSITORY,
+    )) as DrizzleEventOutboxRepository;
     const redis = await app.get(PlatformBindings.REDIS);
     const loop = new EventOutboxPublisherLoop(
       outbox,
       new RedisPubSubEventPublisher(redis, cfg.outbox.channelPattern),
       cfg.outbox.tenants as TenantId[],
-      {pollIntervalMs: cfg.outbox.pollIntervalMs, batchSize: 50, schemaVersionByType: {}},
+      {
+        pollIntervalMs: cfg.outbox.pollIntervalMs,
+        batchSize: 50,
+        schemaVersionByType: {},
+      },
     );
     loop.start();
-    console.log(`outbox publisher: draining ${cfg.outbox.tenants.join(', ')} every ${cfg.outbox.pollIntervalMs}ms`);
+    console.log(
+      `outbox publisher: draining ${cfg.outbox.tenants.join(', ')} every ${cfg.outbox.pollIntervalMs}ms`,
+    );
   }
 
-  const connection = await NativeConnection.connect({address: cfg.temporal.address});
+  const connection = await NativeConnection.connect({
+    address: cfg.temporal.address,
+  });
   return Worker.create({
     connection,
     namespace: cfg.temporal.namespace,
@@ -117,7 +136,13 @@ export async function createActivityWorker(): Promise<Worker> {
           const platformDefaults = new StaticProviderCredentialStore({
             'internal-message-log': {},
             ...(cfg.sms
-              ? {'twilio-sms': {accountSid: cfg.sms.accountSid, authToken: cfg.sms.authToken, from: cfg.sms.from}}
+              ? {
+                  'twilio-sms': {
+                    accountSid: cfg.sms.accountSid,
+                    authToken: cfg.sms.authToken,
+                    from: cfg.sms.from,
+                  },
+                }
               : {}),
           });
           // ADR-026: tenant envelope rows over platform env defaults (see agent-worker boot).

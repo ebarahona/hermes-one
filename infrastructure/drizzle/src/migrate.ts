@@ -6,7 +6,11 @@ import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {Pool} from 'pg';
 
-const MIGRATIONS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
+const MIGRATIONS_DIR = join(
+  dirname(fileURLToPath(import.meta.url)),
+  '..',
+  'migrations',
+);
 const LEDGER = '_hermes_migrations';
 
 export interface MigrationResult {
@@ -27,7 +31,9 @@ export async function runMigrations(url: string): Promise<MigrationResult> {
       .filter(f => f.endsWith('.sql'))
       .sort();
     const done = new Set(
-      (await pool.query(`SELECT name FROM ${LEDGER}`)).rows.map(r => r.name as string),
+      (await pool.query(`SELECT name FROM ${LEDGER}`)).rows.map(
+        r => r.name as string,
+      ),
     );
     for (const file of files) {
       if (done.has(file)) {
@@ -44,7 +50,9 @@ export async function runMigrations(url: string): Promise<MigrationResult> {
         applied.push(file);
       } catch (err) {
         await client.query('ROLLBACK');
-        throw new Error(`Migration ${file} failed: ${(err as Error).message}`, {cause: err});
+        throw new Error(`Migration ${file} failed: ${(err as Error).message}`, {
+          cause: err,
+        });
       } finally {
         client.release();
       }

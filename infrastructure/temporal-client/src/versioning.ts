@@ -32,7 +32,10 @@ export type InterpreterChangeKind =
   | 'change-retry-or-timeout-options'
   | 'conditional-flow-around-existing-commands';
 
-export const INTERPRETER_CHANGE_CLASS: Record<InterpreterChangeKind, InterpreterChangeClass> = {
+export const INTERPRETER_CHANGE_CLASS: Record<
+  InterpreterChangeKind,
+  InterpreterChangeClass
+> = {
   'new-node-kind': 'compatible',
   'new-optional-plan-field': 'compatible',
   'log-or-metric-only': 'compatible',
@@ -102,7 +105,10 @@ export interface ReplayGateConfig {
 
 export interface ReplayTestGate {
   loadFixtures(): Promise<ReplayHistoryFixture[]>;
-  replay(candidateBuildId: WorkerBuildId, fixtures: ReplayHistoryFixture[]): Promise<ReplayGateResult>;
+  replay(
+    candidateBuildId: WorkerBuildId,
+    fixtures: ReplayHistoryFixture[],
+  ): Promise<ReplayGateResult>;
 }
 
 /** Retirement discipline for a drained build (deploy-time tooling; transcribed for the pipeline). */
@@ -117,7 +123,8 @@ export interface DrainPolicy {
 
 export interface BuildIdRecord {
   buildId: WorkerBuildId;
-  state: 'candidate' | 'gated' | 'current' | 'retained' | 'retiring' | 'retired';
+  state:
+    'candidate' | 'gated' | 'current' | 'retained' | 'retiring' | 'retired';
   compatibleWith: WorkerBuildId | null;
   registeredAt: IsoTimestamp;
   promotedToDefaultAt: IsoTimestamp | null;

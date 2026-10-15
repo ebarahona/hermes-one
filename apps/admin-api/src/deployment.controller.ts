@@ -13,7 +13,11 @@ import {get, param, post, requestBody} from '@loopback/rest';
 import {z} from 'zod';
 import {PlatformBindings} from '@platform-internal/loopback-core';
 import {assertScope, forbiddenScopeError} from '@platform-internal/auth';
-import type {DeploymentService, DeploymentValidation, PublishDeploymentInput} from '@platform/definition-substrate';
+import type {
+  DeploymentService,
+  DeploymentValidation,
+  PublishDeploymentInput,
+} from '@platform/definition-substrate';
 import {
   type Deployment,
   type DeploymentMember,
@@ -65,8 +69,10 @@ function validationFailed(issues: ErrorIssue[]): PlatformErrorException {
 
 export class DeploymentController {
   constructor(
-    @inject(PlatformBindings.REQUEST_PRINCIPAL) private readonly principal: Principal,
-    @inject(PlatformBindings.DEPLOYMENT_SERVICE) private readonly deployments: DeploymentService,
+    @inject(PlatformBindings.REQUEST_PRINCIPAL)
+    private readonly principal: Principal,
+    @inject(PlatformBindings.DEPLOYMENT_SERVICE)
+    private readonly deployments: DeploymentService,
   ) {}
 
   private assertOwnTenant(tenantId: string, scope: Scope): TenantId {
@@ -76,8 +82,12 @@ export class DeploymentController {
   }
 
   /** Build the service input from a validated request — tenantId + actor are ALWAYS the trusted principal. */
-  private toInput(owner: TenantId, req: z.infer<typeof DeploymentPublishRequest>): PublishDeploymentInput {
-    const member = (p: z.infer<typeof PickDto>): DeploymentMember => p as DeploymentMember;
+  private toInput(
+    owner: TenantId,
+    req: z.infer<typeof DeploymentPublishRequest>,
+  ): PublishDeploymentInput {
+    const member = (p: z.infer<typeof PickDto>): DeploymentMember =>
+      p as DeploymentMember;
     return {
       tenantId: owner,
       workflow: member(req.workflow),
@@ -91,17 +101,27 @@ export class DeploymentController {
     };
   }
 
-  private parseManifest(owner: TenantId, body: unknown): PublishDeploymentInput {
+  private parseManifest(
+    owner: TenantId,
+    body: unknown,
+  ): PublishDeploymentInput {
     const parsed = DeploymentPublishRequest.safeParse(body);
     if (!parsed.success) {
-      throw validationFailed(parsed.error.issues.map(i => ({path: `/${i.path.join('/')}`, message: i.message})));
+      throw validationFailed(
+        parsed.error.issues.map(i => ({
+          path: `/${i.path.join('/')}`,
+          message: i.message,
+        })),
+      );
     }
     if (parsed.data.tenantId !== owner) throw forbiddenScopeError(); // manifest tenant must be your own
     return this.toInput(owner, parsed.data);
   }
 
   @get('/v1/deployments/active')
-  async active(@param.query.string('tenantId') tenantId: string): Promise<Deployment> {
+  async active(
+    @param.query.string('tenantId') tenantId: string,
+  ): Promise<Deployment> {
     const owner = this.assertOwnTenant(tenantId, READ_DEPLOYMENTS);
     return this.deployments.resolveActive(owner); // not_found → 404
   }
@@ -117,7 +137,13 @@ export class DeploymentController {
 
   @post('/v1/deployments/preview')
   async preview(
-    @requestBody({content: {'application/json': {schema: {type: 'object', additionalProperties: true}}}})
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {type: 'object', additionalProperties: true},
+        },
+      },
+    })
     body: unknown,
   ): Promise<DeploymentValidation> {
     // The manifest's own tenantId gates the boundary; the scope is checked first.
@@ -129,7 +155,13 @@ export class DeploymentController {
 
   @post('/v1/deployments')
   async publish(
-    @requestBody({content: {'application/json': {schema: {type: 'object', additionalProperties: true}}}})
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {type: 'object', additionalProperties: true},
+        },
+      },
+    })
     body: unknown,
   ): Promise<DeploymentRef> {
     assertScope(this.principal, PUBLISH_DEPLOYMENTS);
@@ -139,19 +171,37 @@ export class DeploymentController {
       return await this.deployments.publish(input); // Idempotency-Key not enforced yet (flagged)
     } catch (err) {
       if (err instanceof PlatformErrorException) throw err;
-      throw validationFailed([{path: '/manifest', message: String((err as Error).message).slice(0, 300)}]);
+      throw validationFailed([
+        {
+          path: '/manifest',
+          message: String((err as Error).message).slice(0, 300),
+        },
+      ]);
     }
   }
 
   @post('/v1/deployments/{tenantId}/rollback')
   async rollback(
     @param.path.string('tenantId') tenantId: string,
-    @requestBody({content: {'application/json': {schema: {type: 'object', additionalProperties: true}}}})
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {type: 'object', additionalProperties: true},
+        },
+      },
+    })
     body: unknown,
   ): Promise<DeploymentRef> {
     const owner = this.assertOwnTenant(tenantId, PUBLISH_DEPLOYMENTS);
     const parsed = RollbackRequest.safeParse(body);
-    if (!parsed.success) throw validationFailed([{path: '/toVersion', message: 'a valid SemVer is required'}]);
-    return this.deployments.rollback(owner, parsed.data.toVersion, this.principal.id as PrincipalId);
+    if (!parsed.success)
+      throw validationFailed([
+        {path: '/toVersion', message: 'a valid SemVer is required'},
+      ]);
+    return this.deployments.rollback(
+      owner,
+      parsed.data.toVersion,
+      this.principal.id as PrincipalId,
+    );
   }
 }

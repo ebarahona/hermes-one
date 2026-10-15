@@ -7,7 +7,9 @@ import {ExpressionPolicyRuntime} from '@platform/policy-dsl';
 import {PlatformBindings} from '../bindings.js';
 import type {PlatformComponentBoundary} from '../boundary.js';
 
-export class PolicyRuntimeComponent implements Component, PlatformComponentBoundary {
+export class PolicyRuntimeComponent
+  implements Component, PlatformComponentBoundary
+{
   readonly plane = 'edge' as const;
   readonly bindsKeys = [PlatformBindings.POLICY_RUNTIME.key];
   readonly implementsExtensionPoints: readonly string[] = [];

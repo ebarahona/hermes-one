@@ -7,7 +7,11 @@
 // GUC probes. Every access goes through withTenant → set_config('app.tenant_id') like every other
 // tenant repo (ADR-022).
 import {and, eq, sql} from 'drizzle-orm';
-import type {CapabilityName, ProviderMapping, TenantId} from '@platform/contracts';
+import type {
+  CapabilityName,
+  ProviderMapping,
+  TenantId,
+} from '@platform/contracts';
 import {TenantAwareRepository} from './tenant-aware.repository.js';
 import {providerMappings} from './schema/capability.schema.js';
 
@@ -20,12 +24,19 @@ export class DrizzleProviderMappingRepository extends TenantAwareRepository {
   async find(
     tenantId: TenantId,
     name: CapabilityName,
-  ): Promise<(ProviderMapping & {updatedAt: string; updatedBy: string}) | null> {
+  ): Promise<
+    (ProviderMapping & {updatedAt: string; updatedBy: string}) | null
+  > {
     return this.withTenant({tenantId}, async tx => {
       const rows = await tx
         .select()
         .from(providerMappings)
-        .where(and(eq(providerMappings.tenantId, tenantId), eq(providerMappings.capabilityName, name)));
+        .where(
+          and(
+            eq(providerMappings.tenantId, tenantId),
+            eq(providerMappings.capabilityName, name),
+          ),
+        );
       const row = rows[0];
       if (!row) return null;
       return {
@@ -74,13 +85,21 @@ export class DrizzleProviderMappingRepository extends TenantAwareRepository {
     await this.withTenant({tenantId}, tx =>
       tx
         .delete(providerMappings)
-        .where(and(eq(providerMappings.tenantId, tenantId), eq(providerMappings.capabilityName, name))),
+        .where(
+          and(
+            eq(providerMappings.tenantId, tenantId),
+            eq(providerMappings.capabilityName, name),
+          ),
+        ),
     );
   }
 
   /** The contract's own default ProviderMapping (published, latest by updated_at) — null if no
    *  published capability contract exists at all under this name for this tenant. */
-  async findContractDefault(tenantId: TenantId, name: CapabilityName): Promise<ProviderMapping | null> {
+  async findContractDefault(
+    tenantId: TenantId,
+    name: CapabilityName,
+  ): Promise<ProviderMapping | null> {
     return this.withTenant({tenantId}, async tx => {
       const res = await tx.execute(sql`
         SELECT contract_body
@@ -89,7 +108,8 @@ export class DrizzleProviderMappingRepository extends TenantAwareRepository {
         ORDER BY updated_at DESC
         LIMIT 1
       `);
-      const row = res.rows[0] as {contract_body?: {providerMapping?: ProviderMapping}} | undefined;
+      const row = res.rows[0] as
+        {contract_body?: {providerMapping?: ProviderMapping}} | undefined;
       return row?.contract_body?.providerMapping ?? null;
     });
   }

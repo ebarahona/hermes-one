@@ -12,7 +12,8 @@ import {jsonSchemaToZod, UnsupportedSchemaError} from './json-schema-to-zod.js';
 const SLOT_READ = {
   name: 'appointment.slot.read',
   title: 'Read appointment slots',
-  description: 'List open service-visit slots for a given date and service type.',
+  description:
+    'List open service-visit slots for a given date and service type.',
   inputJsonSchema: {
     type: 'object',
     required: ['date'],
@@ -44,7 +45,8 @@ const ctx = (): ProjectionContext => ({
   tenantId: 'tnt_test' as ProjectionContext['tenantId'],
   facts: {},
   providerConfigFor: async () => ({}),
-  idempotencyKeyFor: (capability, input) => `trn_test:${capability}:${JSON.stringify(input)}`,
+  idempotencyKeyFor: (capability, input) =>
+    `trn_test:${capability}:${JSON.stringify(input)}`,
 });
 
 const adapter = (execute: ProviderAdapter['execute']): ProviderAdapter =>
@@ -80,9 +82,15 @@ describe('jsonSchemaToZod (bounded allow-list)', () => {
   // Open question: a lossy round-trip must not silently hand the model a WEAKER validator
   // than the authored contract — an unrepresentable construct is a projection-time failure.
   it('THROWS on a keyword outside the allow-list rather than degrading', () => {
-    expect(() => jsonSchemaToZod({oneOf: [{type: 'string'}]})).toThrow(UnsupportedSchemaError);
-    expect(() => jsonSchemaToZod({type: 'object', properties: {a: {$ref: '#/x'}}})).toThrow(UnsupportedSchemaError);
-    expect(() => jsonSchemaToZod({type: 'string', format: 'int64'})).toThrow(UnsupportedSchemaError);
+    expect(() => jsonSchemaToZod({oneOf: [{type: 'string'}]})).toThrow(
+      UnsupportedSchemaError,
+    );
+    expect(() =>
+      jsonSchemaToZod({type: 'object', properties: {a: {$ref: '#/x'}}}),
+    ).toThrow(UnsupportedSchemaError);
+    expect(() => jsonSchemaToZod({type: 'string', format: 'int64'})).toThrow(
+      UnsupportedSchemaError,
+    );
   });
 
   // Contracts are Zod-first and their JSON Schema is GENERATED from Zod (ADR-020), so the rebuilder
@@ -93,7 +101,11 @@ describe('jsonSchemaToZod (bounded allow-list)', () => {
       $schema: 'https://json-schema.org/draft/2020-12/schema',
       type: 'object',
       properties: {
-        date: {type: 'string', format: 'date', pattern: '^\\d{4}-\\d{2}-\\d{2}$'},
+        date: {
+          type: 'string',
+          format: 'date',
+          pattern: '^\\d{4}-\\d{2}-\\d{2}$',
+        },
         email: {type: 'string', format: 'email'},
         n: {type: 'integer', minimum: -10, maximum: 10},
         tz: {default: 'UTC', type: 'string'},
@@ -102,7 +114,11 @@ describe('jsonSchemaToZod (bounded allow-list)', () => {
       additionalProperties: false,
     };
     const s = jsonSchemaToZod(generated);
-    expect(s.parse({date: '2026-07-20', n: 5})).toEqual({date: '2026-07-20', n: 5, tz: 'UTC'}); // default applied
+    expect(s.parse({date: '2026-07-20', n: 5})).toEqual({
+      date: '2026-07-20',
+      n: 5,
+      tz: 'UTC',
+    }); // default applied
     expect(() => s.parse({date: 'tomorrow', n: 5})).toThrow(); // format/pattern enforced
     expect(() => s.parse({date: '2026-07-20', n: 99})).toThrow(); // bounds enforced
     expect(() => s.parse({date: '2026-07-20', n: 5, email: 'nope'})).toThrow(); // format enforced
@@ -110,7 +126,11 @@ describe('jsonSchemaToZod (bounded allow-list)', () => {
   });
 
   it('honours additionalProperties given as a schema (catchall), not just booleans', () => {
-    const s = jsonSchemaToZod({type: 'object', properties: {a: {type: 'string'}}, additionalProperties: {type: 'number'}});
+    const s = jsonSchemaToZod({
+      type: 'object',
+      properties: {a: {type: 'string'}},
+      additionalProperties: {type: 'number'},
+    });
     expect(s.parse({a: 'x', extra: 1})).toEqual({a: 'x', extra: 1});
     expect(() => s.parse({a: 'x', extra: 'not-a-number'})).toThrow();
   });
@@ -118,7 +138,9 @@ describe('jsonSchemaToZod (bounded allow-list)', () => {
 
 describe('CapabilityToolProjector', () => {
   it('projection is deterministic and pure: same contract → identical options', () => {
-    const p = new CapabilityToolProjector(async () => adapter(async () => ({})));
+    const p = new CapabilityToolProjector(async () =>
+      adapter(async () => ({})),
+    );
     const a = p.toToolOptions(SLOT_READ);
     const b = p.toToolOptions(SLOT_READ);
     expect(a.scope).toBe(b.scope);
@@ -127,14 +149,23 @@ describe('CapabilityToolProjector', () => {
   });
 
   it('scope equals the contract requiredScope (ADR-019 visibility)', () => {
-    const p = new CapabilityToolProjector(async () => adapter(async () => ({})));
+    const p = new CapabilityToolProjector(async () =>
+      adapter(async () => ({})),
+    );
     expect(p.toToolOptions(SLOT_READ).scope).toBe('appointment.slot.read');
-    expect(p.toToolOptions(BOOKING_CREATE).scope).toBe('appointment.booking.create');
+    expect(p.toToolOptions(BOOKING_CREATE).scope).toBe(
+      'appointment.booking.create',
+    );
   });
 
   it('registers one tool per pinned capability and indexes its envelope metadata', () => {
-    const p = new CapabilityToolProjector(async () => adapter(async () => ({})));
-    const {report, bindings, metadata} = p.project([SLOT_READ, BOOKING_CREATE], ctx());
+    const p = new CapabilityToolProjector(async () =>
+      adapter(async () => ({})),
+    );
+    const {report, bindings, metadata} = p.project(
+      [SLOT_READ, BOOKING_CREATE],
+      ctx(),
+    );
 
     expect(report.registered.map(r => r.capability)).toEqual([
       'appointment.slot.read',
@@ -143,20 +174,31 @@ describe('CapabilityToolProjector', () => {
     expect(report.skipped).toEqual([]);
     expect(report.conflicts).toEqual([]);
     expect(bindings.has('appointment.slot.read')).toBe(true);
-    expect(report.registered[0].bindingKey).toBe('platform.capability.tool.appointment.slot.read');
+    expect(report.registered[0].bindingKey).toBe(
+      'platform.capability.tool.appointment.slot.read',
+    );
 
     // Metadata index completeness — get() is never undefined for a projected capability.
-    const meta = metadata.get('appointment.slot.read' as CapabilityContract['name']);
-    expect(meta).toMatchObject({sideEffect: 'read', changedDomains: ['none'], confirm: false});
+    const meta = metadata.get(
+      'appointment.slot.read' as CapabilityContract['name'],
+    );
+    expect(meta).toMatchObject({
+      sideEffect: 'read',
+      changedDomains: ['none'],
+      confirm: false,
+    });
   });
 
   it('confirm tools are projected but excluded from autonomous() (ADR-021)', () => {
-    const p = new CapabilityToolProjector(async () => adapter(async () => ({})));
+    const p = new CapabilityToolProjector(async () =>
+      adapter(async () => ({})),
+    );
     const {report, metadata} = p.project([SLOT_READ, BOOKING_CREATE], ctx());
 
-    expect(report.registered.find(r => r.capability === 'appointment.booking.create')?.autonomouslyProjectable).toBe(
-      false,
-    );
+    expect(
+      report.registered.find(r => r.capability === 'appointment.booking.create')
+        ?.autonomouslyProjectable,
+    ).toBe(false);
     expect(metadata.autonomous()).toEqual(['appointment.slot.read']);
     expect(autonomousProjectionEnabled).toBe(false);
   });
@@ -167,18 +209,30 @@ describe('CapabilityToolProjector', () => {
     const p = new CapabilityToolProjector(resolve);
     // Credentials resolve per (capability, providerId) AFTER ranking — the bundle the store returns
     // is exactly what reaches the adapter as ProviderExecutionContext.config (PE7).
-    const providerConfigFor = vi.fn(async () => ({slotTemplates: '09:00:00-05:00'}));
+    const providerConfigFor = vi.fn(async () => ({
+      slotTemplates: '09:00:00-05:00',
+    }));
     const {bindings} = p.project([SLOT_READ], {...ctx(), providerConfigFor});
 
     const binding = bindings.get('appointment.slot.read')!;
-    const Ctor = binding.ctor as new () => Record<string, (i: unknown) => Promise<unknown>>;
+    const Ctor = binding.ctor as new () => Record<
+      string,
+      (i: unknown) => Promise<unknown>
+    >;
     const method = (binding.meta as {methodName: string}).methodName;
     const out = await new Ctor()[method]({date: '2026-07-20'});
 
     // Unwrapped — NOT a ToolResult envelope (the executor synthesizes that upstream, ADR-018).
     expect(out).toEqual({slots: ['2026-07-20T14:00:00-05:00']});
-    expect(resolve).toHaveBeenCalledWith('appointment.slot.read', SLOT_READ.providerMapping, {});
-    expect(providerConfigFor).toHaveBeenCalledWith('appointment.slot.read', 'internal-scheduler');
+    expect(resolve).toHaveBeenCalledWith(
+      'appointment.slot.read',
+      SLOT_READ.providerMapping,
+      {},
+    );
+    expect(providerConfigFor).toHaveBeenCalledWith(
+      'appointment.slot.read',
+      'internal-scheduler',
+    );
     expect(execute).toHaveBeenCalledWith(
       {date: '2026-07-20'},
       expect.objectContaining({
@@ -194,7 +248,9 @@ describe('CapabilityToolProjector', () => {
 
   it('derives a DISTINCT idempotency key per input within one turn', async () => {
     const keys: string[] = [];
-    const p = new CapabilityToolProjector(async () => adapter(async () => ({slots: []})));
+    const p = new CapabilityToolProjector(async () =>
+      adapter(async () => ({slots: []})),
+    );
     const {bindings} = p.project([SLOT_READ], {
       ...ctx(),
       idempotencyKeyFor: (capability, input) => {
@@ -204,7 +260,10 @@ describe('CapabilityToolProjector', () => {
       },
     });
     const binding = bindings.get('appointment.slot.read')!;
-    const Ctor = binding.ctor as new () => Record<string, (i: unknown) => Promise<unknown>>;
+    const Ctor = binding.ctor as new () => Record<
+      string,
+      (i: unknown) => Promise<unknown>
+    >;
     const method = (binding.meta as {methodName: string}).methodName;
 
     await new Ctor()[method]({date: '2026-07-20'});
@@ -217,23 +276,36 @@ describe('CapabilityToolProjector', () => {
   // synthesized envelope cannot name who served the call.
   it('reports the resolved providerId so the envelope can carry ToolMetrics.providerId', async () => {
     const served: Array<[string, string]> = [];
-    const p = new CapabilityToolProjector(async () => adapter(async () => ({slots: []})));
+    const p = new CapabilityToolProjector(async () =>
+      adapter(async () => ({slots: []})),
+    );
     const {bindings} = p.project([SLOT_READ], {
       ...ctx(),
-      onProviderResolved: (capability, providerId) => served.push([capability, providerId]),
+      onProviderResolved: (capability, providerId) =>
+        served.push([capability, providerId]),
     });
 
     expect(served).toEqual([]); // nothing resolved until a dispatch actually happens
     const binding = bindings.get('appointment.slot.read')!;
-    const Ctor = binding.ctor as new () => Record<string, (i: unknown) => Promise<unknown>>;
-    await new Ctor()[(binding.meta as {methodName: string}).methodName]({date: '2026-07-20'});
+    const Ctor = binding.ctor as new () => Record<
+      string,
+      (i: unknown) => Promise<unknown>
+    >;
+    await new Ctor()[(binding.meta as {methodName: string}).methodName]({
+      date: '2026-07-20',
+    });
 
     expect(served).toEqual([['appointment.slot.read', 'internal-scheduler']]);
   });
 
   it('skips (never silently degrades) a contract whose schema is outside the allow-list', () => {
-    const bad = {...SLOT_READ, inputJsonSchema: {oneOf: [{type: 'string'}]}} as unknown as CapabilityContract;
-    const p = new CapabilityToolProjector(async () => adapter(async () => ({})));
+    const bad = {
+      ...SLOT_READ,
+      inputJsonSchema: {oneOf: [{type: 'string'}]},
+    } as unknown as CapabilityContract;
+    const p = new CapabilityToolProjector(async () =>
+      adapter(async () => ({})),
+    );
     const {report, bindings} = p.project([bad], ctx());
 
     expect(report.registered).toEqual([]);
@@ -247,9 +319,14 @@ describe('CapabilityToolProjector', () => {
     });
     const {bindings} = p.project([SLOT_READ], ctx());
     const binding = bindings.get('appointment.slot.read')!;
-    const Ctor = binding.ctor as new () => Record<string, (i: unknown) => Promise<unknown>>;
+    const Ctor = binding.ctor as new () => Record<
+      string,
+      (i: unknown) => Promise<unknown>
+    >;
     const method = (binding.meta as {methodName: string}).methodName;
 
-    await expect(new Ctor()[method]({date: '2026-07-20'})).rejects.toThrow('no provider available');
+    await expect(new Ctor()[method]({date: '2026-07-20'})).rejects.toThrow(
+      'no provider available',
+    );
   });
 });

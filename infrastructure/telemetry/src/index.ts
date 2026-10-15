@@ -5,7 +5,12 @@
 // OTel-backed Meter (histogram aggregation) remains the prod swap — see docs/DEFERRED-AND-FLAGGED.md (OB5).
 export {JsonLogger, RedactingLogger} from './logger.js';
 export {FieldRedactor} from './redactor.js';
-export {InMemoryMeter, LoggingMeter, DEFAULT_SLO_TARGETS, type MeterSnapshot} from './meter.js';
+export {
+  InMemoryMeter,
+  LoggingMeter,
+  DEFAULT_SLO_TARGETS,
+  type MeterSnapshot,
+} from './meter.js';
 export {
   OtelTracer,
   NoopTracer,

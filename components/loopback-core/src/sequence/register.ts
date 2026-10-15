@@ -7,7 +7,12 @@
 // Slice 1 mounts the two slots the public-health surface needs; tenant-resolution / rate-limit / the
 // interceptor stack layer in with the first real controller.
 import {createBindingFromClass} from '@loopback/core';
-import {type RestApplication, RestBindings, RestMiddlewareGroups, RestTags} from '@loopback/rest';
+import {
+  type RestApplication,
+  RestBindings,
+  RestMiddlewareGroups,
+  RestTags,
+} from '@loopback/rest';
 import {PlatformSequenceGroups} from './sequence-groups.js';
 import {CorrelationMiddleware} from './correlation.middleware.js';
 import {FailClosedAuthenticationMiddleware} from './authentication.middleware.js';

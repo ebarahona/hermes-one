@@ -25,7 +25,11 @@ import {
 } from '@platform/contracts';
 import {Deployment as DeploymentSchema} from '@platform/contracts';
 import type {RedisClient} from '@platform-internal/redis';
-import {TenantAwareRepository, type PlatformDb, type PlatformTx} from '../tenant-aware.repository.js';
+import {
+  TenantAwareRepository,
+  type PlatformDb,
+  type PlatformTx,
+} from '../tenant-aware.repository.js';
 import {
   compiledPlans,
   validatedContracts,
@@ -37,25 +41,45 @@ import {
 export const SubstrateCacheKeys = {
   plan: (tenantId: TenantId, planId: PlanId, contentHash: ContentHash) =>
     `plan:${tenantId}:${planId}:${contentHash}`,
-  contract: (tenantId: TenantId, definitionId: DefinitionId, contentHash: ContentHash) =>
-    `contract:${tenantId}:${definitionId}:${contentHash}`,
+  contract: (
+    tenantId: TenantId,
+    definitionId: DefinitionId,
+    contentHash: ContentHash,
+  ) => `contract:${tenantId}:${definitionId}:${contentHash}`,
   activeDeployment: (tenantId: TenantId) => `deployment:${tenantId}:active`,
 } as const;
 
 /** The read/write surface this store specifies; implements the storage half of DeploymentService. */
 export interface CompiledPlanStore {
   /** Insert-only. ON CONFLICT(content_hash) DO NOTHING. Returns the (possibly pre-existing) row. */
-  putCompiledPlan(plan: CompiledPlanBase, byteSize: number): Promise<{planId: PlanId; deduped: boolean}>;
-  putValidatedContract(contract: ValidatedContractBase): Promise<{deduped: boolean}>;
+  putCompiledPlan(
+    plan: CompiledPlanBase,
+    byteSize: number,
+  ): Promise<{planId: PlanId; deduped: boolean}>;
+  putValidatedContract(
+    contract: ValidatedContractBase,
+  ): Promise<{deduped: boolean}>;
 
   /** Direct PostgreSQL reads (no cache) — used by cache-miss rebuild and by admin/audit tooling. */
-  getCompiledPlanByHash(contentHash: ContentHash): Promise<CompiledPlanBase | null>;
-  getValidatedContractByHash(contentHash: ContentHash): Promise<ValidatedContractBase | null>;
+  getCompiledPlanByHash(
+    contentHash: ContentHash,
+  ): Promise<CompiledPlanBase | null>;
+  getValidatedContractByHash(
+    contentHash: ContentHash,
+  ): Promise<ValidatedContractBase | null>;
   getDeploymentWithMembers(deploymentId: string): Promise<Deployment | null>;
 
   /** Cache-through reads — GET, on miss SELECT + SETEX, always hash-verified before return. */
-  resolvePlanCached(tenantId: TenantId, planId: PlanId, contentHash: ContentHash): Promise<CompiledPlanBase>;
-  resolveContractCached(tenantId: TenantId, definitionId: DefinitionId, contentHash: ContentHash): Promise<ValidatedContractBase>;
+  resolvePlanCached(
+    tenantId: TenantId,
+    planId: PlanId,
+    contentHash: ContentHash,
+  ): Promise<CompiledPlanBase>;
+  resolveContractCached(
+    tenantId: TenantId,
+    definitionId: DefinitionId,
+    contentHash: ContentHash,
+  ): Promise<ValidatedContractBase>;
   resolveActiveDeploymentCached(tenantId: TenantId): Promise<Deployment>;
 
   /**
@@ -64,8 +88,14 @@ export interface CompiledPlanStore {
    * (immutable manifest; status is a pointer state). Tenant-scoped (RLS), no cache pointer needed:
    * the id/version IS the pin, and members re-join every resolve like the active path.
    */
-  resolveDeployment(tenantId: TenantId, deploymentId: string): Promise<Deployment>;
-  resolveDeploymentByVersion(tenantId: TenantId, version: string): Promise<Deployment>;
+  resolveDeployment(
+    tenantId: TenantId,
+    deploymentId: string,
+  ): Promise<Deployment>;
+  resolveDeploymentByVersion(
+    tenantId: TenantId,
+    version: string,
+  ): Promise<Deployment>;
 
   /** Explicit invalidation. Called by publish/rollback. */
   invalidateActiveDeployment(tenantId: TenantId): Promise<void>;
@@ -83,7 +113,10 @@ export const DEFAULT_SUBSTRATE_CACHE: SubstrateCacheConfig = {
   contractCacheTtlSeconds: 86400,
 };
 
-export class DrizzleCompiledPlanStore extends TenantAwareRepository implements CompiledPlanStore {
+export class DrizzleCompiledPlanStore
+  extends TenantAwareRepository
+  implements CompiledPlanStore
+{
   constructor(
     db: PlatformDb,
     private readonly redis: RedisClient,
@@ -94,7 +127,10 @@ export class DrizzleCompiledPlanStore extends TenantAwareRepository implements C
 
   /* ---------------------------- writes (content-addressed) ---------------------------- */
 
-  async putCompiledPlan(plan: CompiledPlanBase, byteSize: number): Promise<{planId: PlanId; deduped: boolean}> {
+  async putCompiledPlan(
+    plan: CompiledPlanBase,
+    byteSize: number,
+  ): Promise<{planId: PlanId; deduped: boolean}> {
     const inserted = await this.db
       .insert(compiledPlans)
       .values({
@@ -112,7 +148,9 @@ export class DrizzleCompiledPlanStore extends TenantAwareRepository implements C
     return {planId: plan.planId, deduped: inserted.length === 0};
   }
 
-  async putValidatedContract(contract: ValidatedContractBase): Promise<{deduped: boolean}> {
+  async putValidatedContract(
+    contract: ValidatedContractBase,
+  ): Promise<{deduped: boolean}> {
     const inserted = await this.db
       .insert(validatedContracts)
       .values({
@@ -130,7 +168,9 @@ export class DrizzleCompiledPlanStore extends TenantAwareRepository implements C
 
   /* ------------------------------ direct reads (no cache) ----------------------------- */
 
-  async getCompiledPlanByHash(contentHash: ContentHash): Promise<CompiledPlanBase | null> {
+  async getCompiledPlanByHash(
+    contentHash: ContentHash,
+  ): Promise<CompiledPlanBase | null> {
     const [row] = await this.db
       .select({planBody: compiledPlans.planBody})
       .from(compiledPlans)
@@ -139,7 +179,9 @@ export class DrizzleCompiledPlanStore extends TenantAwareRepository implements C
     return row ? (row.planBody as CompiledPlanBase) : null;
   }
 
-  async getValidatedContractByHash(contentHash: ContentHash): Promise<ValidatedContractBase | null> {
+  async getValidatedContractByHash(
+    contentHash: ContentHash,
+  ): Promise<ValidatedContractBase | null> {
     const [row] = await this.db
       .select({contractBody: validatedContracts.contractBody})
       .from(validatedContracts)
@@ -154,13 +196,21 @@ export class DrizzleCompiledPlanStore extends TenantAwareRepository implements C
    * load path is resolveActiveDeploymentCached; this method is for a platform-admin/tooling context
    * that has already established a tenant scope.
    */
-  async getDeploymentWithMembers(deploymentId: string): Promise<Deployment | null> {
-    return this.db.transaction(tx => this.reconstructDeployment(tx, deploymentId));
+  async getDeploymentWithMembers(
+    deploymentId: string,
+  ): Promise<Deployment | null> {
+    return this.db.transaction(tx =>
+      this.reconstructDeployment(tx, deploymentId),
+    );
   }
 
   /* ------------------------------ cache-through reads --------------------------------- */
 
-  async resolvePlanCached(tenantId: TenantId, planId: PlanId, contentHash: ContentHash): Promise<CompiledPlanBase> {
+  async resolvePlanCached(
+    tenantId: TenantId,
+    planId: PlanId,
+    contentHash: ContentHash,
+  ): Promise<CompiledPlanBase> {
     const key = SubstrateCacheKeys.plan(tenantId, planId, contentHash);
     const cached = await this.redis.get(key);
     if (cached !== null) {
@@ -171,12 +221,24 @@ export class DrizzleCompiledPlanStore extends TenantAwareRepository implements C
     const plan = await this.getCompiledPlanByHash(contentHash);
     if (!plan) throw this.notFound(`compiled plan not found: ${contentHash}`);
     this.verifyHash(contentHash, plan.contentHash);
-    await this.redis.setex(key, this.cache.planCacheTtlSeconds, JSON.stringify(plan));
+    await this.redis.setex(
+      key,
+      this.cache.planCacheTtlSeconds,
+      JSON.stringify(plan),
+    );
     return plan;
   }
 
-  async resolveContractCached(tenantId: TenantId, definitionId: DefinitionId, contentHash: ContentHash): Promise<ValidatedContractBase> {
-    const key = SubstrateCacheKeys.contract(tenantId, definitionId, contentHash);
+  async resolveContractCached(
+    tenantId: TenantId,
+    definitionId: DefinitionId,
+    contentHash: ContentHash,
+  ): Promise<ValidatedContractBase> {
+    const key = SubstrateCacheKeys.contract(
+      tenantId,
+      definitionId,
+      contentHash,
+    );
     const cached = await this.redis.get(key);
     if (cached !== null) {
       const contract = JSON.parse(cached) as ValidatedContractBase;
@@ -184,9 +246,14 @@ export class DrizzleCompiledPlanStore extends TenantAwareRepository implements C
       return contract;
     }
     const contract = await this.getValidatedContractByHash(contentHash);
-    if (!contract) throw this.notFound(`validated contract not found: ${contentHash}`);
+    if (!contract)
+      throw this.notFound(`validated contract not found: ${contentHash}`);
     this.verifyHash(contentHash, contract.contentHash);
-    await this.redis.setex(key, this.cache.contractCacheTtlSeconds, JSON.stringify(contract));
+    await this.redis.setex(
+      key,
+      this.cache.contractCacheTtlSeconds,
+      JSON.stringify(contract),
+    );
     return contract;
   }
 
@@ -200,35 +267,56 @@ export class DrizzleCompiledPlanStore extends TenantAwareRepository implements C
           .from(deployments)
           .where(eq(deployments.status, 'active'))
           .limit(1);
-        if (!row) throw this.notFound(`no active deployment for tenant ${tenantId}`);
+        if (!row)
+          throw this.notFound(`no active deployment for tenant ${tenantId}`);
         deploymentId = row.id;
         // Cache the pointer only — never the joined manifest; members re-join every resolve.
-        await this.redis.setex(pointerKey, this.cache.activePointerCacheTtlSeconds, deploymentId);
+        await this.redis.setex(
+          pointerKey,
+          this.cache.activePointerCacheTtlSeconds,
+          deploymentId,
+        );
       }
       const deployment = await this.reconstructDeployment(tx, deploymentId);
-      if (!deployment) throw this.notFound(`active deployment ${deploymentId} missing members`);
+      if (!deployment)
+        throw this.notFound(
+          `active deployment ${deploymentId} missing members`,
+        );
       return deployment;
     });
   }
 
-  async resolveDeployment(tenantId: TenantId, deploymentId: string): Promise<Deployment> {
+  async resolveDeployment(
+    tenantId: TenantId,
+    deploymentId: string,
+  ): Promise<Deployment> {
     return this.withTenant({tenantId}, async tx => {
       const deployment = await this.reconstructDeployment(tx, deploymentId);
-      if (!deployment) throw this.notFound(`deployment ${deploymentId} not found for tenant ${tenantId}`);
+      if (!deployment)
+        throw this.notFound(
+          `deployment ${deploymentId} not found for tenant ${tenantId}`,
+        );
       return deployment;
     });
   }
 
-  async resolveDeploymentByVersion(tenantId: TenantId, version: string): Promise<Deployment> {
+  async resolveDeploymentByVersion(
+    tenantId: TenantId,
+    version: string,
+  ): Promise<Deployment> {
     return this.withTenant({tenantId}, async tx => {
       const [row] = await tx
         .select({id: deployments.deploymentId})
         .from(deployments)
         .where(eq(deployments.version, version))
         .limit(1);
-      if (!row) throw this.notFound(`no deployment at version ${version} for tenant ${tenantId}`);
+      if (!row)
+        throw this.notFound(
+          `no deployment at version ${version} for tenant ${tenantId}`,
+        );
       const deployment = await this.reconstructDeployment(tx, row.id);
-      if (!deployment) throw this.notFound(`deployment ${row.id} missing members`);
+      if (!deployment)
+        throw this.notFound(`deployment ${row.id} missing members`);
       return deployment;
     });
   }
@@ -239,7 +327,10 @@ export class DrizzleCompiledPlanStore extends TenantAwareRepository implements C
 
   /* ---------------------------------- internals --------------------------------------- */
 
-  private async reconstructDeployment(tx: PlatformTx, deploymentId: string): Promise<Deployment | null> {
+  private async reconstructDeployment(
+    tx: PlatformTx,
+    deploymentId: string,
+  ): Promise<Deployment | null> {
     const [dep] = await tx
       .select()
       .from(deployments)
@@ -252,10 +343,10 @@ export class DrizzleCompiledPlanStore extends TenantAwareRepository implements C
       .from(deploymentMembers)
       .where(eq(deploymentMembers.deploymentId, deploymentId));
 
-    const toMember = (r: typeof memberRows[number]): DeploymentMember => ({
+    const toMember = (r: (typeof memberRows)[number]): DeploymentMember => ({
       kind: r.kind,
       definitionId: r.definitionId as DefinitionId,
-      planId: (r.planId as PlanId | null),
+      planId: r.planId as PlanId | null,
       version: r.version as DeploymentMember['version'],
       contentHash: r.contentHash as ContentHash,
     });
@@ -264,7 +355,10 @@ export class DrizzleCompiledPlanStore extends TenantAwareRepository implements C
 
     const single = (k: DeploymentMember['kind']): DeploymentMember => {
       const [m] = ofKind(k);
-      if (!m) throw this.notFound(`deployment ${deploymentId} is missing its ${k} member`);
+      if (!m)
+        throw this.notFound(
+          `deployment ${deploymentId} is missing its ${k} member`,
+        );
       return toMember(m);
     };
 

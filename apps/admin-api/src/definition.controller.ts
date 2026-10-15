@@ -12,7 +12,10 @@ import {param, put, requestBody} from '@loopback/rest';
 import {z} from 'zod';
 import {PlatformBindings} from '@platform-internal/loopback-core';
 import {assertScope, forbiddenScopeError} from '@platform-internal/auth';
-import type {DefinitionRegistry, PutDefinitionResult} from '@platform/definition-substrate';
+import type {
+  DefinitionRegistry,
+  PutDefinitionResult,
+} from '@platform/definition-substrate';
 import {
   type Definition,
   DefinitionKind,
@@ -49,20 +52,33 @@ function validationFailed(issues: ErrorIssue[]): PlatformErrorException {
 
 export class DefinitionController {
   constructor(
-    @inject(PlatformBindings.REQUEST_PRINCIPAL) private readonly principal: Principal,
-    @inject(PlatformBindings.DEFINITION_REGISTRY) private readonly registry: DefinitionRegistry,
+    @inject(PlatformBindings.REQUEST_PRINCIPAL)
+    private readonly principal: Principal,
+    @inject(PlatformBindings.DEFINITION_REGISTRY)
+    private readonly registry: DefinitionRegistry,
   ) {}
 
   @put('/v1/definitions/{definitionId}')
   async putDefinition(
     @param.path.string('definitionId') definitionId: string,
-    @requestBody({content: {'application/json': {schema: {type: 'object', additionalProperties: true}}}})
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {type: 'object', additionalProperties: true},
+        },
+      },
+    })
     body: unknown,
   ): Promise<PutDefinitionResult> {
     assertScope(this.principal, WRITE_DEF); // 403 forbidden_scope if missing
     const parsed = PutDefinitionRequest.safeParse(body);
     if (!parsed.success) {
-      throw validationFailed(parsed.error.issues.map(i => ({path: `/${i.path.join('/')}`, message: i.message})));
+      throw validationFailed(
+        parsed.error.issues.map(i => ({
+          path: `/${i.path.join('/')}`,
+          message: i.message,
+        })),
+      );
     }
     const req = parsed.data;
     // Own tenant only; platform-owned (tenantId=null) authoring needs a privileged path (deferred).
@@ -89,7 +105,9 @@ export class DefinitionController {
     } catch (err) {
       if (err instanceof PlatformErrorException) throw err;
       // Per-kind validation / compile failure → 422 (the authenticated author sees the reason).
-      throw validationFailed([{path: '/body', message: String((err as Error).message).slice(0, 300)}]);
+      throw validationFailed([
+        {path: '/body', message: String((err as Error).message).slice(0, 300)},
+      ]);
     }
   }
 }

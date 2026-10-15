@@ -9,7 +9,11 @@ import {AddressInfo} from 'node:net';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {Pool} from 'pg';
 import {loadConfig} from '@platform-internal/config';
-import {createMessageRepository, runMigrations, type MessageRepositoryHandle} from '@platform-internal/drizzle';
+import {
+  createMessageRepository,
+  runMigrations,
+  type MessageRepositoryHandle,
+} from '@platform-internal/drizzle';
 import type {ProviderExecutionContext, TenantId} from '@platform/contracts';
 import {
   CapabilityInvoker,
@@ -17,11 +21,26 @@ import {
   ProviderResolver,
   type CapabilityLookup,
 } from '@platform/capability-contract';
-import type {CapabilityContract, CapabilityName, IsoTimestamp, ToolCall, ToolCallId, TurnId} from '@platform/contracts';
+import type {
+  CapabilityContract,
+  CapabilityName,
+  IsoTimestamp,
+  ToolCall,
+  ToolCallId,
+  TurnId,
+} from '@platform/contracts';
 import {StaticProviderCredentialStore} from '@platform-internal/secrets';
-import {MESSAGING_REPLY_SEND, PersistingMessageProvider, messagingReplySendContract, type OutboundInput} from './messaging.js';
+import {
+  MESSAGING_REPLY_SEND,
+  PersistingMessageProvider,
+  messagingReplySendContract,
+  type OutboundInput,
+} from './messaging.js';
 import {SmsChannelTransport} from './sms-transport.js';
-import {TWILIO_SMS_PROVIDER_ID, VendorSmsProvider} from './vendor-sms-provider.js';
+import {
+  TWILIO_SMS_PROVIDER_ID,
+  VendorSmsProvider,
+} from './vendor-sms-provider.js';
 
 const cfg = loadConfig();
 const PG = cfg.stores.authoritative.url;
@@ -54,11 +73,15 @@ beforeAll(async () => {
   const port = (vendor.address() as AddressInfo).port;
   vendorBaseUrl = `http://127.0.0.1:${port}`;
 
-  await owner.query(`DELETE FROM runtime.messages WHERE tenant_id = $1`, [TENANT]);
+  await owner.query(`DELETE FROM runtime.messages WHERE tenant_id = $1`, [
+    TENANT,
+  ]);
 });
 
 afterAll(async () => {
-  await owner.query(`DELETE FROM runtime.messages WHERE tenant_id = $1`, [TENANT]);
+  await owner.query(`DELETE FROM runtime.messages WHERE tenant_id = $1`, [
+    TENANT,
+  ]);
   await owner.end();
   await messages.close();
   await new Promise<void>(r => vendor.close(() => r()));
@@ -67,18 +90,31 @@ afterAll(async () => {
 describe('VendorSmsProvider (live: real HTTP delivery + RLS persistence)', () => {
   it('delivers via HTTP to the vendor and persists the authoritative row with the real SID', async () => {
     const transport = new SmsChannelTransport({
-      signingSecret: 'unused', signatureHeader: 'x-signature', tenantByNumber: () => null,
-      vendorBaseUrl, timeoutMs: 5000, // real global fetch
+      signingSecret: 'unused',
+      signatureHeader: 'x-signature',
+      tenantByNumber: () => null,
+      vendorBaseUrl,
+      timeoutMs: 5000, // real global fetch
     });
     const creds = new StaticProviderCredentialStore({
-      [TWILIO_SMS_PROVIDER_ID]: {accountSid: 'AC_itest', authToken: 'tok', from: '+18885550100'},
+      [TWILIO_SMS_PROVIDER_ID]: {
+        accountSid: 'AC_itest',
+        authToken: 'tok',
+        from: '+18885550100',
+      },
     });
     const provider = new VendorSmsProvider(transport, messages.repo, creds);
 
     const ctx: ProviderExecutionContext = {
-      tenantId: TENANT, capability: MESSAGING_REPLY_SEND, idempotencyKey: IDEM, config: {},
+      tenantId: TENANT,
+      capability: MESSAGING_REPLY_SEND,
+      idempotencyKey: IDEM,
+      config: {},
     };
-    const input: OutboundInput = {to: '+15125559999', body: 'a technician is on the way'};
+    const input: OutboundInput = {
+      to: '+15125559999',
+      body: 'a technician is on the way',
+    };
 
     const out = await provider.execute(input, ctx);
     expect(out.status).toBe('sent');
@@ -86,7 +122,9 @@ describe('VendorSmsProvider (live: real HTTP delivery + RLS persistence)', () =>
 
     // The real HTTP request carried the form body + Basic auth.
     expect(received!.body).toContain('To=%2B15125559999');
-    expect(received!.auth).toBe(`Basic ${Buffer.from('AC_itest:tok').toString('base64')}`);
+    expect(received!.auth).toBe(
+      `Basic ${Buffer.from('AC_itest:tok').toString('base64')}`,
+    );
 
     // The authoritative row was persisted under this tenant with the real vendor SID.
     const rows = await owner.query(
@@ -95,7 +133,10 @@ describe('VendorSmsProvider (live: real HTTP delivery + RLS persistence)', () =>
     );
     expect(rows.rowCount).toBe(1);
     expect(rows.rows[0]).toMatchObject({
-      direction: 'outbound', channel: 'sms', status: 'sent', provider_message_id: out.providerMessageId,
+      direction: 'outbound',
+      channel: 'sms',
+      status: 'sent',
+      provider_message_id: out.providerMessageId,
       body: 'a technician is on the way',
     });
     // The row is written under the invoking tenant (RLS 'strict' write path via set_config; cross-tenant
@@ -105,19 +146,35 @@ describe('VendorSmsProvider (live: real HTTP delivery + RLS persistence)', () =>
 
   it('is idempotent — a replayed send collapses to one row', async () => {
     const transport = new SmsChannelTransport({
-      signingSecret: 'unused', signatureHeader: 'x-signature', tenantByNumber: () => null,
-      vendorBaseUrl, timeoutMs: 5000,
+      signingSecret: 'unused',
+      signatureHeader: 'x-signature',
+      tenantByNumber: () => null,
+      vendorBaseUrl,
+      timeoutMs: 5000,
     });
     const creds = new StaticProviderCredentialStore({
-      [TWILIO_SMS_PROVIDER_ID]: {accountSid: 'AC_itest', authToken: 'tok', from: '+18885550100'},
+      [TWILIO_SMS_PROVIDER_ID]: {
+        accountSid: 'AC_itest',
+        authToken: 'tok',
+        from: '+18885550100',
+      },
     });
     const provider = new VendorSmsProvider(transport, messages.repo, creds);
     const ctx: ProviderExecutionContext = {
-      tenantId: TENANT, capability: MESSAGING_REPLY_SEND, idempotencyKey: IDEM, config: {},
+      tenantId: TENANT,
+      capability: MESSAGING_REPLY_SEND,
+      idempotencyKey: IDEM,
+      config: {},
     };
-    await provider.execute({to: '+15125559999', body: 'a technician is on the way'}, ctx);
+    await provider.execute(
+      {to: '+15125559999', body: 'a technician is on the way'},
+      ctx,
+    );
 
-    const rows = await owner.query(`SELECT message_id FROM runtime.messages WHERE tenant_id = $1`, [TENANT]);
+    const rows = await owner.query(
+      `SELECT message_id FROM runtime.messages WHERE tenant_id = $1`,
+      [TENANT],
+    );
     expect(rows.rowCount).toBe(1); // same idempotency key → same message_id → ON CONFLICT DO NOTHING
   });
 });
@@ -128,9 +185,16 @@ describe('VendorSmsProvider (live: real HTTP delivery + RLS persistence)', () =>
 // composition, minus Temporal.
 describe('capability plane routing (live): vendor-first with internal-log failover', () => {
   const contract = messagingReplySendContract();
-  const lookup: CapabilityLookup = name => (name === MESSAGING_REPLY_SEND ? (contract as CapabilityContract) : undefined);
+  const lookup: CapabilityLookup = name =>
+    name === MESSAGING_REPLY_SEND
+      ? (contract as CapabilityContract)
+      : undefined;
   const creds = new StaticProviderCredentialStore({
-    [TWILIO_SMS_PROVIDER_ID]: {accountSid: 'AC_route', authToken: 'tok', from: '+18885550100'},
+    [TWILIO_SMS_PROVIDER_ID]: {
+      accountSid: 'AC_route',
+      authToken: 'tok',
+      from: '+18885550100',
+    },
   });
   const callFor = (idem: string): ToolCall => ({
     toolCallId: `tc_${idem}` as ToolCallId,
@@ -149,34 +213,73 @@ describe('capability plane routing (live): vendor-first with internal-log failov
 
   it('resolves to twilio-sms and returns an ok ToolResult with the real vendor SID', async () => {
     const transport = new SmsChannelTransport({
-      signingSecret: 'unused', signatureHeader: 'x-signature', tenantByNumber: () => null, vendorBaseUrl, timeoutMs: 5000,
+      signingSecret: 'unused',
+      signatureHeader: 'x-signature',
+      tenantByNumber: () => null,
+      vendorBaseUrl,
+      timeoutMs: 5000,
     });
     const registry = new ProviderRegistry([
       new VendorSmsProvider(transport, messages.repo, creds),
       new PersistingMessageProvider(messages.repo),
     ]);
-    const invoker = new CapabilityInvoker(lookup, new ProviderResolver(registry));
+    const invoker = new CapabilityInvoker(
+      lookup,
+      new ProviderResolver(registry),
+    );
 
-    const result = await invoker.invoke(callFor('idem-route-vendor'), invokerCtx);
+    const result = await invoker.invoke(
+      callFor('idem-route-vendor'),
+      invokerCtx,
+    );
     expect(result.ok).toBe(true);
     expect(result.metrics.providerId).toBe(TWILIO_SMS_PROVIDER_ID);
-    expect((result.output as {providerMessageId: string}).providerMessageId).toMatch(/^SM_itest_\d+$/);
+    expect(
+      (result.output as {providerMessageId: string}).providerMessageId,
+    ).toMatch(/^SM_itest_\d+$/);
   });
 
   it('fails over to internal-message-log when the vendor circuit is open', async () => {
     // A vendor whose transport always fails, with a 1-failure breaker → trips open on first call.
-    const downTransport = {deliver: async () => { throw new Error('vendor down'); }};
-    const vendorDown = new VendorSmsProvider(downTransport, messages.repo, creds, {
-      circuit: {failureThreshold: 1, resetMs: 60_000},
-    });
-    await vendorDown.execute({to: '+1', body: 'x'}, {tenantId: TENANT, capability: MESSAGING_REPLY_SEND, idempotencyKey: 'warm', config: {}})
+    const downTransport = {
+      deliver: async () => {
+        throw new Error('vendor down');
+      },
+    };
+    const vendorDown = new VendorSmsProvider(
+      downTransport,
+      messages.repo,
+      creds,
+      {
+        circuit: {failureThreshold: 1, resetMs: 60_000},
+      },
+    );
+    await vendorDown
+      .execute(
+        {to: '+1', body: 'x'},
+        {
+          tenantId: TENANT,
+          capability: MESSAGING_REPLY_SEND,
+          idempotencyKey: 'warm',
+          config: {},
+        },
+      )
       .catch(() => undefined); // trip the breaker open
     expect((await vendorDown.status()).circuit).toBe('open');
 
-    const registry = new ProviderRegistry([vendorDown, new PersistingMessageProvider(messages.repo)]);
-    const invoker = new CapabilityInvoker(lookup, new ProviderResolver(registry));
+    const registry = new ProviderRegistry([
+      vendorDown,
+      new PersistingMessageProvider(messages.repo),
+    ]);
+    const invoker = new CapabilityInvoker(
+      lookup,
+      new ProviderResolver(registry),
+    );
 
-    const result = await invoker.invoke(callFor('idem-route-failover'), invokerCtx);
+    const result = await invoker.invoke(
+      callFor('idem-route-failover'),
+      invokerCtx,
+    );
     expect(result.ok).toBe(true);
     expect(result.metrics.providerId).toBe('internal-message-log'); // resolver skipped the open vendor
   });

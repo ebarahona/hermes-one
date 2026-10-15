@@ -9,7 +9,11 @@
 // posture (design 001 Open Questions; same tension as the outbox aggregator). A DB-backed store lands
 // with that posture; tenant-scoped admin CRUD of keys (a later slice) can be tenant-scoped.
 import {createHash, timingSafeEqual} from 'node:crypto';
-import {type ApiKeyRecord, ApiKeyRecord as ApiKeyRecordSchema, type ApiKeyStore} from '@platform/contracts';
+import {
+  type ApiKeyRecord,
+  ApiKeyRecord as ApiKeyRecordSchema,
+  type ApiKeyStore,
+} from '@platform/contracts';
 
 export type ApiKeyHashAlgo = 'sha-256' | 'sha-512';
 
@@ -20,14 +24,22 @@ export interface ApiKeySeed {
 }
 
 function hash(algo: ApiKeyHashAlgo, key: string): Buffer {
-  return createHash(algo === 'sha-512' ? 'sha512' : 'sha256').update(key, 'utf8').digest();
+  return createHash(algo === 'sha-512' ? 'sha512' : 'sha256')
+    .update(key, 'utf8')
+    .digest();
 }
 
 export class StaticApiKeyStore implements ApiKeyStore {
   private readonly entries: {hash: Buffer; record: ApiKeyRecord}[];
 
-  constructor(seeds: readonly ApiKeySeed[], private readonly algo: ApiKeyHashAlgo = 'sha-256') {
-    this.entries = seeds.map(s => ({hash: hash(algo, s.key), record: ApiKeyRecordSchema.parse(s.record)}));
+  constructor(
+    seeds: readonly ApiKeySeed[],
+    private readonly algo: ApiKeyHashAlgo = 'sha-256',
+  ) {
+    this.entries = seeds.map(s => ({
+      hash: hash(algo, s.key),
+      record: ApiKeyRecordSchema.parse(s.record),
+    }));
   }
 
   /** Constant-time hashed lookup. undefined ⇒ unknown key. Status/expiry are enforced by the strategy. */
@@ -35,7 +47,11 @@ export class StaticApiKeyStore implements ApiKeyStore {
     const presented = hash(this.algo, presentedKey);
     for (const e of this.entries) {
       // Equal-length digests (same algo) → timingSafeEqual is safe and constant-time per entry.
-      if (e.hash.length === presented.length && timingSafeEqual(e.hash, presented)) return e.record;
+      if (
+        e.hash.length === presented.length &&
+        timingSafeEqual(e.hash, presented)
+      )
+        return e.record;
     }
     return undefined;
   }

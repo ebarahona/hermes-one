@@ -6,7 +6,12 @@
 import {createHash} from 'node:crypto';
 import type {Context} from '@agentback/context';
 import type {McpDispatchHook} from '@agentback/mcp';
-import type {EvidenceRecord, ToolCallId, ToolMetrics, TurnId} from '@platform/contracts';
+import type {
+  EvidenceRecord,
+  ToolCallId,
+  ToolMetrics,
+  TurnId,
+} from '@platform/contracts';
 
 /** Binding key for the per-call collector the executor seeds and the hook fills. */
 export const COLLECTOR_KEY = 'platform.turn.collector';
@@ -37,7 +42,11 @@ export async function collectorFor(
 export function createEnvelopeHook(deps?: {
   now?: () => number;
   isoNow?: () => string;
-  newId?: (scope: {turnId: TurnId; toolCallId: ToolCallId; ordinal: number}) => string;
+  newId?: (scope: {
+    turnId: TurnId;
+    toolCallId: ToolCallId;
+    ordinal: number;
+  }) => string;
 }): McpDispatchHook {
   const now = deps?.now ?? (() => Date.now());
   const isoNow = deps?.isoNow ?? (() => new Date().toISOString());
@@ -49,7 +58,15 @@ export function createEnvelopeHook(deps?: {
   // bare global PK.
   const newId =
     deps?.newId ??
-    (({turnId, toolCallId, ordinal}: {turnId: TurnId; toolCallId: ToolCallId; ordinal: number}) =>
+    (({
+      turnId,
+      toolCallId,
+      ordinal,
+    }: {
+      turnId: TurnId;
+      toolCallId: ToolCallId;
+      ordinal: number;
+    }) =>
       `evd_${createHash('sha256').update(`${turnId}:${toolCallId}:${ordinal}`).digest('hex').slice(0, 24)}`);
 
   return async (info, next) => {

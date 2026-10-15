@@ -37,7 +37,8 @@ export class InMemoryCapabilityRegistry implements CapabilityRegistry {
     }
     if (
       (parsed.sideEffect === 'none' || parsed.sideEffect === 'read') &&
-      (parsed.changedDomains.length !== 1 || parsed.changedDomains[0] !== 'none')
+      (parsed.changedDomains.length !== 1 ||
+        parsed.changedDomains[0] !== 'none')
     ) {
       throw this.invalid(
         `capability ${parsed.name}: sideEffect '${parsed.sideEffect}' must have changedDomains ['none']`,
@@ -46,7 +47,10 @@ export class InMemoryCapabilityRegistry implements CapabilityRegistry {
     this.byNameVersion.set(key(parsed.name, parsed.version), parsed);
   }
 
-  async get(name: CapabilityName, version: SemVer): Promise<CapabilityContract | null> {
+  async get(
+    name: CapabilityName,
+    version: SemVer,
+  ): Promise<CapabilityContract | null> {
     return this.byNameVersion.get(key(name, version)) ?? null;
   }
 
@@ -54,7 +58,9 @@ export class InMemoryCapabilityRegistry implements CapabilityRegistry {
     return manifest.entries.map(e => {
       const c = this.byNameVersion.get(key(e.name, e.version));
       if (!c) {
-        throw this.notFound(`capability not registered: ${e.name}@${e.version}`);
+        throw this.notFound(
+          `capability not registered: ${e.name}@${e.version}`,
+        );
       }
       return c;
     });

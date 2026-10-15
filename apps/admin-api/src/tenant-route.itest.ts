@@ -20,7 +20,14 @@ const KEY_NOSCOPE = 'itest-tenant-noscope';
 
 const key = (k: string, principalId: string, scopes: Scope[]): ApiKeySeed => ({
   key: k,
-  record: {keyId: `apk_${principalId}`, tenantId: TENANT, principalId: principalId as PrincipalId, scopes, status: 'active', expiresAt: null},
+  record: {
+    keyId: `apk_${principalId}`,
+    tenantId: TENANT,
+    principalId: principalId as PrincipalId,
+    scopes,
+    status: 'active',
+    expiresAt: null,
+  },
 });
 
 let app: PlatformRestApplication;
@@ -33,9 +40,16 @@ beforeAll(async () => {
   // Seed the tenant row (own-tenant insert under the tenant GUC — the create route is operator-only).
   const client = await owner.connect();
   try {
-    await client.query(`SELECT set_config('app.tenant_id', $1, false)`, [TENANT]);
-    await client.query(`DELETE FROM event.event_outbox WHERE tenant_id = $1`, [TENANT]);
-    await client.query(`DELETE FROM audit.audit_events WHERE tenant_id = $1 AND action = 'tenant.config.changed'`, [TENANT]);
+    await client.query(`SELECT set_config('app.tenant_id', $1, false)`, [
+      TENANT,
+    ]);
+    await client.query(`DELETE FROM event.event_outbox WHERE tenant_id = $1`, [
+      TENANT,
+    ]);
+    await client.query(
+      `DELETE FROM audit.audit_events WHERE tenant_id = $1 AND action = 'tenant.config.changed'`,
+      [TENANT],
+    );
     await client.query(`DELETE FROM tenant.tenants WHERE id = $1`, [TENANT]);
     await client.query(
       `INSERT INTO tenant.tenants (id, tenant_id, slug, display_name, status, data_residency, features)
@@ -50,7 +64,10 @@ beforeAll(async () => {
   const root = new AdminApiRoot(cfg, {
     apiKeySeeds: [
       key(KEY_READ, 'prn_svc_tread', ['platform.tenant.read'] as Scope[]),
-      key(KEY_UPDATE, 'prn_svc_tupd', ['platform.tenant.read', 'platform.tenant.update'] as Scope[]),
+      key(KEY_UPDATE, 'prn_svc_tupd', [
+        'platform.tenant.read',
+        'platform.tenant.update',
+      ] as Scope[]),
       key(KEY_NOSCOPE, 'prn_svc_tnos', ['tenant.role.read'] as Scope[]),
     ],
   });
@@ -66,10 +83,18 @@ afterAll(async () => {
   if (owner) {
     const client = await owner.connect();
     try {
-      await client.query(`SELECT set_config('app.tenant_id', $1, false)`, [TENANT]);
-      await client.query(`DELETE FROM event.event_outbox WHERE tenant_id = $1`, [TENANT]);
-    await client.query(`DELETE FROM audit.audit_events WHERE tenant_id = $1 AND action = 'tenant.config.changed'`, [TENANT]);
-    await client.query(`DELETE FROM tenant.tenants WHERE id = $1`, [TENANT]);
+      await client.query(`SELECT set_config('app.tenant_id', $1, false)`, [
+        TENANT,
+      ]);
+      await client.query(
+        `DELETE FROM event.event_outbox WHERE tenant_id = $1`,
+        [TENANT],
+      );
+      await client.query(
+        `DELETE FROM audit.audit_events WHERE tenant_id = $1 AND action = 'tenant.config.changed'`,
+        [TENANT],
+      );
+      await client.query(`DELETE FROM tenant.tenants WHERE id = $1`, [TENANT]);
     } finally {
       client.release();
     }
@@ -79,20 +104,38 @@ afterAll(async () => {
 
 describe('GET/PATCH /v1/tenants/{tenantId} (live)', () => {
   it('reads the caller’s own tenant → 200 TenantContext', async () => {
-    const res = await fetch(`${base}/v1/tenants/${TENANT}`, {headers: {'x-api-key': KEY_READ}});
+    const res = await fetch(`${base}/v1/tenants/${TENANT}`, {
+      headers: {'x-api-key': KEY_READ},
+    });
     expect(res.status).toBe(200);
-    const ctx = (await res.json()) as {tenantId: string; slug: string; displayName: string; status: string};
-    expect(ctx).toMatchObject({tenantId: TENANT, slug: 'tenant-itest-co', displayName: 'Itest Tenant', status: 'active'});
+    const ctx = (await res.json()) as {
+      tenantId: string;
+      slug: string;
+      displayName: string;
+      status: string;
+    };
+    expect(ctx).toMatchObject({
+      tenantId: TENANT,
+      slug: 'tenant-itest-co',
+      displayName: 'Itest Tenant',
+      status: 'active',
+    });
   });
 
   it('updates the caller’s own tenant → 200 reflecting the change', async () => {
     const res = await fetch(`${base}/v1/tenants/${TENANT}`, {
       method: 'PATCH',
       headers: {'x-api-key': KEY_UPDATE, 'content-type': 'application/json'},
-      body: JSON.stringify({displayName: 'Renamed Tenant', features: {beta: true}}),
+      body: JSON.stringify({
+        displayName: 'Renamed Tenant',
+        features: {beta: true},
+      }),
     });
     expect(res.status).toBe(200);
-    const ctx = (await res.json()) as {displayName: string; features: Record<string, boolean>};
+    const ctx = (await res.json()) as {
+      displayName: string;
+      features: Record<string, boolean>;
+    };
     expect(ctx.displayName).toBe('Renamed Tenant');
     expect(ctx.features).toEqual({beta: true});
 
@@ -103,8 +146,12 @@ describe('GET/PATCH /v1/tenants/{tenantId} (live)', () => {
       [TENANT],
     );
     expect(audit.rows).toHaveLength(1);
-    expect(audit.rows[0].detail).toEqual({changedFields: ['displayName', 'features']});
-    expect(JSON.stringify(audit.rows[0].detail)).not.toContain('Renamed Tenant');
+    expect(audit.rows[0].detail).toEqual({
+      changedFields: ['displayName', 'features'],
+    });
+    expect(JSON.stringify(audit.rows[0].detail)).not.toContain(
+      'Renamed Tenant',
+    );
     const outbox = await owner.query(
       `SELECT count(*)::int AS n FROM event.event_outbox WHERE tenant_id = $1 AND event_type = 'tenant.config.changed'`,
       [TENANT],
@@ -119,16 +166,22 @@ describe('GET/PATCH /v1/tenants/{tenantId} (live)', () => {
       body: JSON.stringify({status: 'not-a-status'}),
     });
     expect(res.status).toBe(422);
-    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe('validation_failed');
+    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe(
+      'validation_failed',
+    );
   });
 
   it('rejects a principal without platform.tenant.read → 403', async () => {
-    const res = await fetch(`${base}/v1/tenants/${TENANT}`, {headers: {'x-api-key': KEY_NOSCOPE}});
+    const res = await fetch(`${base}/v1/tenants/${TENANT}`, {
+      headers: {'x-api-key': KEY_NOSCOPE},
+    });
     expect(res.status).toBe(403);
   });
 
   it('rejects reading/updating another tenant → 403 (tenant boundary)', async () => {
-    const read = await fetch(`${base}/v1/tenants/${OTHER}`, {headers: {'x-api-key': KEY_READ}});
+    const read = await fetch(`${base}/v1/tenants/${OTHER}`, {
+      headers: {'x-api-key': KEY_READ},
+    });
     expect(read.status).toBe(403);
     const upd = await fetch(`${base}/v1/tenants/${OTHER}`, {
       method: 'PATCH',

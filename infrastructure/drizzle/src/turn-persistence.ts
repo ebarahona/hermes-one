@@ -10,10 +10,22 @@
 // transaction as each usage insert — enqueued ONLY when `inserted:true` (an exactly-once-billing
 // replay collapses to no insert → no duplicate event). `billing.period.summarized` (the rollup job's
 // event) is still deferred — no rollup producer exists yet.
-import {toUsageRecordOutboxInput, type AuditEvent, type TenantScope, type UsageEvent, type UsageRecord} from '@platform/contracts';
+import {
+  toUsageRecordOutboxInput,
+  type AuditEvent,
+  type TenantScope,
+  type UsageEvent,
+  type UsageRecord,
+} from '@platform/contracts';
 import {TenantAwareRepository} from './tenant-aware.repository.js';
-import {insertTurnLedger, type TurnLedgerRows} from './turn-ledger-repository.js';
-import {insertHandoffRequest, type HandoffTaskRow} from './handoff-repository.js';
+import {
+  insertTurnLedger,
+  type TurnLedgerRows,
+} from './turn-ledger-repository.js';
+import {
+  insertHandoffRequest,
+  type HandoffTaskRow,
+} from './handoff-repository.js';
 import {insertAuditEvent} from './audit-repository.js';
 import {insertUsageRecord} from './usage-repository.js';
 import {enqueueOutboxRow, deriveOutboxId} from './event-outbox-repository.js';
@@ -27,10 +39,14 @@ export interface TurnPersistenceBundle {
 
 export class DrizzleTurnPersistence extends TenantAwareRepository {
   /** Commit the whole turn record atomically — all rows or none; replay collapses idempotently. */
-  async persistTurnAtomic(bundle: TurnPersistenceBundle, scope: TenantScope): Promise<void> {
+  async persistTurnAtomic(
+    bundle: TurnPersistenceBundle,
+    scope: TenantScope,
+  ): Promise<void> {
     await this.withTenant(scope, async tx => {
       await insertTurnLedger(tx, scope.tenantId, bundle.ledger);
-      if (bundle.handoff) await insertHandoffRequest(tx, scope.tenantId, bundle.handoff);
+      if (bundle.handoff)
+        await insertHandoffRequest(tx, scope.tenantId, bundle.handoff);
       for (const event of bundle.auditEvents) {
         await insertAuditEvent(tx, event);
         // Commit-and-publish: the audit event IS the domain event — its outbox row rides the same
@@ -62,7 +78,10 @@ export class DrizzleTurnPersistence extends TenantAwareRepository {
           recordedAt: event.emittedAt,
         };
         const input = toUsageRecordOutboxInput(record);
-        await enqueueOutboxRow(tx, {...input, outboxId: deriveOutboxId(input.aggregateId)});
+        await enqueueOutboxRow(tx, {
+          ...input,
+          outboxId: deriveOutboxId(input.aggregateId),
+        });
       }
     });
   }

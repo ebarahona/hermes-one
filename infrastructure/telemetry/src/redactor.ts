@@ -7,7 +7,8 @@
 import {createHash} from 'node:crypto';
 import type {LogRecord, RedactionRule, Redactor} from '@platform/contracts';
 
-const sha256short = (s: string) => createHash('sha256').update(s).digest('hex').slice(0, 12);
+const sha256short = (s: string) =>
+  createHash('sha256').update(s).digest('hex').slice(0, 12);
 
 /** Immutably apply a strategy at `path` within `obj`; no-op if the path is absent. */
 function applyAtPath(

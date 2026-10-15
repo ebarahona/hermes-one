@@ -3,7 +3,12 @@
 // PrincipalMapper pure projection.
 import {describe, expect, it} from 'vitest';
 import type {Request} from '@loopback/rest';
-import type {ApiKeyRecord, PrincipalId, Scope, TenantId} from '@platform/contracts';
+import type {
+  ApiKeyRecord,
+  PrincipalId,
+  Scope,
+  TenantId,
+} from '@platform/contracts';
 import {PlatformErrorException} from '@platform/contracts';
 import {StaticApiKeyStore} from './static-api-key-store.js';
 import {ApiKeyStrategy} from './api-key.strategy.js';
@@ -22,12 +27,17 @@ const rec = (over: Partial<ApiKeyRecord> = {}): ApiKeyRecord => ({
 
 const CONFIG = AuthConfig.parse({apiKey: {}});
 const reqWith = (key?: string): Request =>
-  ({headers: key === undefined ? {} : {'x-api-key': key}}) as unknown as Request;
+  ({
+    headers: key === undefined ? {} : {'x-api-key': key},
+  }) as unknown as Request;
 
 describe('StaticApiKeyStore', () => {
   it('resolves a seeded key and returns undefined for unknown keys', async () => {
     const store = new StaticApiKeyStore([{key: 'secret-1', record: rec()}]);
-    expect(await store.resolve('secret-1')).toMatchObject({keyId: 'apk_1', status: 'active'});
+    expect(await store.resolve('secret-1')).toMatchObject({
+      keyId: 'apk_1',
+      status: 'active',
+    });
     expect(await store.resolve('wrong')).toBeUndefined();
   });
 });
@@ -53,11 +63,22 @@ describe('ApiKeyStrategy', () => {
   });
 
   it('throws unauthorized for an unknown, revoked, or expired key', async () => {
-    await expect(strat().authenticate(reqWith('nope'))).rejects.toBeInstanceOf(PlatformErrorException);
+    await expect(strat().authenticate(reqWith('nope'))).rejects.toBeInstanceOf(
+      PlatformErrorException,
+    );
     const revoked = strat({key: 'r', record: rec({status: 'revoked'})});
-    await expect(revoked.authenticate(reqWith('r'))).rejects.toBeInstanceOf(PlatformErrorException);
-    const expired = strat({key: 'e', record: rec({expiresAt: '2000-01-01T00:00:00.000Z' as ApiKeyRecord['expiresAt']})});
-    await expect(expired.authenticate(reqWith('e'))).rejects.toBeInstanceOf(PlatformErrorException);
+    await expect(revoked.authenticate(reqWith('r'))).rejects.toBeInstanceOf(
+      PlatformErrorException,
+    );
+    const expired = strat({
+      key: 'e',
+      record: rec({
+        expiresAt: '2000-01-01T00:00:00.000Z' as ApiKeyRecord['expiresAt'],
+      }),
+    });
+    await expect(expired.authenticate(reqWith('e'))).rejects.toBeInstanceOf(
+      PlatformErrorException,
+    );
   });
 });
 
@@ -72,6 +93,11 @@ describe('DefaultPrincipalMapper.fromClaims', () => {
       roles: ['customer'],
       scopes: ['tenant.role.read'] as Scope[],
     });
-    expect(p).toMatchObject({id: 'prn_u1', tenantId: 'tnt_acme', kind: 'user', roles: ['customer']});
+    expect(p).toMatchObject({
+      id: 'prn_u1',
+      tenantId: 'tnt_acme',
+      kind: 'user',
+      roles: ['customer'],
+    });
   });
 });

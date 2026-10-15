@@ -90,7 +90,7 @@ Each entry is a one-paragraph distillation.
   tenant data) cost storage, cache the KMS unwrap, and rotate as a row update.
   PLATFORM secrets (datastore URLs, signing keys — O(1) in tenants) stay on the
   SecretProvider chain. `ProviderCredentialStore.resolve(tenantId, providerId,
-  capability)` returns the credential RECORD (decrypt happens behind the port;
+capability)` returns the credential RECORD (decrypt happens behind the port;
   only one component touches key material); the orphaned `configKey` is DELETED
   from contracts — the tuple is the identifier. Resolves ledger S6; amends
   the table catalog (new table) and the secrets-and-key-management design (chain

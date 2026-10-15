@@ -27,8 +27,17 @@ import type {NonceStore} from '@platform-internal/redis';
 /** Minimal fetch seam (Node 22 global fetch by default; injected in tests). */
 export type FetchLike = (
   url: string,
-  init: {method: string; headers: Record<string, string>; body: string; signal: AbortSignal},
-) => Promise<{status: number; text(): Promise<string>; json(): Promise<unknown>}>;
+  init: {
+    method: string;
+    headers: Record<string, string>;
+    body: string;
+    signal: AbortSignal;
+  },
+) => Promise<{
+  status: number;
+  text(): Promise<string>;
+  json(): Promise<unknown>;
+}>;
 
 /** Resolve which tenant owns an inbound destination handle (e.g. the To phone number). */
 export type TenantByNumber = (to: string) => TenantId | null;
@@ -73,7 +82,8 @@ const DEFAULT_TIMESTAMP_HEADER = 'x-timestamp';
 const DEFAULT_SKEW_WINDOW_SECONDS = 300;
 
 /** Signed material (AUTH-1): the timestamp is INSIDE the HMAC so it cannot be replayed-with-edit. */
-export const smsSignedMaterial = (rawBody: string, timestamp: string): string => `${rawBody}.${timestamp}`;
+export const smsSignedMaterial = (rawBody: string, timestamp: string): string =>
+  `${rawBody}.${timestamp}`;
 
 export class SmsChannelTransport implements ChannelTransport {
   readonly channel = 'sms' as const;
@@ -83,14 +93,18 @@ export class SmsChannelTransport implements ChannelTransport {
 
   private async signingSecretValue(): Promise<string> {
     if (this.cfg.signingSecretRef) {
-      if (!this.cfg.secrets) throw new Error('signingSecretRef configured without a SecretProvider');
+      if (!this.cfg.secrets)
+        throw new Error('signingSecretRef configured without a SecretProvider');
       return (await this.cfg.secrets.resolve(this.cfg.signingSecretRef)).value;
     }
     if (this.cfg.signingSecret) return this.cfg.signingSecret;
     throw new Error('no webhook signing secret configured'); // fail-closed, never verify against ''
   }
 
-  private header(headers: Record<string, string>, name: string): string | undefined {
+  private header(
+    headers: Record<string, string>,
+    name: string,
+  ): string | undefined {
     return headers[name] ?? headers[name.toLowerCase()];
   }
 
@@ -100,20 +114,32 @@ export class SmsChannelTransport implements ChannelTransport {
    * 2. constant-time HMAC over `rawBody + '.' + timestamp` (timestamp inside the signed material);
    * 3. replay guard — the signature is single-use within the skew window (Redis setNX).
    */
-  private async verify(rawBody: string, headers: Record<string, string>): Promise<void> {
+  private async verify(
+    rawBody: string,
+    headers: Record<string, string>,
+  ): Promise<void> {
     const provided = this.header(headers, this.cfg.signatureHeader);
-    const timestamp = this.header(headers, this.cfg.timestampHeader ?? DEFAULT_TIMESTAMP_HEADER);
-    if (!provided || !timestamp) throw new Error('SMS webhook signature verification failed');
+    const timestamp = this.header(
+      headers,
+      this.cfg.timestampHeader ?? DEFAULT_TIMESTAMP_HEADER,
+    );
+    if (!provided || !timestamp)
+      throw new Error('SMS webhook signature verification failed');
 
-    const skewSeconds = this.cfg.skewWindowSeconds ?? DEFAULT_SKEW_WINDOW_SECONDS;
-    const nowMs = Date.parse((this.cfg.clock ?? (() => new Date().toISOString()))());
+    const skewSeconds =
+      this.cfg.skewWindowSeconds ?? DEFAULT_SKEW_WINDOW_SECONDS;
+    const nowMs = Date.parse(
+      (this.cfg.clock ?? (() => new Date().toISOString()))(),
+    );
     const tsMs = Number(timestamp) * 1000;
     if (!Number.isFinite(tsMs) || Math.abs(nowMs - tsMs) > skewSeconds * 1000) {
       throw new Error('SMS webhook timestamp outside the accepted window');
     }
 
     const secret = await this.signingSecretValue();
-    const expected = createHmac('sha256', secret).update(smsSignedMaterial(rawBody, timestamp)).digest('hex');
+    const expected = createHmac('sha256', secret)
+      .update(smsSignedMaterial(rawBody, timestamp))
+      .digest('hex');
     const a = Buffer.from(provided);
     const b = Buffer.from(expected);
     if (a.length !== b.length || !timingSafeEqual(a, b)) {
@@ -124,7 +150,10 @@ export class SmsChannelTransport implements ChannelTransport {
       // TTL = 2×skew, not skew: a future-dated timestamp (vendor clock ahead by up to skew) stays
       // signature-valid until ts+skew — up to 2×skew from now. The nonce must outlive the FULL
       // remaining validity window or a captured request replays clean after the nonce expires.
-      const fresh = await this.cfg.nonces.reserve(`sms:${provided}`, 2 * skewSeconds);
+      const fresh = await this.cfg.nonces.reserve(
+        `sms:${provided}`,
+        2 * skewSeconds,
+      );
       if (!fresh) throw new Error('SMS webhook replay detected');
     }
   }
@@ -172,19 +201,33 @@ export class SmsChannelTransport implements ChannelTransport {
     const {accountSid, authToken, from} = ctx.config;
     if (!accountSid || !authToken || !from) {
       // A misconfigured tenant credential bundle is not retryable — fail closed, do not send blind.
-      throw platformError('validation', 'validation_failed', 'sms provider credentials incomplete', false);
+      throw platformError(
+        'validation',
+        'validation_failed',
+        'sms provider credentials incomplete',
+        false,
+      );
     }
 
     const baseUrl = this.cfg.vendorBaseUrl ?? DEFAULT_VENDOR_BASE_URL;
     const timeoutMs = this.cfg.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-    const doFetch = this.cfg.fetchImpl ?? (globalThis.fetch as unknown as FetchLike);
+    const doFetch =
+      this.cfg.fetchImpl ?? (globalThis.fetch as unknown as FetchLike);
     const url = `${baseUrl}/2010-04-01/Accounts/${encodeURIComponent(accountSid)}/Messages.json`;
-    const body = new URLSearchParams({To: msg.to, From: from, Body: msg.text}).toString();
+    const body = new URLSearchParams({
+      To: msg.to,
+      From: from,
+      Body: msg.text,
+    }).toString();
     const auth = `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString('base64')}`;
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
-    let res: {status: number; text(): Promise<string>; json(): Promise<unknown>};
+    let res: {
+      status: number;
+      text(): Promise<string>;
+      json(): Promise<unknown>;
+    };
     try {
       res = await doFetch(url, {
         method: 'POST',
@@ -206,7 +249,9 @@ export class SmsChannelTransport implements ChannelTransport {
       throw platformError(
         aborted ? 'timeout' : 'infrastructure',
         aborted ? 'deadline_exceeded' : 'infrastructure_error',
-        aborted ? `sms vendor request timed out after ${timeoutMs}ms` : `sms vendor request failed: ${(err as Error).message}`,
+        aborted
+          ? `sms vendor request timed out after ${timeoutMs}ms`
+          : `sms vendor request failed: ${(err as Error).message}`,
         true,
       );
     } finally {
@@ -214,15 +259,30 @@ export class SmsChannelTransport implements ChannelTransport {
     }
 
     if (res.status >= 500) {
-      throw platformError('infrastructure', 'infrastructure_error', `sms vendor ${res.status}`, true);
+      throw platformError(
+        'infrastructure',
+        'infrastructure_error',
+        `sms vendor ${res.status}`,
+        true,
+      );
     }
     if (res.status >= 400) {
       const detail = await res.text().catch(() => '');
-      throw platformError('provider', 'provider_rejected', `sms vendor rejected (${res.status}): ${detail}`, false);
+      throw platformError(
+        'provider',
+        'provider_rejected',
+        `sms vendor rejected (${res.status}): ${detail}`,
+        false,
+      );
     }
     const json = (await res.json()) as {sid?: string};
     if (!json.sid) {
-      throw platformError('provider', 'provider_rejected', 'sms vendor response missing sid', false);
+      throw platformError(
+        'provider',
+        'provider_rejected',
+        'sms vendor response missing sid',
+        false,
+      );
     }
     return {providerMessageId: json.sid};
   }

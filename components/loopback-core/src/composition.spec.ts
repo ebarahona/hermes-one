@@ -26,7 +26,12 @@ const FAKE_CONFIG = {
     vector: {url: 'http://127.0.0.1:6333'},
   },
   llm: {baseUrl: 'http://127.0.0.1:8080/v1', model: 'm', apiKey: 'k'},
-  outbox: {pollIntervalMs: 1000, maxAttempts: 10, channelPattern: 'events:{tenantId}:{aggregateType}', tenants: []},
+  outbox: {
+    pollIntervalMs: 1000,
+    maxAttempts: 10,
+    channelPattern: 'events:{tenantId}:{aggregateType}',
+    tenants: [],
+  },
 } as unknown as HermesConfig;
 
 const COMPONENTS = [
@@ -50,7 +55,10 @@ describe('component boundary', () => {
     for (const C of COMPONENTS) {
       const boundary = new C() as unknown as PlatformComponentBoundary;
       for (const key of boundary.bindsKeys) {
-        expect(app.isBound(key), `${C.name} claims ${key} but it is not bound`).toBe(true);
+        expect(
+          app.isBound(key),
+          `${C.name} claims ${key} but it is not bound`,
+        ).toBe(true);
       }
     }
   });
@@ -83,13 +91,20 @@ describe('app boot (pure services resolve)', () => {
       providerId: 'fake-provider',
       capability: 'messaging.reply.send' as ProviderAdapter['capability'],
       status: async () =>
-        ({providerId: 'fake-provider', health: 'healthy', circuit: 'closed', lastCheckedAt: new Date().toISOString()}) as ProviderStatus,
+        ({
+          providerId: 'fake-provider',
+          health: 'healthy',
+          circuit: 'closed',
+          lastCheckedAt: new Date().toISOString(),
+        }) as ProviderStatus,
       execute: async () => ({}),
     };
     app.add(
       Binding.bind('platform.providers.fake')
         .to(fake)
-        .tag({[CoreTags.EXTENSION_FOR]: PlatformExtensionPoints.PROVIDER_ADAPTERS}),
+        .tag({
+          [CoreTags.EXTENSION_FOR]: PlatformExtensionPoints.PROVIDER_ADAPTERS,
+        }),
     );
     const registry = await app.get(PlatformBindings.PROVIDER_REGISTRY);
     expect(registry.get(fake.capability, 'fake-provider')).toBe(fake);
@@ -97,7 +112,9 @@ describe('app boot (pure services resolve)', () => {
 
   it('the invoker resolves over the registry lookup (sync latest-by-name index)', async () => {
     const app = boot();
-    const registry = (await app.get(PlatformBindings.CAPABILITY_REGISTRY)) as IndexedCapabilityRegistry;
+    const registry = (await app.get(
+      PlatformBindings.CAPABILITY_REGISTRY,
+    )) as IndexedCapabilityRegistry;
     const contract = {
       definitionId: 'def_test_slot_read',
       kind: 'capability',
@@ -115,10 +132,16 @@ describe('app boot (pure services resolve)', () => {
       idempotency: {required: false, keyFields: [], ttlSeconds: 86400},
       confirm: false,
       requiredScope: 'appointment.slot.read',
-      providerMapping: {providers: [{providerId: 'internal', priority: 100}], eligibility: [], onNoProvider: 'fail'},
+      providerMapping: {
+        providers: [{providerId: 'internal', priority: 100}],
+        eligibility: [],
+        onNoProvider: 'fail',
+      },
     } as unknown as CapabilityContract;
     await registry.register(contract);
-    expect(registry.lookup(contract.name)).toMatchObject({name: 'appointment.slot.read'});
+    expect(registry.lookup(contract.name)).toMatchObject({
+      name: 'appointment.slot.read',
+    });
     expect(await app.get(PlatformBindings.CAPABILITY_INVOKER)).toBeDefined();
   });
 });

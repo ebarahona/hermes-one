@@ -20,10 +20,7 @@ import {
   type ValidatedContractBase,
 } from '@platform/contracts';
 import {contentHashOf} from './content-hash.js';
-import type {
-  DefinitionWritePort,
-  PlanStorePort,
-} from './ports.js';
+import type {DefinitionWritePort, PlanStorePort} from './ports.js';
 import {definitionPublishedEvent} from './events.js';
 
 export interface CompileDiagnostic {
@@ -68,7 +65,10 @@ const validationFailed = (
     category: 'validation',
     code: 'validation_failed',
     message,
-    issues: issues.map(i => ({path: `/${i.path.map(String).join('/')}`, message: i.message})),
+    issues: issues.map(i => ({
+      path: `/${i.path.map(String).join('/')}`,
+      message: i.message,
+    })),
     retryable: false,
     httpStatus: 422,
   });
@@ -81,7 +81,9 @@ export class DefinitionRegistry {
     if (!tenantId) {
       // Platform-shared (tenant_id IS NULL) definitions require a privileged path;
       // not minted through platform_app here (flagged).
-      throw new Error('DefinitionRegistry.put requires a tenant-scoped definition (tenantId set)');
+      throw new Error(
+        'DefinitionRegistry.put requires a tenant-scoped definition (tenantId set)',
+      );
     }
     const scope = {tenantId};
     // Assert the SchemaRef grammar `<name>.<type>/vN` before the family branch.
@@ -96,8 +98,10 @@ export class DefinitionRegistry {
     const at = this.deps.now();
 
     if (family === 'logic-dsl') {
-      const compile = this.deps.compilers[def.kind as 'workflow' | 'rule' | 'policy'];
-      if (!compile) throw new Error(`no compiler registered for kind '${def.kind}'`);
+      const compile =
+        this.deps.compilers[def.kind as 'workflow' | 'rule' | 'policy'];
+      if (!compile)
+        throw new Error(`no compiler registered for kind '${def.kind}'`);
 
       // Compile once with a provisional planId to obtain the contentHash (which excludes planId), then
       // pin the deterministic planId derived from it.
@@ -137,11 +141,24 @@ export class DefinitionRegistry {
         scope,
       );
       await this.deps.store.putCompiledPlan(plan, byteSize);
-      return {definitionId: def.definitionId, planId, contentHash, version: def.version, status: 'published', diagnostics: []};
+      return {
+        definitionId: def.definitionId,
+        planId,
+        contentHash,
+        version: def.version,
+        status: 'published',
+        diagnostics: [],
+      };
     }
 
     // contract-schema (capability | agent-engine): validate-and-pin only, no compiler.
-    const core = {kind: def.kind, definitionId: def.definitionId, version: def.version, schemaRef: def.schemaRef, body: def.body};
+    const core = {
+      kind: def.kind,
+      definitionId: def.definitionId,
+      version: def.version,
+      schemaRef: def.schemaRef,
+      body: def.body,
+    };
     const contentHash = contentHashOf(core);
     const base = {
       definitionId: def.definitionId,
@@ -158,7 +175,10 @@ export class DefinitionRegistry {
     const parsed =
       def.kind === 'agent-engine'
         ? AgentEngineContract.safeParse({...base, body: def.body})
-        : CapabilityContract.safeParse({...base, ...(def.body as Record<string, unknown>)});
+        : CapabilityContract.safeParse({
+            ...base,
+            ...(def.body as Record<string, unknown>),
+          });
     if (!parsed.success) {
       throw validationFailed(
         `${def.kind} contract body failed schema validation`,
@@ -211,6 +231,13 @@ export class DefinitionRegistry {
       events,
     );
     await this.deps.store.putValidatedContract(contract);
-    return {definitionId: def.definitionId, planId: null, contentHash, version: def.version, status: 'published', diagnostics: []};
+    return {
+      definitionId: def.definitionId,
+      planId: null,
+      contentHash,
+      version: def.version,
+      status: 'published',
+      diagnostics: [],
+    };
   }
 }

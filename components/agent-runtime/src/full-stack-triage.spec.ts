@@ -141,7 +141,8 @@ const wfPlan = compileWorkflow(
 const CAP_META: Record<string, CapabilityMeta> = {
   'appointment.slot.read': {sideEffect: 'read', changedDomains: ['none']},
 };
-const metaSource: CapabilityMetaSource = n => CAP_META[n] ?? {sideEffect: 'read', changedDomains: ['none']};
+const metaSource: CapabilityMetaSource = n =>
+  CAP_META[n] ?? {sideEffect: 'read', changedDomains: ['none']};
 
 function boot() {
   const app = createAgentPlaneApp({fixtures: true});
@@ -156,7 +157,11 @@ describe('full-stack: workflow routes deterministic rule OR bounded agent turn',
   it('a complex intent routes to the agent node, which runs a real bounded turn', async () => {
     await using t = await createTestApp(boot);
     const server = await t.app.get<MCPServer>(MCPBindings.SERVER);
-    const executor = new PlatformToolExecutor(server, t.app as unknown as Context, metaSource);
+    const executor = new PlatformToolExecutor(
+      server,
+      t.app as unknown as Context,
+      metaSource,
+    );
 
     const sent: string[] = [];
     const agentToolCalls: string[] = [];
@@ -200,15 +205,25 @@ describe('full-stack: workflow routes deterministic rule OR bounded agent turn',
                   },
                   usage: noUsage,
                 }
-              : {kind: 'done', reply: 'Here are the open slots.', usage: noUsage},
+              : {
+                  kind: 'done',
+                  reply: 'Here are the open slots.',
+                  usage: noUsage,
+                },
         };
-        const turn = await runTurn(testTurnRequest('Help the customer reschedule.'), {
-          executor,
-          decider,
-          clock: {nowMs: () => 0},
-        });
+        const turn = await runTurn(
+          testTurnRequest('Help the customer reschedule.'),
+          {
+            executor,
+            decider,
+            clock: {nowMs: () => 0},
+          },
+        );
         agentToolCalls.push(...turn.toolCalls.map(c => c.capability));
-        return {outcome: turn.outcome === 'replied' ? 'replied' : turn.outcome, reply: turn.reply};
+        return {
+          outcome: turn.outcome === 'replied' ? 'replied' : turn.outcome,
+          reply: turn.reply,
+        };
       },
       now: () => NOW,
     };
@@ -230,7 +245,11 @@ describe('full-stack: workflow routes deterministic rule OR bounded agent turn',
   it('a simple intent routes to the deterministic capability reply (no agent turn)', async () => {
     await using t = await createTestApp(boot);
     const server = await t.app.get<MCPServer>(MCPBindings.SERVER);
-    const executor = new PlatformToolExecutor(server, t.app as unknown as Context, metaSource);
+    const executor = new PlatformToolExecutor(
+      server,
+      t.app as unknown as Context,
+      metaSource,
+    );
 
     const sent: string[] = [];
     let agentTurns = 0;

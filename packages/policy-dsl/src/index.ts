@@ -1,7 +1,11 @@
 // @platform/policy-dsl — package (none plane).
 // Policy compiler (→ content-hashed CompiledPolicyPlan) + the pure ExpressionPolicyRuntime (ADR-019).
 
-export {compilePolicy, PolicyCompileError, type CompileOptions} from './compile.js';
+export {
+  compilePolicy,
+  PolicyCompileError,
+  type CompileOptions,
+} from './compile.js';
 export {ExpressionPolicyRuntime} from './runtime.js';
 
 export const descriptor = {

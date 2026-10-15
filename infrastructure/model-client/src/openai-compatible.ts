@@ -25,7 +25,9 @@ function stripThink(text: string): string {
   return text.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 }
 
-export function createOpenAICompatibleModel(cfg: ModelClientConfig): SingleStepModel {
+export function createOpenAICompatibleModel(
+  cfg: ModelClientConfig,
+): SingleStepModel {
   const client = new OpenAI({baseURL: cfg.baseUrl, apiKey: cfg.apiKey});
 
   return {
@@ -38,7 +40,11 @@ export function createOpenAICompatibleModel(cfg: ModelClientConfig): SingleStepM
       if (tools?.length) {
         params.tools = tools.map(t => ({
           type: 'function',
-          function: {name: t.name, description: t.description, parameters: t.parameters},
+          function: {
+            name: t.name,
+            description: t.description,
+            parameters: t.parameters,
+          },
         }));
         params.tool_choice = 'auto';
       }
@@ -57,7 +63,12 @@ export function createOpenAICompatibleModel(cfg: ModelClientConfig): SingleStepM
       const msg = resp.choices[0]?.message;
       const toolCalls = (msg?.tool_calls ?? []).flatMap(tc =>
         tc.type === 'function'
-          ? [{name: tc.function.name, arguments: parseArgs(tc.function.arguments)}]
+          ? [
+              {
+                name: tc.function.name,
+                arguments: parseArgs(tc.function.arguments),
+              },
+            ]
           : [],
       );
       return {

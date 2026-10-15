@@ -33,7 +33,10 @@ const UpdateTenantRequest = z.object({
 });
 
 function validationFailed(err: z.ZodError): PlatformErrorException {
-  const issues: ErrorIssue[] = err.issues.map(i => ({path: `/${i.path.join('/')}`, message: i.message}));
+  const issues: ErrorIssue[] = err.issues.map(i => ({
+    path: `/${i.path.join('/')}`,
+    message: i.message,
+  }));
   return new PlatformErrorException({
     category: 'validation',
     code: 'validation_failed',
@@ -46,9 +49,12 @@ function validationFailed(err: z.ZodError): PlatformErrorException {
 
 export class TenantController {
   constructor(
-    @inject(PlatformBindings.REQUEST_PRINCIPAL) private readonly principal: Principal,
-    @inject(PlatformBindings.TENANT_REPOSITORY) private readonly tenants: DrizzleTenantRepository,
-    @inject(PlatformBindings.CORRELATION_ID) private readonly correlationId: string,
+    @inject(PlatformBindings.REQUEST_PRINCIPAL)
+    private readonly principal: Principal,
+    @inject(PlatformBindings.TENANT_REPOSITORY)
+    private readonly tenants: DrizzleTenantRepository,
+    @inject(PlatformBindings.CORRELATION_ID)
+    private readonly correlationId: string,
   ) {}
 
   private assertOwnTenant(tenantId: string, scope: Scope): TenantId {
@@ -58,7 +64,9 @@ export class TenantController {
   }
 
   @get('/v1/tenants/{tenantId}')
-  async getTenant(@param.path.string('tenantId') tenantId: string): Promise<TenantContext> {
+  async getTenant(
+    @param.path.string('tenantId') tenantId: string,
+  ): Promise<TenantContext> {
     const owner = this.assertOwnTenant(tenantId, READ_TENANT);
     return this.tenants.getTenant(owner); // not_found → 404
   }
@@ -66,7 +74,13 @@ export class TenantController {
   @patch('/v1/tenants/{tenantId}')
   async updateTenant(
     @param.path.string('tenantId') tenantId: string,
-    @requestBody({content: {'application/json': {schema: {type: 'object', additionalProperties: true}}}})
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {type: 'object', additionalProperties: true},
+        },
+      },
+    })
     body: unknown,
   ): Promise<TenantContext> {
     const owner = this.assertOwnTenant(tenantId, UPDATE_TENANT);

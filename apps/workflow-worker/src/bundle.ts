@@ -84,8 +84,14 @@ export function bundleToRef(
 ): WorkflowRunRef {
   return {
     tenantId,
-    workflow: {planId: bundle.workflowPlan.planId, contentHash: bundle.workflowPlan.contentHash},
-    rule: {planId: bundle.rulePlan.planId, contentHash: bundle.rulePlan.contentHash},
+    workflow: {
+      planId: bundle.workflowPlan.planId,
+      contentHash: bundle.workflowPlan.contentHash,
+    },
+    rule: {
+      planId: bundle.rulePlan.planId,
+      contentHash: bundle.rulePlan.contentHash,
+    },
     deployment,
     principal,
     conversationId,

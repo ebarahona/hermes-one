@@ -1,5 +1,10 @@
 import {describe, expect, it} from 'vitest';
-import type {MeterKind, TenantId, UsageEvent, UsageMeter} from '@platform/contracts';
+import type {
+  MeterKind,
+  TenantId,
+  UsageEvent,
+  UsageMeter,
+} from '@platform/contracts';
 import {UsageCostAnalyticsService} from './cost-analytics.js';
 
 const T = 'tnt_a' as TenantId;
@@ -22,7 +27,11 @@ const fakeMeter = (totals: Record<MeterKind, number>): UsageMeter => ({
 
 describe('UsageCostAnalyticsService', () => {
   it('summarize is a pass-through to UsageMeter.summarize (no second counter)', async () => {
-    const svc = new UsageCostAnalyticsService(fakeMeter(platformTotals), async () => ({}), {clock: CLOCK});
+    const svc = new UsageCostAnalyticsService(
+      fakeMeter(platformTotals),
+      async () => ({}),
+      {clock: CLOCK},
+    );
     expect(await svc.summarize(T, '2026-07')).toEqual(platformTotals);
   });
 
@@ -42,12 +51,19 @@ describe('UsageCostAnalyticsService', () => {
     const svc = new UsageCostAnalyticsService(
       fakeMeter(platformTotals),
       // agentback says cost is 20% lower and input tokens 10% higher; others match.
-      async () => ({...platformTotals, 'model.cost.usd': 0.0125, 'model.input.tokens': 909}),
+      async () => ({
+        ...platformTotals,
+        'model.cost.usd': 0.0125,
+        'model.input.tokens': 909,
+      }),
       {toleranceDiffPct: 1, clock: CLOCK},
     );
     const r = await svc.reconcile(T, '2026-07');
     expect(r.status).toBe('drift');
-    expect(Object.keys(r.deltas).sort()).toEqual(['model.cost.usd', 'model.input.tokens']);
+    expect(Object.keys(r.deltas).sort()).toEqual([
+      'model.cost.usd',
+      'model.input.tokens',
+    ]);
     // platform 0.01 vs agentback 0.0125 → -20%
     expect(r.deltas['model.cost.usd']!.diffPct).toBeCloseTo(-20, 5);
     expect(r.deltas['model.cost.usd']!.platformTotal).toBe(0.01);
@@ -64,6 +80,10 @@ describe('UsageCostAnalyticsService', () => {
     );
     const r = await svc.reconcile(T, '2026-07');
     expect(r.status).toBe('drift');
-    expect(r.deltas['storage.vector']).toEqual({platformTotal: 5, agentbackTotal: 0, diffPct: 100});
+    expect(r.deltas['storage.vector']).toEqual({
+      platformTotal: 5,
+      agentbackTotal: 0,
+      diffPct: 100,
+    });
   });
 });

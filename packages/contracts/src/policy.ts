@@ -1,6 +1,11 @@
 // @platform/contracts — src/policy.ts
 import {z} from 'zod';
-import {DefinitionId, SemVer, IsoTimestamp, CompiledPlanBase} from './substrate.js';
+import {
+  DefinitionId,
+  SemVer,
+  IsoTimestamp,
+  CompiledPlanBase,
+} from './substrate.js';
 import {RuleExpression, RuleParameterDecl} from './rule.js';
 import {Principal, Scope} from './tenant.js';
 
@@ -130,9 +135,15 @@ export type PolicyEvaluationContext = z.infer<typeof PolicyEvaluationContext>;
 /** The Policy Engine authors/compiles; agentback enforces voters. This port is the compile+screen surface. */
 export interface PolicyRuntime {
   /** Pre-gate turn-level screen. */
-  evaluatePreGates(plan: CompiledPolicyPlan, ctx: PolicyEvaluationContext): PolicyDecision;
+  evaluatePreGates(
+    plan: CompiledPolicyPlan,
+    ctx: PolicyEvaluationContext,
+  ): PolicyDecision;
   /** Post-gate reply screen (returns allow/deny/repair). */
-  evaluatePostGates(plan: CompiledPolicyPlan, ctx: PolicyEvaluationContext): PolicyDecision;
+  evaluatePostGates(
+    plan: CompiledPolicyPlan,
+    ctx: PolicyEvaluationContext,
+  ): PolicyDecision;
   /** Project voters for agentback @authorize binding (enforcement is agentback's, ADR-019). */
   toVoters(plan: CompiledPolicyPlan): CompiledVoter[];
 }

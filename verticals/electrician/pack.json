@@ -65,9 +65,7 @@
           "Answer basic electrical-safety questions plainly.",
           "Offer to schedule a service visit and read available slots."
         ],
-        "allowedCapabilities": [
-          "appointment.slot.read"
-        ],
+        "allowedCapabilities": ["appointment.slot.read"],
         "referencedRules": [],
         "model": {
           "provider": "local",
@@ -339,9 +337,7 @@
           ],
           "defaultOutcome": "schedule",
           "parameters": [],
-          "requiredFacts": [
-            "intent"
-          ]
+          "requiredFacts": ["intent"]
         }
       }
     ],
@@ -358,9 +354,7 @@
           "description": "List open service-visit slots for a given date and service type.",
           "inputJsonSchema": {
             "type": "object",
-            "required": [
-              "date"
-            ],
+            "required": ["date"],
             "properties": {
               "date": {
                 "type": "string"
@@ -379,9 +373,7 @@
             }
           },
           "sideEffect": "read",
-          "changedDomains": [
-            "none"
-          ],
+          "changedDomains": ["none"],
           "idempotency": {
             "required": false,
             "keyFields": [],

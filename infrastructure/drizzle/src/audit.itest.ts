@@ -15,7 +15,11 @@ const TENANT = 'tnt_audit_itest' as TenantId;
 let owner: Pool;
 let audit: AuditSinkHandle;
 
-const ev = (id: string, action: AuditEvent['action'], outcome: AuditEvent['outcome']): AuditEvent => ({
+const ev = (
+  id: string,
+  action: AuditEvent['action'],
+  outcome: AuditEvent['outcome'],
+): AuditEvent => ({
   id: id as AuditEvent['id'],
   tenantId: TENANT,
   principalId: 'prn_audit' as AuditEvent['principalId'],
@@ -34,11 +38,15 @@ beforeAll(async () => {
   await runMigrations(PG);
   owner = new Pool({connectionString: PG, max: 2});
   audit = createAuditSink(PG);
-  await owner.query(`DELETE FROM audit.audit_events WHERE tenant_id = $1`, [TENANT]);
+  await owner.query(`DELETE FROM audit.audit_events WHERE tenant_id = $1`, [
+    TENANT,
+  ]);
 });
 
 afterAll(async () => {
-  await owner.query(`DELETE FROM audit.audit_events WHERE tenant_id = $1`, [TENANT]);
+  await owner.query(`DELETE FROM audit.audit_events WHERE tenant_id = $1`, [
+    TENANT,
+  ]);
   await owner.end();
   await audit.close();
 });
@@ -52,7 +60,10 @@ describe('DrizzleAuditSink (live)', () => {
     expect(all).toHaveLength(2);
     expect(all.every(e => e.tenantId === TENANT)).toBe(true);
 
-    const denied = await audit.repo.query({tenantId: TENANT, action: 'decision.policy'});
+    const denied = await audit.repo.query({
+      tenantId: TENANT,
+      action: 'decision.policy',
+    });
     expect(denied.map(e => e.id)).toEqual(['aud_it_2']);
     expect(denied[0].outcome).toBe('denied');
     expect(denied[0].integrityHash).toMatch(/^sha256:[0-9a-f]{64}$/);
@@ -60,7 +71,10 @@ describe('DrizzleAuditSink (live)', () => {
 
   it('is idempotent on id — a replayed append collapses to one row', async () => {
     await audit.repo.append(ev('aud_it_1', 'tool.invoked', 'success'));
-    const c = await owner.query(`SELECT count(*)::int AS n FROM audit.audit_events WHERE tenant_id = $1`, [TENANT]);
+    const c = await owner.query(
+      `SELECT count(*)::int AS n FROM audit.audit_events WHERE tenant_id = $1`,
+      [TENANT],
+    );
     expect(c.rows[0].n).toBe(2);
   });
 
@@ -70,8 +84,13 @@ describe('DrizzleAuditSink (live)', () => {
   // drop it (which a bare ON CONFLICT DO NOTHING did). Safe now that every producer's occurredAt is
   // replay-stable (edge: workflow clock in activity args; agent: TurnRequest.startedAt — Phase 2a).
   it('REJECTS a re-append of the same id with a different integrityHash (tamper-evident)', async () => {
-    const mutated = {...ev('aud_it_1', 'tool.invoked', 'success'), integrityHash: `sha256:${'b'.repeat(64)}`};
-    await expect(audit.repo.append(mutated as AuditEvent)).rejects.toMatchObject({
+    const mutated = {
+      ...ev('aud_it_1', 'tool.invoked', 'success'),
+      integrityHash: `sha256:${'b'.repeat(64)}`,
+    };
+    await expect(
+      audit.repo.append(mutated as AuditEvent),
+    ).rejects.toMatchObject({
       error: {code: 'idempotency_conflict', retryable: false},
     });
 
@@ -90,10 +109,15 @@ describe('DrizzleAuditSink (live)', () => {
       detail: {k: 'tampered'},
       integrityHash: `sha256:${'c'.repeat(64)}`,
     };
-    await expect(audit.repo.append(rewritten as AuditEvent)).rejects.toMatchObject({
+    await expect(
+      audit.repo.append(rewritten as AuditEvent),
+    ).rejects.toMatchObject({
       error: {code: 'idempotency_conflict'},
     });
-    const row = await owner.query(`SELECT detail FROM audit.audit_events WHERE tenant_id = $1 AND id = 'aud_it_2'`, [TENANT]);
+    const row = await owner.query(
+      `SELECT detail FROM audit.audit_events WHERE tenant_id = $1 AND id = 'aud_it_2'`,
+      [TENANT],
+    );
     expect(row.rows[0].detail).toEqual({k: 'v'});
   });
 });

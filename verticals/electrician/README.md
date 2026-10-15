@@ -9,13 +9,13 @@ code is ever compiled into the platform.
 
 ## The bundle (`pack.json`)
 
-| Family | Name | What it does |
-|---|---|---|
-| workflow | `electrician-intake` | Entry workflow: triage an inbound message via the rule, then hand to the dispatcher agent. |
-| rule | `electrician-triage` | Routes the intent (emergency vs schedule). |
-| policy | `electrician-safety` | The turn's pre/post gates (permissive baseline). |
-| capability | `appointment.slot.read` | Read open service-visit slots (provider-neutral, platform capability). |
-| agent-engine | `electrician-dispatcher` | Safety-first dispatcher persona; may use `appointment.slot.read`. |
+| Family       | Name                     | What it does                                                                               |
+| ------------ | ------------------------ | ------------------------------------------------------------------------------------------ |
+| workflow     | `electrician-intake`     | Entry workflow: triage an inbound message via the rule, then hand to the dispatcher agent. |
+| rule         | `electrician-triage`     | Routes the intent (emergency vs schedule).                                                 |
+| policy       | `electrician-safety`     | The turn's pre/post gates (permissive baseline).                                           |
+| capability   | `appointment.slot.read`  | Read open service-visit slots (provider-neutral, platform capability).                     |
+| agent-engine | `electrician-dispatcher` | Safety-first dispatcher persona; may use `appointment.slot.read`.                          |
 
 ## Status
 
@@ -40,6 +40,7 @@ code is ever compiled into the platform.
 ## What is still open for this vertical
 
 Tracked in [`../../docs/DEFERRED-AND-FLAGGED.md`](../../docs/DEFERRED-AND-FLAGGED.md) (PE1, PE5):
+
 - **The per-vertical doc set is not yet authored** (domain model, workflow catalog, and related
   documents).
 - **PE5** — the scheduler provider is a config-driven **stand-in**: slots come from

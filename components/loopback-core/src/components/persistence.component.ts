@@ -23,7 +23,12 @@ import {
   tenantGucPreflight,
   type PlatformDbHandle,
 } from '@platform-internal/drizzle';
-import {DrizzleRoleRegistry, DrizzleTenantRepository, DrizzleUsageMeter, DrizzleUserRepository} from '@platform-internal/drizzle';
+import {
+  DrizzleRoleRegistry,
+  DrizzleTenantRepository,
+  DrizzleUsageMeter,
+  DrizzleUserRepository,
+} from '@platform-internal/drizzle';
 import {createRedisClient, type RedisClient} from '@platform-internal/redis';
 import type {HermesConfig} from '@platform-internal/config';
 import {PlatformBindings} from '../bindings.js';
@@ -33,7 +38,8 @@ import type {PlatformComponentBoundary} from '../boundary.js';
 @lifeCycleObserver('datasource')
 export class PostgresLifecycleObserver implements LifeCycleObserver {
   constructor(
-    @inject(PlatformBindings.POSTGRES) private readonly handle: PlatformDbHandle,
+    @inject(PlatformBindings.POSTGRES)
+    private readonly handle: PlatformDbHandle,
   ) {}
 
   async start(): Promise<void> {
@@ -48,7 +54,9 @@ export class PostgresLifecycleObserver implements LifeCycleObserver {
 
 @lifeCycleObserver('datasource')
 export class RedisLifecycleObserver implements LifeCycleObserver {
-  constructor(@inject(PlatformBindings.REDIS) private readonly client: RedisClient) {}
+  constructor(
+    @inject(PlatformBindings.REDIS) private readonly client: RedisClient,
+  ) {}
   async start(): Promise<void> {
     /* ioredis connects lazily on first command; nothing to preflight without a cache read */
   }
@@ -57,7 +65,9 @@ export class RedisLifecycleObserver implements LifeCycleObserver {
   }
 }
 
-export class PersistenceComponent implements Component, PlatformComponentBoundary {
+export class PersistenceComponent
+  implements Component, PlatformComponentBoundary
+{
   readonly plane = 'edge' as const;
   readonly bindsKeys = [
     PlatformBindings.POSTGRES.key,
@@ -101,13 +111,28 @@ export class PersistenceComponent implements Component, PlatformComponentBoundar
       )
       .inScope(BindingScope.SINGLETON),
     Binding.bind(PlatformBindings.MESSAGE_REPOSITORY.key)
-      .toDynamicValue(({context}) => new DrizzleMessageRepository(context.getSync(PlatformBindings.POSTGRES).db))
+      .toDynamicValue(
+        ({context}) =>
+          new DrizzleMessageRepository(
+            context.getSync(PlatformBindings.POSTGRES).db,
+          ),
+      )
       .inScope(BindingScope.SINGLETON),
     Binding.bind(PlatformBindings.TURN_PERSISTENCE.key)
-      .toDynamicValue(({context}) => new DrizzleTurnPersistence(context.getSync(PlatformBindings.POSTGRES).db))
+      .toDynamicValue(
+        ({context}) =>
+          new DrizzleTurnPersistence(
+            context.getSync(PlatformBindings.POSTGRES).db,
+          ),
+      )
       .inScope(BindingScope.SINGLETON),
     Binding.bind(PlatformBindings.HANDOFF_REPOSITORY.key)
-      .toDynamicValue(({context}) => new DrizzleHandoffRepository(context.getSync(PlatformBindings.POSTGRES).db))
+      .toDynamicValue(
+        ({context}) =>
+          new DrizzleHandoffRepository(
+            context.getSync(PlatformBindings.POSTGRES).db,
+          ),
+      )
       .inScope(BindingScope.SINGLETON),
     Binding.bind(PlatformBindings.EVENT_OUTBOX_REPOSITORY.key)
       .toDynamicValue(({context}) => {
@@ -119,22 +144,48 @@ export class PersistenceComponent implements Component, PlatformComponentBoundar
       })
       .inScope(BindingScope.SINGLETON),
     Binding.bind(PlatformBindings.AUDIT_SINK.key)
-      .toDynamicValue(({context}) => new DrizzleAuditSink(context.getSync(PlatformBindings.POSTGRES).db))
+      .toDynamicValue(
+        ({context}) =>
+          new DrizzleAuditSink(context.getSync(PlatformBindings.POSTGRES).db),
+      )
       .inScope(BindingScope.SINGLETON),
     Binding.bind(PlatformBindings.USAGE_METER.key)
-      .toDynamicValue(({context}) => new DrizzleUsageMeter(context.getSync(PlatformBindings.POSTGRES).db))
+      .toDynamicValue(
+        ({context}) =>
+          new DrizzleUsageMeter(context.getSync(PlatformBindings.POSTGRES).db),
+      )
       .inScope(BindingScope.SINGLETON),
     Binding.bind(PlatformBindings.ROLE_REGISTRY.key)
-      .toDynamicValue(({context}) => new DrizzleRoleRegistry(context.getSync(PlatformBindings.POSTGRES).db))
+      .toDynamicValue(
+        ({context}) =>
+          new DrizzleRoleRegistry(
+            context.getSync(PlatformBindings.POSTGRES).db,
+          ),
+      )
       .inScope(BindingScope.SINGLETON),
     Binding.bind(PlatformBindings.TENANT_REPOSITORY.key)
-      .toDynamicValue(({context}) => new DrizzleTenantRepository(context.getSync(PlatformBindings.POSTGRES).db))
+      .toDynamicValue(
+        ({context}) =>
+          new DrizzleTenantRepository(
+            context.getSync(PlatformBindings.POSTGRES).db,
+          ),
+      )
       .inScope(BindingScope.SINGLETON),
     Binding.bind(PlatformBindings.USER_REPOSITORY.key)
-      .toDynamicValue(({context}) => new DrizzleUserRepository(context.getSync(PlatformBindings.POSTGRES).db))
+      .toDynamicValue(
+        ({context}) =>
+          new DrizzleUserRepository(
+            context.getSync(PlatformBindings.POSTGRES).db,
+          ),
+      )
       .inScope(BindingScope.SINGLETON),
     Binding.bind(PlatformBindings.PROVIDER_MAPPING_REPOSITORY.key)
-      .toDynamicValue(({context}) => new DrizzleProviderMappingRepository(context.getSync(PlatformBindings.POSTGRES).db))
+      .toDynamicValue(
+        ({context}) =>
+          new DrizzleProviderMappingRepository(
+            context.getSync(PlatformBindings.POSTGRES).db,
+          ),
+      )
       .inScope(BindingScope.SINGLETON),
   ];
 

@@ -8,7 +8,12 @@ import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {SignJWT, exportJWK, generateKeyPair, createLocalJWKSet} from 'jose';
 import {loadConfig} from '@platform-internal/config';
 import type {PlatformRestApplication} from '@platform-internal/loopback-core';
-import {AuthConfig, JoseJwtVerifier, OidcIssuerConfig, type ResolvedIssuer} from '@platform-internal/auth';
+import {
+  AuthConfig,
+  JoseJwtVerifier,
+  OidcIssuerConfig,
+  type ResolvedIssuer,
+} from '@platform-internal/auth';
 import {AdminApiRoot} from './root.js';
 
 const ISSUER = 'https://login.itest/';
@@ -26,11 +31,17 @@ const issuerConfig = OidcIssuerConfig.parse({
 });
 
 const {publicKey, privateKey} = await generateKeyPair('RS256');
-const jwks = createLocalJWKSet({keys: [{...(await exportJWK(publicKey)), alg: 'RS256', kid: 'itest'}]});
+const jwks = createLocalJWKSet({
+  keys: [{...(await exportJWK(publicKey)), alg: 'RS256', kid: 'itest'}],
+});
 
 async function signAdminToken(): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
-  return new SignJWT({[TID_CLAIM]: TENANT, [ROLES_CLAIM]: ['customer'], amr: ['pwd']})
+  return new SignJWT({
+    [TID_CLAIM]: TENANT,
+    [ROLES_CLAIM]: ['customer'],
+    amr: ['pwd'],
+  })
     .setProtectedHeader({alg: 'RS256', kid: 'itest'})
     .setIssuer(ISSUER)
     .setAudience(AUDIENCE)
@@ -48,7 +59,9 @@ beforeAll(async () => {
   const cfg = {...loaded, api: {...loaded.api, port: 0}};
   const root = new AdminApiRoot(cfg, {
     authConfig: AuthConfig.parse({apiKey: {}, oidc: {issuers: [issuerConfig]}}),
-    jwtVerifier: new JoseJwtVerifier([{config: issuerConfig, jwks} satisfies ResolvedIssuer]),
+    jwtVerifier: new JoseJwtVerifier([
+      {config: issuerConfig, jwks} satisfies ResolvedIssuer,
+    ]),
   });
   app = root.createApp();
   root.bindPorts(app);
@@ -64,21 +77,35 @@ afterAll(async () => {
 describe('OIDC bearer path (live)', () => {
   it('verifies a bearer JWT → user principal with role-resolved scopes', async () => {
     const token = await signAdminToken();
-    const res = await fetch(`${base}/v1/whoami`, {headers: {authorization: `Bearer ${token}`}});
+    const res = await fetch(`${base}/v1/whoami`, {
+      headers: {authorization: `Bearer ${token}`},
+    });
     expect(res.status).toBe(200);
-    const me = (await res.json()) as {principalId: string; tenantId: string; kind: string; scopes: string[]};
+    const me = (await res.json()) as {
+      principalId: string;
+      tenantId: string;
+      kind: string;
+      scopes: string[];
+    };
     expect(me.kind).toBe('user');
     expect(me.tenantId).toBe(TENANT);
     expect(me.principalId).toBe('prn_auth0adminitest'); // derived from sub (JIT)
     // Scopes resolved from the platform `customer` role (migration 0029), per-request via RLS registry.
     expect(me.scopes).toEqual(
-      expect.arrayContaining(['appointment.slot.read', 'appointment.booking.create']),
+      expect.arrayContaining([
+        'appointment.slot.read',
+        'appointment.booking.create',
+      ]),
     );
   });
 
   it('rejects a malformed/forged bearer token → 401', async () => {
-    const res = await fetch(`${base}/v1/whoami`, {headers: {authorization: 'Bearer not.a.jwt'}});
+    const res = await fetch(`${base}/v1/whoami`, {
+      headers: {authorization: 'Bearer not.a.jwt'},
+    });
     expect(res.status).toBe(401);
-    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe('unauthorized');
+    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe(
+      'unauthorized',
+    );
   });
 });

@@ -114,13 +114,20 @@ export type UsageRecord = z.infer<typeof UsageRecord>;
 export interface AuditSink {
   /** Append-only; throws if `id`/`integrityHash` already exists (idempotent on replay). */
   append(event: AuditEvent): Promise<void>;
-  query(filter: {tenantId: TenantId; correlationId?: string; action?: AuditAction}): Promise<AuditEvent[]>;
+  query(filter: {
+    tenantId: TenantId;
+    correlationId?: string;
+    action?: AuditAction;
+  }): Promise<AuditEvent[]>;
 }
 
 export interface UsageMeter {
   /** Idempotent: same dedupeKey is a no-op. Aggregates agentback's stream, does not re-derive it. */
   record(event: UsageEvent): Promise<{inserted: boolean}>;
-  summarize(tenantId: TenantId, period: string): Promise<Record<MeterKind, number>>;
+  summarize(
+    tenantId: TenantId,
+    period: string,
+  ): Promise<Record<MeterKind, number>>;
 }
 
 /** Helper: canonical dedupe-key derivation. */

@@ -20,7 +20,11 @@ import {
   type TenantId,
 } from '@platform/contracts';
 import type {DrizzleMessageRepository} from '@platform-internal/drizzle';
-import {MESSAGING_REPLY_SEND, type MessageSendResult, type OutboundInput} from './messaging.js';
+import {
+  MESSAGING_REPLY_SEND,
+  type MessageSendResult,
+  type OutboundInput,
+} from './messaging.js';
 import type {ProviderCredentialStore} from '@platform/contracts';
 import type {SmsChannelTransport} from './sms-transport.js';
 
@@ -35,14 +39,18 @@ export interface CircuitConfig {
 
 const DEFAULT_CIRCUIT: CircuitConfig = {failureThreshold: 5, resetMs: 30_000};
 
-const shortHash = (s: string, n: number) => createHash('sha256').update(s).digest('hex').slice(0, n);
+const shortHash = (s: string, n: number) =>
+  createHash('sha256').update(s).digest('hex').slice(0, n);
 
 /** Standard closed → open → half-open breaker over a monotonic clock (ms). */
 class CircuitBreaker {
   private consecutiveFailures = 0;
   private openedAtMs: number | null = null;
 
-  constructor(private readonly cfg: CircuitConfig, private readonly nowMs: () => number) {}
+  constructor(
+    private readonly cfg: CircuitConfig,
+    private readonly nowMs: () => number,
+  ) {}
 
   /** Reject the call up front when the breaker is open and still cooling down. */
   isOpen(): boolean {
@@ -57,12 +65,15 @@ class CircuitBreaker {
 
   onFailure(): void {
     this.consecutiveFailures += 1;
-    if (this.consecutiveFailures >= this.cfg.failureThreshold) this.openedAtMs = this.nowMs();
+    if (this.consecutiveFailures >= this.cfg.failureThreshold)
+      this.openedAtMs = this.nowMs();
   }
 
   state(): 'closed' | 'open' | 'half-open' {
     if (this.openedAtMs === null) return 'closed';
-    return this.nowMs() - this.openedAtMs < this.cfg.resetMs ? 'open' : 'half-open';
+    return this.nowMs() - this.openedAtMs < this.cfg.resetMs
+      ? 'open'
+      : 'half-open';
   }
 }
 
@@ -70,7 +81,10 @@ class CircuitBreaker {
  * Delivers outbound SMS through a vendor transport, persists the authoritative record, and guards the
  * vendor with a circuit breaker. `providerId` matches the capability contract's provider mapping entry.
  */
-export class VendorSmsProvider implements ProviderAdapter<OutboundInput, MessageSendResult> {
+export class VendorSmsProvider implements ProviderAdapter<
+  OutboundInput,
+  MessageSendResult
+> {
   readonly providerId = TWILIO_SMS_PROVIDER_ID;
   readonly capability = MESSAGING_REPLY_SEND;
   private readonly breaker: CircuitBreaker;
@@ -79,10 +93,17 @@ export class VendorSmsProvider implements ProviderAdapter<OutboundInput, Message
     private readonly transport: Pick<SmsChannelTransport, 'deliver'>,
     private readonly repo: DrizzleMessageRepository,
     private readonly credentials: ProviderCredentialStore,
-    opts: {circuit?: CircuitConfig; clock?: () => Date; nowMs?: () => number} = {},
+    opts: {
+      circuit?: CircuitConfig;
+      clock?: () => Date;
+      nowMs?: () => number;
+    } = {},
   ) {
     this.clock = opts.clock ?? (() => new Date());
-    this.breaker = new CircuitBreaker(opts.circuit ?? DEFAULT_CIRCUIT, opts.nowMs ?? (() => Date.now()));
+    this.breaker = new CircuitBreaker(
+      opts.circuit ?? DEFAULT_CIRCUIT,
+      opts.nowMs ?? (() => Date.now()),
+    );
   }
 
   private readonly clock: () => Date;
@@ -97,7 +118,10 @@ export class VendorSmsProvider implements ProviderAdapter<OutboundInput, Message
     };
   }
 
-  async execute(input: OutboundInput, ctx: ProviderExecutionContext): Promise<MessageSendResult> {
+  async execute(
+    input: OutboundInput,
+    ctx: ProviderExecutionContext,
+  ): Promise<MessageSendResult> {
     // Defense in depth: the resolver already skips an open breaker, but a half-open trial reaching here
     // that we know is still cooling down must not attempt a send.
     if (this.breaker.isOpen()) {
@@ -105,9 +129,16 @@ export class VendorSmsProvider implements ProviderAdapter<OutboundInput, Message
       throw new Error(`circuit open for ${this.providerId}`);
     }
 
-    const config = (await this.credentials.resolve(ctx.tenantId as TenantId, this.providerId, this.capability)).config;
+    const config = (
+      await this.credentials.resolve(
+        ctx.tenantId as TenantId,
+        this.providerId,
+        this.capability,
+      )
+    ).config;
     const text = input.body ?? input.template ?? '';
-    const conversationId = input.conversationId ?? `cnv_${shortHash(input.to, 16)}`;
+    const conversationId =
+      input.conversationId ?? `cnv_${shortHash(input.to, 16)}`;
 
     let receipt: {providerMessageId: string};
     try {

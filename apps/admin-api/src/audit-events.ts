@@ -6,7 +6,12 @@
 // REQUEST's correlation id (unique per request), so each PATCH is its own audit row and a same-request
 // transactional retry collapses.
 import {createHash} from 'node:crypto';
-import type {AuditEvent, IsoTimestamp, PrincipalId, TenantId} from '@platform/contracts';
+import type {
+  AuditEvent,
+  IsoTimestamp,
+  PrincipalId,
+  TenantId,
+} from '@platform/contracts';
 
 const sha256hex = (s: string) => createHash('sha256').update(s).digest('hex');
 
@@ -31,9 +36,21 @@ export function tenantConfigChangedEvent(args: {
     occurredAt: args.occurredAt,
   };
   const canonical = JSON.stringify([
-    row.tenantId, row.principalId, row.action, row.correlationId, row.turnId, row.conversationId,
-    row.subject, row.detail, row.outcome, row.occurredAt,
+    row.tenantId,
+    row.principalId,
+    row.action,
+    row.correlationId,
+    row.turnId,
+    row.conversationId,
+    row.subject,
+    row.detail,
+    row.outcome,
+    row.occurredAt,
   ]);
   const id = `aud_${sha256hex(`${row.correlationId}:${row.action}:${row.subject}:${row.occurredAt}`).slice(0, 24)}`;
-  return {...row, id, integrityHash: `sha256:${sha256hex(canonical)}`} as unknown as AuditEvent;
+  return {
+    ...row,
+    id,
+    integrityHash: `sha256:${sha256hex(canonical)}`,
+  } as unknown as AuditEvent;
 }

@@ -19,7 +19,14 @@ const KEY_NOSCOPE = 'itest-user-noscope';
 
 const key = (k: string, principalId: string, scopes: Scope[]): ApiKeySeed => ({
   key: k,
-  record: {keyId: `apk_${principalId}`, tenantId: TENANT, principalId: principalId as PrincipalId, scopes, status: 'active', expiresAt: null},
+  record: {
+    keyId: `apk_${principalId}`,
+    tenantId: TENANT,
+    principalId: principalId as PrincipalId,
+    scopes,
+    status: 'active',
+    expiresAt: null,
+  },
 });
 
 let app: PlatformRestApplication;
@@ -44,7 +51,10 @@ beforeAll(async () => {
   const cfg = {...loaded, api: {...loaded.api, port: 0}};
   const root = new AdminApiRoot(cfg, {
     apiKeySeeds: [
-      key(KEY_WRITE, 'prn_svc_uwrite', ['tenant.user.create', 'tenant.user.read'] as Scope[]),
+      key(KEY_WRITE, 'prn_svc_uwrite', [
+        'tenant.user.create',
+        'tenant.user.read',
+      ] as Scope[]),
       key(KEY_NOSCOPE, 'prn_svc_unos', ['tenant.role.read'] as Scope[]),
     ],
   });
@@ -72,28 +82,47 @@ const create = (key: string, body: unknown, tenant: string = TENANT) =>
 
 describe('POST/GET /v1/tenants/{tenantId}/users (live)', () => {
   it('creates a service user (201) that then appears in the list', async () => {
-    const res = await create(KEY_WRITE, {kind: 'service', displayName: 'Dispatcher Bot', roleNames: ['customer'], externalHandle: 'dispatcher-bot'});
+    const res = await create(KEY_WRITE, {
+      kind: 'service',
+      displayName: 'Dispatcher Bot',
+      roleNames: ['customer'],
+      externalHandle: 'dispatcher-bot',
+    });
     expect(res.status).toBe(201);
-    const dto = (await res.json()) as {principalId: string; kind: string; roleNames: string[]; status: string};
+    const dto = (await res.json()) as {
+      principalId: string;
+      kind: string;
+      roleNames: string[];
+      status: string;
+    };
     expect(dto.principalId).toMatch(/^prn_/);
     expect(dto.kind).toBe('service');
     expect(dto.roleNames).toEqual(['customer']);
     expect(dto.status).toBe('active');
 
-    const list = (await (await fetch(`${base}/v1/tenants/${TENANT}/users`, {headers: {'x-api-key': KEY_WRITE}})).json()) as {items: Array<{principalId: string}>; hasMore: boolean};
+    const list = (await (
+      await fetch(`${base}/v1/tenants/${TENANT}/users`, {
+        headers: {'x-api-key': KEY_WRITE},
+      })
+    ).json()) as {items: Array<{principalId: string}>; hasMore: boolean};
     expect(list.items.some(u => u.principalId === dto.principalId)).toBe(true);
     expect(list.hasMore).toBe(false);
   });
 
   it('rejects a duplicate externalHandle → 409 conflict', async () => {
-    const res = await create(KEY_WRITE, {kind: 'service', externalHandle: 'dispatcher-bot'}); // same handle
+    const res = await create(KEY_WRITE, {
+      kind: 'service',
+      externalHandle: 'dispatcher-bot',
+    }); // same handle
     expect(res.status).toBe(409);
   });
 
   it('rejects an invalid body → 422', async () => {
     const res = await create(KEY_WRITE, {displayName: 'no kind'}); // missing kind
     expect(res.status).toBe(422);
-    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe('validation_failed');
+    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe(
+      'validation_failed',
+    );
   });
 
   it('rejects a principal without tenant.user.create → 403', async () => {
@@ -105,7 +134,15 @@ describe('POST/GET /v1/tenants/{tenantId}/users (live)', () => {
   });
 
   it('unauthenticated → 401 (before routing)', async () => {
-    expect((await fetch(`${base}/v1/tenants/${TENANT}/users`, {headers: {'x-api-key': KEY_NOSCOPE}})).status).toBe(403);
-    expect((await fetch(`${base}/v1/tenants/${TENANT}/users`)).status).toBe(401);
+    expect(
+      (
+        await fetch(`${base}/v1/tenants/${TENANT}/users`, {
+          headers: {'x-api-key': KEY_NOSCOPE},
+        })
+      ).status,
+    ).toBe(403);
+    expect((await fetch(`${base}/v1/tenants/${TENANT}/users`)).status).toBe(
+      401,
+    );
   });
 });

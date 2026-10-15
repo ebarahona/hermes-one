@@ -10,7 +10,10 @@ export type {
   ModelUsage,
   ModelCompleteRequest,
 } from './port.js';
-export {createOpenAICompatibleModel, type ModelClientConfig} from './openai-compatible.js';
+export {
+  createOpenAICompatibleModel,
+  type ModelClientConfig,
+} from './openai-compatible.js';
 
 export const descriptor = {
   name: '@platform-internal/model-client',

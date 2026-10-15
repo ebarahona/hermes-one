@@ -17,7 +17,8 @@ import type {
   TurnId,
 } from '@platform/contracts';
 
-const short = (s: string, n: number) => createHash('sha256').update(s).digest('hex').slice(0, n);
+const short = (s: string, n: number) =>
+  createHash('sha256').update(s).digest('hex').slice(0, n);
 
 export interface InvokeCapabilityArgs {
   capability: string;
@@ -49,7 +50,8 @@ export function createCapabilityActivities(
       const contract = lookup(a.capability as CapabilityName);
       if (!contract) throw new Error(`unknown capability: ${a.capability}`);
 
-      const turnId = `trn_${short(`${a.correlationId}:${a.invokeSeq}`, 24)}` as TurnId;
+      const turnId =
+        `trn_${short(`${a.correlationId}:${a.invokeSeq}`, 24)}` as TurnId;
       const idempotencyKey = deriveIdempotencyKey(contract, a.input, turnId);
       const now = new Date().toISOString() as IsoTimestamp;
 
@@ -73,7 +75,13 @@ export function createCapabilityActivities(
           ...(credentials
             ? {
                 providerConfigFor: async (providerId: string) =>
-                  (await credentials.resolve(a.tenantId as TenantId, providerId, a.capability as CapabilityName)).config,
+                  (
+                    await credentials.resolve(
+                      a.tenantId as TenantId,
+                      providerId,
+                      a.capability as CapabilityName,
+                    )
+                  ).config,
               }
             : {}),
         },

@@ -18,7 +18,14 @@ const KEY_NOSCOPE = 'itest-def-noscope';
 
 const key = (k: string, principalId: string, scopes: Scope[]): ApiKeySeed => ({
   key: k,
-  record: {keyId: `apk_${principalId}`, tenantId: TENANT, principalId: principalId as PrincipalId, scopes, status: 'active', expiresAt: null},
+  record: {
+    keyId: `apk_${principalId}`,
+    tenantId: TENANT,
+    principalId: principalId as PrincipalId,
+    scopes,
+    status: 'active',
+    expiresAt: null,
+  },
 });
 
 // A valid capability definition body (mirrors apps/workflow-worker/src/publish.ts).
@@ -26,17 +33,28 @@ const capabilityBody = {
   name: 'itest.slot.read',
   title: 'Read appointment slots',
   description: 'List open appointment slots for a given date.',
-  inputJsonSchema: {type: 'object', required: ['date'], properties: {date: {type: 'string'}}},
+  inputJsonSchema: {
+    type: 'object',
+    required: ['date'],
+    properties: {date: {type: 'string'}},
+  },
   outputJsonSchema: {type: 'object', properties: {slots: {type: 'array'}}},
   sideEffect: 'read',
   changedDomains: ['none'],
   idempotency: {required: false, keyFields: [], ttlSeconds: 86400},
   confirm: false,
   requiredScope: 'itest.slot.read',
-  providerMapping: {providers: [{providerId: 'internal-scheduler', priority: 100}], eligibility: [], onNoProvider: 'fail'},
+  providerMapping: {
+    providers: [{providerId: 'internal-scheduler', priority: 100}],
+    eligibility: [],
+    onNoProvider: 'fail',
+  },
 };
 
-const putReq = (tenantId: string | null, over: Record<string, unknown> = {}) => ({
+const putReq = (
+  tenantId: string | null,
+  over: Record<string, unknown> = {},
+) => ({
   tenantId,
   kind: 'capability',
   name: 'itest-slot-read',
@@ -80,28 +98,47 @@ describe('PUT /v1/definitions/{id} (live)', () => {
   it('authors a capability definition → 200 with a content hash', async () => {
     const res = await put(KEY_WRITE, 'def_itest_cap', putReq(TENANT));
     expect(res.status).toBe(200);
-    const result = (await res.json()) as {definitionId: string; contentHash: string; version: string};
+    const result = (await res.json()) as {
+      definitionId: string;
+      contentHash: string;
+      version: string;
+    };
     expect(result.definitionId).toBe('def_itest_cap');
     expect(result.contentHash).toMatch(/^sha256:/);
     expect(result.version).toBe('1.0.0');
   });
 
   it('is idempotent — re-authoring the same body returns the same content hash', async () => {
-    const a = (await (await put(KEY_WRITE, 'def_itest_cap', putReq(TENANT))).json()) as {contentHash: string};
-    const b = (await (await put(KEY_WRITE, 'def_itest_cap', putReq(TENANT))).json()) as {contentHash: string};
+    const a = (await (
+      await put(KEY_WRITE, 'def_itest_cap', putReq(TENANT))
+    ).json()) as {contentHash: string};
+    const b = (await (
+      await put(KEY_WRITE, 'def_itest_cap', putReq(TENANT))
+    ).json()) as {contentHash: string};
     expect(a.contentHash).toBe(b.contentHash);
   });
 
   it('rejects a malformed envelope → 422', async () => {
-    const res = await put(KEY_WRITE, 'def_itest_bad', {kind: 'capability', name: 'x'}); // missing fields
+    const res = await put(KEY_WRITE, 'def_itest_bad', {
+      kind: 'capability',
+      name: 'x',
+    }); // missing fields
     expect(res.status).toBe(422);
-    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe('validation_failed');
+    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe(
+      'validation_failed',
+    );
   });
 
   it('rejects an invalid capability body → 422 (registry validation)', async () => {
-    const res = await put(KEY_WRITE, 'def_itest_badbody', putReq(TENANT, {body: {name: 'x'}}));
+    const res = await put(
+      KEY_WRITE,
+      'def_itest_badbody',
+      putReq(TENANT, {body: {name: 'x'}}),
+    );
     expect(res.status).toBe(422);
-    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe('validation_failed');
+    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe(
+      'validation_failed',
+    );
   });
 
   it('rejects a principal without definition.write → 403', async () => {
@@ -110,12 +147,21 @@ describe('PUT /v1/definitions/{id} (live)', () => {
   });
 
   it('rejects authoring for another tenant (or platform) → 403', async () => {
-    expect((await put(KEY_WRITE, 'def_itest_cap', putReq('tnt_someone_else'))).status).toBe(403);
-    expect((await put(KEY_WRITE, 'def_itest_cap', putReq(null))).status).toBe(403);
+    expect(
+      (await put(KEY_WRITE, 'def_itest_cap', putReq('tnt_someone_else')))
+        .status,
+    ).toBe(403);
+    expect((await put(KEY_WRITE, 'def_itest_cap', putReq(null))).status).toBe(
+      403,
+    );
   });
 
   it('unauthenticated → 401 (before routing)', async () => {
-    const res = await fetch(`${base}/v1/definitions/def_itest_cap`, {method: 'PUT', headers: {'content-type': 'application/json'}, body: '{}'});
+    const res = await fetch(`${base}/v1/definitions/def_itest_cap`, {
+      method: 'PUT',
+      headers: {'content-type': 'application/json'},
+      body: '{}',
+    });
     expect(res.status).toBe(401);
   });
 });

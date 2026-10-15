@@ -3,7 +3,8 @@
 // looks them up by the ProviderRef the ProviderMapping ranks.
 import type {CapabilityName, ProviderAdapter} from '@platform/contracts';
 
-const key = (capability: string, providerId: string) => `${capability}::${providerId}`;
+const key = (capability: string, providerId: string) =>
+  `${capability}::${providerId}`;
 
 export class ProviderRegistry {
   private readonly byKey = new Map<string, ProviderAdapter>();
@@ -16,7 +17,10 @@ export class ProviderRegistry {
     this.byKey.set(key(adapter.capability, adapter.providerId), adapter);
   }
 
-  get(capability: CapabilityName, providerId: string): ProviderAdapter | undefined {
+  get(
+    capability: CapabilityName,
+    providerId: string,
+  ): ProviderAdapter | undefined {
     return this.byKey.get(key(capability, providerId));
   }
 }

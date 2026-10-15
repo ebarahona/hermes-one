@@ -19,8 +19,15 @@ export type Composer = (
 ) => string;
 
 /** The default evidence-only composer: summarize grounded evidence statements, else the model's text. */
-export const composeEvidenceOnly: Composer = (ctx, _objective, fallbackText) => {
-  const grounded = ctx.evidence.filter(e => e.trusted).map(e => e.statement.trim()).filter(Boolean);
+export const composeEvidenceOnly: Composer = (
+  ctx,
+  _objective,
+  fallbackText,
+) => {
+  const grounded = ctx.evidence
+    .filter(e => e.trusted)
+    .map(e => e.statement.trim())
+    .filter(Boolean);
   if (grounded.length > 0) return grounded.join(' ');
   return (fallbackText ?? '').trim();
 };

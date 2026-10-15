@@ -33,7 +33,9 @@ export class MissingCredentialsError extends Error {
  */
 export class StaticProviderCredentialStore implements ProviderCredentialStore {
   constructor(
-    private readonly byProvider: Readonly<Record<string, Readonly<Record<string, string>>>>,
+    private readonly byProvider: Readonly<
+      Record<string, Readonly<Record<string, string>>>
+    >,
     private readonly clock: () => Date = () => new Date(),
   ) {}
 
@@ -56,10 +58,14 @@ export class StaticProviderCredentialStore implements ProviderCredentialStore {
 
   /** Env-backed and immutable — rotation happens where the env does. Fail loudly, never pretend. */
   async rotate(): Promise<void> {
-    throw new Error('StaticProviderCredentialStore cannot rotate — configure the envelope store (ADR-026)');
+    throw new Error(
+      'StaticProviderCredentialStore cannot rotate — configure the envelope store (ADR-026)',
+    );
   }
 
   async revoke(): Promise<void> {
-    throw new Error('StaticProviderCredentialStore cannot revoke — configure the envelope store (ADR-026)');
+    throw new Error(
+      'StaticProviderCredentialStore cannot revoke — configure the envelope store (ADR-026)',
+    );
   }
 }

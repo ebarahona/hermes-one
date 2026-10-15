@@ -13,9 +13,13 @@ import type {
 import {PlatformErrorException} from '@platform/contracts';
 import type {RedisClient} from '@platform-internal/redis';
 import type {PlatformDb} from '../tenant-aware.repository.js';
-import {DrizzleCompiledPlanStore, SubstrateCacheKeys} from './compiled-plan-store.repository.js';
+import {
+  DrizzleCompiledPlanStore,
+  SubstrateCacheKeys,
+} from './compiled-plan-store.repository.js';
 
-const hash = (c: string): ContentHash => (`sha256:${c.repeat(64).slice(0, 64)}`) as ContentHash;
+const hash = (c: string): ContentHash =>
+  `sha256:${c.repeat(64).slice(0, 64)}` as ContentHash;
 
 function fakeRedis(seed: Record<string, string> = {}): RedisClient {
   const map = new Map<string, string>(Object.entries(seed));
@@ -47,18 +51,24 @@ const pln = 'pln_x' as PlanId;
 describe('SubstrateCacheKeys', () => {
   it('builds tenant-scoped, contentHash-embedded keys', () => {
     const ch = hash('a');
-    expect(SubstrateCacheKeys.plan(tnt, pln, ch)).toBe(`plan:tnt_acme:pln_x:${ch}`);
+    expect(SubstrateCacheKeys.plan(tnt, pln, ch)).toBe(
+      `plan:tnt_acme:pln_x:${ch}`,
+    );
     expect(SubstrateCacheKeys.contract(tnt, 'def_x' as DefinitionId, ch)).toBe(
       `contract:tnt_acme:def_x:${ch}`,
     );
-    expect(SubstrateCacheKeys.activeDeployment(tnt)).toBe('deployment:tnt_acme:active');
+    expect(SubstrateCacheKeys.activeDeployment(tnt)).toBe(
+      'deployment:tnt_acme:active',
+    );
   });
 });
 
 describe('resolvePlanCached — mandatory contentHash verify', () => {
   it('returns the cached plan when the hash matches', async () => {
     const ch = hash('b');
-    const redis = fakeRedis({[SubstrateCacheKeys.plan(tnt, pln, ch)]: JSON.stringify(planFor(ch))});
+    const redis = fakeRedis({
+      [SubstrateCacheKeys.plan(tnt, pln, ch)]: JSON.stringify(planFor(ch)),
+    });
     const store = new DrizzleCompiledPlanStore(stubDb, redis);
     const plan = await store.resolvePlanCached(tnt, pln, ch);
     expect(plan.contentHash).toBe(ch);
@@ -69,11 +79,13 @@ describe('resolvePlanCached — mandatory contentHash verify', () => {
     const corrupted = hash('d');
     // Cache holds a plan whose body hashes to `corrupted`, keyed under `requested`.
     const redis = fakeRedis({
-      [SubstrateCacheKeys.plan(tnt, pln, requested)]: JSON.stringify(planFor(corrupted)),
+      [SubstrateCacheKeys.plan(tnt, pln, requested)]: JSON.stringify(
+        planFor(corrupted),
+      ),
     });
     const store = new DrizzleCompiledPlanStore(stubDb, redis);
-    await expect(store.resolvePlanCached(tnt, pln, requested)).rejects.toBeInstanceOf(
-      PlatformErrorException,
-    );
+    await expect(
+      store.resolvePlanCached(tnt, pln, requested),
+    ).rejects.toBeInstanceOf(PlatformErrorException);
   });
 });

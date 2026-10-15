@@ -68,20 +68,30 @@ function checkExpression(
             `RULE_OPERATOR_ARITY: operator '${expr.op}' expects ${spec.arity} argument(s), got ${expr.args.length}`,
           );
         }
-        if (booleanContext && spec.returns !== 'boolean' && spec.returns !== 'unknown') {
+        if (
+          booleanContext &&
+          spec.returns !== 'boolean' &&
+          spec.returns !== 'unknown'
+        ) {
           throw new RuleCompileError(
             `RULE_OPERATOR_RETURN_TYPE: operator '${expr.op}' returns '${spec.returns}' where a boolean is required`,
           );
         }
       }
-      expr.args.forEach(a => checkExpression(a, registry, depth + 1, maxDepth, false));
+      expr.args.forEach(a =>
+        checkExpression(a, registry, depth + 1, maxDepth, false),
+      );
       break;
     }
     case 'and':
-      expr.all.forEach(a => checkExpression(a, registry, depth + 1, maxDepth, true));
+      expr.all.forEach(a =>
+        checkExpression(a, registry, depth + 1, maxDepth, true),
+      );
       break;
     case 'or':
-      expr.any.forEach(a => checkExpression(a, registry, depth + 1, maxDepth, true));
+      expr.any.forEach(a =>
+        checkExpression(a, registry, depth + 1, maxDepth, true),
+      );
       break;
     case 'not':
       checkExpression(expr.expr, registry, depth + 1, maxDepth, true);

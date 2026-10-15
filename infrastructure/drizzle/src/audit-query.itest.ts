@@ -5,7 +5,10 @@
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {Pool} from 'pg';
 import {loadConfig} from '@platform-internal/config';
-import {createAuditQueryService, type AuditQueryServiceHandle} from './client.js';
+import {
+  createAuditQueryService,
+  type AuditQueryServiceHandle,
+} from './client.js';
 import type {TenantId} from '@platform/contracts';
 
 const cfg = loadConfig();
@@ -21,8 +24,13 @@ let q: AuditQueryServiceHandle;
 beforeAll(async () => {
   owner = new Pool({connectionString: PG, max: 2});
   q = createAuditQueryService(PG);
-  for (const t of ['audit_events'] as const) await owner.query(`DELETE FROM audit.${t} WHERE tenant_id=$1`, [TENANT]);
-  for (const t of ['tool_executions', 'evidence_records', 'policy_decisions'] as const)
+  for (const t of ['audit_events'] as const)
+    await owner.query(`DELETE FROM audit.${t} WHERE tenant_id=$1`, [TENANT]);
+  for (const t of [
+    'tool_executions',
+    'evidence_records',
+    'policy_decisions',
+  ] as const)
     await owner.query(`DELETE FROM runtime.${t} WHERE tenant_id=$1`, [TENANT]);
 
   // A rule decision (workflow-level, turn_id NULL) + a turn's tool.invoked audit (turn-linked).
@@ -47,8 +55,14 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await owner.query(`DELETE FROM audit.audit_events WHERE tenant_id=$1`, [TENANT]);
-  for (const t of ['tool_executions', 'evidence_records', 'policy_decisions'] as const)
+  await owner.query(`DELETE FROM audit.audit_events WHERE tenant_id=$1`, [
+    TENANT,
+  ]);
+  for (const t of [
+    'tool_executions',
+    'evidence_records',
+    'policy_decisions',
+  ] as const)
     await owner.query(`DELETE FROM runtime.${t} WHERE tenant_id=$1`, [TENANT]);
   await owner.end();
   await q.close();
@@ -58,11 +72,11 @@ describe('DrizzleAuditQueryService.composeTimeline (live)', () => {
   it('joins all four sources for the correlation, sorted by occurredAt', async () => {
     const tl = await q.repo.composeTimeline(TENANT, CID);
     expect(tl.map(e => e.kind)).toEqual([
-      'audit',           // decision.rule @ 00:00:00
+      'audit', // decision.rule @ 00:00:00
       'policy-decision', // @ 00:00:01
-      'tool-execution',  // @ 00:00:02
-      'audit',           // tool.invoked @ 00:00:02.5
-      'evidence',        // @ 00:00:03
+      'tool-execution', // @ 00:00:02
+      'audit', // tool.invoked @ 00:00:02.5
+      'evidence', // @ 00:00:03
     ]);
     expect(tl.every(e => e.detail !== null)).toBe(true);
     // tool/evidence were bridged via the turnId even though they carry no correlation_id.
@@ -71,7 +85,9 @@ describe('DrizzleAuditQueryService.composeTimeline (live)', () => {
   });
 
   it('queryAuditEvents filters by action (compliance export)', async () => {
-    const events = await q.repo.queryAuditEvents(TENANT, {action: 'decision.rule'});
+    const events = await q.repo.queryAuditEvents(TENANT, {
+      action: 'decision.rule',
+    });
     expect(events.map(e => e.id)).toEqual(['aud_tl_rule']);
   });
 

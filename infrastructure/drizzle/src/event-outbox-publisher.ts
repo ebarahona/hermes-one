@@ -7,7 +7,10 @@
 // because the cross-tenant relay role is an unresolved question (a bypass-capable role is exactly what the RLS self-check exists to keep out). The
 // tenant list is config today (HERMES_OUTBOX_TENANTS); the real source is the tenant registry (CT1/CT2).
 import type {EventPublisher, SemVer, TenantId} from '@platform/contracts';
-import type {DrizzleEventOutboxRepository, OutboxDrainResult} from './event-outbox-repository.js';
+import type {
+  DrizzleEventOutboxRepository,
+  OutboxDrainResult,
+} from './event-outbox-repository.js';
 
 export interface OutboxPublisherConfig {
   /** EventEnvelopeConfig.outboxPollIntervalMs (default 1000). */

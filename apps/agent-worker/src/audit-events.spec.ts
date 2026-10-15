@@ -1,6 +1,12 @@
 import {describe, expect, it} from 'vitest';
 import type {
-  ConversationId, IsoTimestamp, PrincipalId, TenantId, ToolCall, ToolResult, TurnId,
+  ConversationId,
+  IsoTimestamp,
+  PrincipalId,
+  TenantId,
+  ToolCall,
+  ToolResult,
+  TurnId,
 } from '@platform/contracts';
 import type {TurnLedger} from '@platform-internal/agent-runtime';
 import {deriveAuditEvents} from './audit-events.js';
@@ -17,8 +23,20 @@ const call: ToolCall = {
 const okResult: ToolResult = {
   toolCallId: 'tc_1' as ToolResult['toolCallId'],
   capability: 'appointment.slot.read' as ToolResult['capability'],
-  ok: true, output: {slots: []}, sideEffect: 'read', stateChanged: false, changedDomains: ['none'],
-  evidence: [], metrics: {latencyMs: 5, providerId: 'p', retries: 0, costUsd: 0, idempotentReplay: false}, error: null,
+  ok: true,
+  output: {slots: []},
+  sideEffect: 'read',
+  stateChanged: false,
+  changedDomains: ['none'],
+  evidence: [],
+  metrics: {
+    latencyMs: 5,
+    providerId: 'p',
+    retries: 0,
+    costUsd: 0,
+    idempotentReplay: false,
+  },
+  error: null,
 };
 
 const ledger: TurnLedger = {
@@ -29,8 +47,28 @@ const ledger: TurnLedger = {
   evidence: [],
   usage: {modelCostUsd: 0, inputTokens: 0, outputTokens: 0, toolCount: 1},
   policyDecisions: [
-    {decisionId: 'pld_1', site: 'preGate', decision: {outcome: 'allow', policyRuleId: '<default>', reason: 'ok', decidedAt: NOW}, capability: 'appointment.slot.read' as ToolCall['capability']},
-    {decisionId: 'pld_2', site: 'preGate', decision: {outcome: 'deny', policyRuleId: 'r_block', reason: 'blocked', decidedAt: NOW}, capability: 'appointment.booking.create' as ToolCall['capability']},
+    {
+      decisionId: 'pld_1',
+      site: 'preGate',
+      decision: {
+        outcome: 'allow',
+        policyRuleId: '<default>',
+        reason: 'ok',
+        decidedAt: NOW,
+      },
+      capability: 'appointment.slot.read' as ToolCall['capability'],
+    },
+    {
+      decisionId: 'pld_2',
+      site: 'preGate',
+      decision: {
+        outcome: 'deny',
+        policyRuleId: 'r_block',
+        reason: 'blocked',
+        decidedAt: NOW,
+      },
+      capability: 'appointment.booking.create' as ToolCall['capability'],
+    },
   ],
   handoff: {
     handoffId: 'hof_1' as import('@platform/contracts').HandoffId,
@@ -41,7 +79,11 @@ const ledger: TurnLedger = {
     conversationId: 'cnv_a' as ConversationId,
   },
 };
-const ctx = {principalId: 'prn_a' as PrincipalId, conversationId: 'cnv_a' as ConversationId, occurredAt: NOW};
+const ctx = {
+  principalId: 'prn_a' as PrincipalId,
+  conversationId: 'cnv_a' as ConversationId,
+  occurredAt: NOW,
+};
 
 describe('deriveAuditEvents', () => {
   it('derives one event per material action with correct action + outcome', () => {
@@ -77,11 +119,27 @@ describe('deriveAuditEvents', () => {
     const second = deriveAuditEvents(secondVisit, ctx);
     first.forEach((e, i) => expect(second[i].id).not.toBe(e.id));
     // Re-derivation under the SAME turnId (a Temporal retry of that turn) is stable.
-    expect(deriveAuditEvents(secondVisit, ctx).map(e => e.id)).toEqual(second.map(e => e.id));
+    expect(deriveAuditEvents(secondVisit, ctx).map(e => e.id)).toEqual(
+      second.map(e => e.id),
+    );
   });
 
   it('marks a failed tool invocation as error', () => {
-    const failed = {...ledger, toolExecutions: [{call, result: {...okResult, ok: false, error: {code: 'x', message: 'boom', retryable: false}}}], policyDecisions: [], handoff: undefined};
+    const failed = {
+      ...ledger,
+      toolExecutions: [
+        {
+          call,
+          result: {
+            ...okResult,
+            ok: false,
+            error: {code: 'x', message: 'boom', retryable: false},
+          },
+        },
+      ],
+      policyDecisions: [],
+      handoff: undefined,
+    };
     const events = deriveAuditEvents(failed as TurnLedger, ctx);
     expect(events[0].outcome).toBe('error');
   });

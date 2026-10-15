@@ -4,12 +4,22 @@
 // set_config('app.tenant_id') like every other tenant repo; the ciphertext column is opaque here.
 import {and, eq} from 'drizzle-orm';
 import type {CapabilityName, TenantId} from '@platform/contracts';
-import type {CredentialRow, CredentialRowStore} from '@platform-internal/secrets';
+import type {
+  CredentialRow,
+  CredentialRowStore,
+} from '@platform-internal/secrets';
 import {TenantAwareRepository} from './tenant-aware.repository.js';
 import {providerCredentials} from './schema/capability.schema.js';
 
-export class DrizzleCredentialRowStore extends TenantAwareRepository implements CredentialRowStore {
-  async get(tenantId: TenantId, providerId: string, capability: CapabilityName): Promise<CredentialRow | null> {
+export class DrizzleCredentialRowStore
+  extends TenantAwareRepository
+  implements CredentialRowStore
+{
+  async get(
+    tenantId: TenantId,
+    providerId: string,
+    capability: CapabilityName,
+  ): Promise<CredentialRow | null> {
     return this.withTenant({tenantId}, async tx => {
       const rows = await tx
         .select()
@@ -51,8 +61,17 @@ export class DrizzleCredentialRowStore extends TenantAwareRepository implements 
           rotatedAt: row.rotatedAt,
         })
         .onConflictDoUpdate({
-          target: [providerCredentials.tenantId, providerCredentials.providerId, providerCredentials.capability],
-          set: {ciphertext: row.ciphertext, keyRef: row.keyRef, status: row.status, rotatedAt: row.rotatedAt},
+          target: [
+            providerCredentials.tenantId,
+            providerCredentials.providerId,
+            providerCredentials.capability,
+          ],
+          set: {
+            ciphertext: row.ciphertext,
+            keyRef: row.keyRef,
+            status: row.status,
+            rotatedAt: row.rotatedAt,
+          },
         }),
     );
   }

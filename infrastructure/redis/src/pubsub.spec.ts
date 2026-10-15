@@ -1,7 +1,12 @@
 // Unit tests for the event fan-out channel discipline.
 import {describe, expect, it} from 'vitest';
 import type {EventEnvelope, SemVer, TenantId} from '@platform/contracts';
-import {DEFAULT_EVENT_CHANNEL_PATTERN, RedisPubSubEventPublisher, eventChannel, type RedisClient} from './index.js';
+import {
+  DEFAULT_EVENT_CHANNEL_PATTERN,
+  RedisPubSubEventPublisher,
+  eventChannel,
+  type RedisClient,
+} from './index.js';
 
 const envelope: EventEnvelope = {
   eventId: 'evt_x1' as EventEnvelope['eventId'],
@@ -18,7 +23,9 @@ const envelope: EventEnvelope = {
 
 describe('event pub/sub channel (tenant-scoped, never wildcard)', () => {
   it('interpolates the default pattern', () => {
-    expect(eventChannel(DEFAULT_EVENT_CHANNEL_PATTERN, 'tnt_a', 'audit_event')).toBe('events:tnt_a:audit_event');
+    expect(
+      eventChannel(DEFAULT_EVENT_CHANNEL_PATTERN, 'tnt_a', 'audit_event'),
+    ).toBe('events:tnt_a:audit_event');
   });
 
   it('RedisPubSubEventPublisher publishes the JSON envelope to the tenant channel', async () => {

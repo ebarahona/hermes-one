@@ -24,7 +24,11 @@ export type ProviderStatus = z.infer<typeof ProviderStatus>;
 /* ------------------------- ProviderAdapter ----------------------------- */
 
 /** Result mapped to transport-core HandlerResult.outcome (lib-findings) + platform errors. */
-export const ProviderOutcome = z.enum(['success', 'handler-error', 'infrastructure-error']);
+export const ProviderOutcome = z.enum([
+  'success',
+  'handler-error',
+  'infrastructure-error',
+]);
 export type ProviderOutcome = z.infer<typeof ProviderOutcome>;
 
 export interface ProviderExecutionContext {
@@ -56,7 +60,15 @@ export const InboundMessage = z.object({
   from: z.string().min(1),
   to: z.string().min(1),
   text: z.string().optional(),
-  attachments: z.array(z.object({kind: z.string(), url: z.string(), mime: z.string().optional()})).default([]),
+  attachments: z
+    .array(
+      z.object({
+        kind: z.string(),
+        url: z.string(),
+        mime: z.string().optional(),
+      }),
+    )
+    .default([]),
   /** Vendor message id for dedupe/receipt correlation. */
   providerMessageId: z.string().min(1),
   receivedAt: IsoTimestamp,
@@ -71,7 +83,9 @@ export const OutboundMessage = z.object({
   conversationId: ConversationId,
   to: z.string().min(1),
   text: z.string(),
-  attachments: z.array(z.object({kind: z.string(), url: z.string()})).default([]),
+  attachments: z
+    .array(z.object({kind: z.string(), url: z.string()}))
+    .default([]),
   /** For WhatsApp: provider-registered template id (data field — findings resolution log). */
   templateId: z.string().optional(),
   idempotencyKey: z.string().min(1),
@@ -80,7 +94,14 @@ export type OutboundMessage = z.infer<typeof OutboundMessage>;
 
 export const DeliveryReceipt = z.object({
   providerMessageId: z.string().min(1),
-  status: z.enum(['queued', 'sent', 'delivered', 'read', 'failed', 'undelivered']),
+  status: z.enum([
+    'queued',
+    'sent',
+    'delivered',
+    'read',
+    'failed',
+    'undelivered',
+  ]),
   reason: z.string().optional(),
   at: IsoTimestamp,
 });
@@ -100,11 +121,20 @@ export interface ChannelTransport {
   readonly channel: Channel;
   readonly transportClass: TransportClass; // 'channel' for all custom messaging transports
   /** Verify signature, normalize a raw vendor webhook into an InboundMessage (or null to drop). */
-  ingest(rawWebhook: unknown, headers: Record<string, string>): Promise<InboundMessage | null>;
+  ingest(
+    rawWebhook: unknown,
+    headers: Record<string, string>,
+  ): Promise<InboundMessage | null>;
   /** Deliver an outbound message; returns the provider message id (receipt is async). */
-  deliver(msg: OutboundMessage, ctx: ProviderExecutionContext): Promise<{providerMessageId: string}>;
+  deliver(
+    msg: OutboundMessage,
+    ctx: ProviderExecutionContext,
+  ): Promise<{providerMessageId: string}>;
   /** Parse an async delivery-receipt webhook. */
-  parseReceipt(rawWebhook: unknown, headers: Record<string, string>): Promise<DeliveryReceipt | null>;
+  parseReceipt(
+    rawWebhook: unknown,
+    headers: Record<string, string>,
+  ): Promise<DeliveryReceipt | null>;
   /** Opt-out check + record (STOP/HELP handling). */
   isOptedOut(handle: string, tenantId: TenantId): Promise<boolean>;
 }

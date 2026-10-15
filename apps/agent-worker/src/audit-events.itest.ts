@@ -7,7 +7,13 @@ import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {Pool} from 'pg';
 import {loadConfig} from '@platform-internal/config';
 import type {
-  ConversationId, IsoTimestamp, PrincipalId, TenantId, ToolCall, ToolResult, TurnId,
+  ConversationId,
+  IsoTimestamp,
+  PrincipalId,
+  TenantId,
+  ToolCall,
+  ToolResult,
+  TurnId,
 } from '@platform/contracts';
 import {
   createTurnPersistence,
@@ -34,8 +40,20 @@ const call: ToolCall = {
 const result: ToolResult = {
   toolCallId: 'tc_visit_1' as ToolResult['toolCallId'],
   capability: 'appointment.slot.read' as ToolResult['capability'],
-  ok: true, output: {slots: []}, sideEffect: 'read', stateChanged: false, changedDomains: ['none'],
-  evidence: [], metrics: {latencyMs: 5, providerId: 'p', retries: 0, costUsd: 0, idempotentReplay: false}, error: null,
+  ok: true,
+  output: {slots: []},
+  sideEffect: 'read',
+  stateChanged: false,
+  changedDomains: ['none'],
+  evidence: [],
+  metrics: {
+    latencyMs: 5,
+    providerId: 'p',
+    retries: 0,
+    costUsd: 0,
+    idempotentReplay: false,
+  },
+  error: null,
 };
 
 /** A visit's ledger: same correlationId + material actions for every visit; only the turnId differs. */
@@ -49,7 +67,11 @@ const visitLedger = (turnId: string): TurnLedger => ({
   policyDecisions: [],
 });
 
-const ctx = {principalId: 'prn_visit' as PrincipalId, conversationId: null as ConversationId | null, occurredAt: AT};
+const ctx = {
+  principalId: 'prn_visit' as PrincipalId,
+  conversationId: null as ConversationId | null,
+  occurredAt: AT,
+};
 
 // The bundle carries ONLY the derived audit events — the failing insert under the old recipe — so the
 // test isolates the audit-id property from the ledger-row idempotency keys.
@@ -82,10 +104,16 @@ afterAll(async () => {
 
 describe('deriveAuditEvents → persistTurnAtomic across two agent-node visits (live)', () => {
   it('persists BOTH visits — same actions/subjects/seq under distinct turnIds append distinct rows', async () => {
-    await sut.repo.persistTurnAtomic(bundle(visitLedger(`trn_${CORRELATION}_0`)), {tenantId: TENANT});
+    await sut.repo.persistTurnAtomic(
+      bundle(visitLedger(`trn_${CORRELATION}_0`)),
+      {tenantId: TENANT},
+    );
     // Second visit: identical material actions — previously derived the SAME audit id with a
     // DIFFERENT integrityHash → 409 idempotency_conflict rolled this persist back.
-    await sut.repo.persistTurnAtomic(bundle(visitLedger(`trn_${CORRELATION}_1`)), {tenantId: TENANT});
+    await sut.repo.persistTurnAtomic(
+      bundle(visitLedger(`trn_${CORRELATION}_1`)),
+      {tenantId: TENANT},
+    );
 
     const rows = await owner.query(
       `SELECT id, turn_id FROM audit.audit_events WHERE tenant_id = $1 ORDER BY turn_id`,
@@ -100,8 +128,14 @@ describe('deriveAuditEvents → persistTurnAtomic across two agent-node visits (
   });
 
   it('a Temporal retry of the SAME visit re-derives identical rows and collapses idempotently', async () => {
-    await sut.repo.persistTurnAtomic(bundle(visitLedger(`trn_${CORRELATION}_1`)), {tenantId: TENANT});
-    const n = await owner.query(`SELECT count(*)::int AS n FROM audit.audit_events WHERE tenant_id = $1`, [TENANT]);
+    await sut.repo.persistTurnAtomic(
+      bundle(visitLedger(`trn_${CORRELATION}_1`)),
+      {tenantId: TENANT},
+    );
+    const n = await owner.query(
+      `SELECT count(*)::int AS n FROM audit.audit_events WHERE tenant_id = $1`,
+      [TENANT],
+    );
     expect(n.rows[0].n).toBe(2);
   });
 });

@@ -14,33 +14,33 @@ const branded = <B extends string>(prefix: string, brand: B) =>
     .startsWith(`${prefix}_`)
     .brand(brand);
 
-export const TenantId       = branded('tnt', 'TenantId');
-export const WorkspaceId    = branded('wsp', 'WorkspaceId');
+export const TenantId = branded('tnt', 'TenantId');
+export const WorkspaceId = branded('wsp', 'WorkspaceId');
 export const ConversationId = branded('cnv', 'ConversationId');
-export const PrincipalId    = branded('prn', 'PrincipalId');
-export const DefinitionId   = branded('def', 'DefinitionId');
-export const PlanId         = branded('pln', 'PlanId');
-export const DeploymentId   = branded('dpl', 'DeploymentId');
-export const TurnId         = branded('trn', 'TurnId');
-export const ToolCallId     = branded('tc',  'ToolCallId');
-export const EvidenceId     = branded('evd', 'EvidenceId');
-export const HandoffId      = branded('hof', 'HandoffId');
-export const AuditEventId   = branded('aud', 'AuditEventId');
-export const UsageEventId   = branded('usg', 'UsageEventId');
+export const PrincipalId = branded('prn', 'PrincipalId');
+export const DefinitionId = branded('def', 'DefinitionId');
+export const PlanId = branded('pln', 'PlanId');
+export const DeploymentId = branded('dpl', 'DeploymentId');
+export const TurnId = branded('trn', 'TurnId');
+export const ToolCallId = branded('tc', 'ToolCallId');
+export const EvidenceId = branded('evd', 'EvidenceId');
+export const HandoffId = branded('hof', 'HandoffId');
+export const AuditEventId = branded('aud', 'AuditEventId');
+export const UsageEventId = branded('usg', 'UsageEventId');
 
-export type TenantId       = z.infer<typeof TenantId>;
-export type WorkspaceId    = z.infer<typeof WorkspaceId>;
+export type TenantId = z.infer<typeof TenantId>;
+export type WorkspaceId = z.infer<typeof WorkspaceId>;
 export type ConversationId = z.infer<typeof ConversationId>;
-export type PrincipalId    = z.infer<typeof PrincipalId>;
-export type DefinitionId   = z.infer<typeof DefinitionId>;
-export type PlanId         = z.infer<typeof PlanId>;
-export type DeploymentId   = z.infer<typeof DeploymentId>;
-export type TurnId         = z.infer<typeof TurnId>;
-export type ToolCallId     = z.infer<typeof ToolCallId>;
-export type EvidenceId     = z.infer<typeof EvidenceId>;
-export type HandoffId      = z.infer<typeof HandoffId>;
-export type AuditEventId   = z.infer<typeof AuditEventId>;
-export type UsageEventId   = z.infer<typeof UsageEventId>;
+export type PrincipalId = z.infer<typeof PrincipalId>;
+export type DefinitionId = z.infer<typeof DefinitionId>;
+export type PlanId = z.infer<typeof PlanId>;
+export type DeploymentId = z.infer<typeof DeploymentId>;
+export type TurnId = z.infer<typeof TurnId>;
+export type ToolCallId = z.infer<typeof ToolCallId>;
+export type EvidenceId = z.infer<typeof EvidenceId>;
+export type HandoffId = z.infer<typeof HandoffId>;
+export type AuditEventId = z.infer<typeof AuditEventId>;
+export type UsageEventId = z.infer<typeof UsageEventId>;
 
 /* ------------------------------------------------------------------ *
  * Primitive value contracts.
@@ -59,7 +59,10 @@ export const SemVer = z
   .brand('SemVer');
 export type SemVer = z.infer<typeof SemVer>;
 
-export const IsoTimestamp = z.string().datetime({offset: true}).brand('IsoTimestamp');
+export const IsoTimestamp = z
+  .string()
+  .datetime({offset: true})
+  .brand('IsoTimestamp');
 export type IsoTimestamp = z.infer<typeof IsoTimestamp>;
 
 /** `<name>.<type>/vN` — e.g. `intake.workflow/v3`, `dispatch.rule/v1`. ADR-016. */
@@ -132,7 +135,9 @@ export type DefinitionMeta = z.infer<typeof DefinitionMeta>;
 export const Definition = DefinitionMeta.extend({
   body: z.unknown(),
 });
-export type Definition<Body = unknown> = z.infer<typeof DefinitionMeta> & {body: Body};
+export type Definition<Body = unknown> = z.infer<typeof DefinitionMeta> & {
+  body: Body;
+};
 
 /* ------------------------------------------------------------------ *
  * Compiled artifacts.

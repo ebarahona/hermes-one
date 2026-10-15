@@ -8,7 +8,11 @@
 // mock-provider worker on a separate task queue; this is a turn-level, in-process cut that reuses the real
 // turn loop. The workflow-level Temporal simulation (+ the workflowId-loading signature) is deferred
 // (DEFERRED-AND-FLAGGED OB6).
-import {runTurn, type TurnDeps, type TurnLedger} from '@platform-internal/agent-runtime';
+import {
+  runTurn,
+  type TurnDeps,
+  type TurnLedger,
+} from '@platform-internal/agent-runtime';
 import type {TurnRequest, TurnResult} from '@platform/contracts';
 
 /** The turn deps a simulation runs against — the executor + decider are mock (CI) or real (shadow eval). */
@@ -29,7 +33,10 @@ export class TurnSimulationService {
   /** Fixed clock by default (deterministic sim); inject a real clock for wall-time. */
   constructor(private readonly nowMs: () => number = () => 0) {}
 
-  async simulateTurn(request: TurnRequest, deps: TurnSimulationDeps): Promise<TurnSimulationOutput> {
+  async simulateTurn(
+    request: TurnRequest,
+    deps: TurnSimulationDeps,
+  ): Promise<TurnSimulationOutput> {
     let captured: TurnLedger | undefined;
     const result = await runTurn(request, {
       executor: deps.executor,

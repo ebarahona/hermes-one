@@ -13,15 +13,34 @@ import type {
 } from '@platform/contracts';
 
 export interface PlanStorePort {
-  putCompiledPlan(plan: CompiledPlanBase, byteSize: number): Promise<{planId: PlanId; deduped: boolean}>;
-  putValidatedContract(contract: ValidatedContractBase): Promise<{deduped: boolean}>;
-  getCompiledPlanByHash(contentHash: ContentHash): Promise<CompiledPlanBase | null>;
-  getValidatedContractByHash(contentHash: ContentHash): Promise<ValidatedContractBase | null>;
-  resolvePlanCached(tenantId: TenantId, planId: PlanId, contentHash: ContentHash): Promise<CompiledPlanBase>;
+  putCompiledPlan(
+    plan: CompiledPlanBase,
+    byteSize: number,
+  ): Promise<{planId: PlanId; deduped: boolean}>;
+  putValidatedContract(
+    contract: ValidatedContractBase,
+  ): Promise<{deduped: boolean}>;
+  getCompiledPlanByHash(
+    contentHash: ContentHash,
+  ): Promise<CompiledPlanBase | null>;
+  getValidatedContractByHash(
+    contentHash: ContentHash,
+  ): Promise<ValidatedContractBase | null>;
+  resolvePlanCached(
+    tenantId: TenantId,
+    planId: PlanId,
+    contentHash: ContentHash,
+  ): Promise<CompiledPlanBase>;
   resolveActiveDeploymentCached(tenantId: TenantId): Promise<Deployment>;
   /** Resolve-by-pinned-ref (`resolveVersion`) — superseded rows resolve fine. */
-  resolveDeployment(tenantId: TenantId, deploymentId: string): Promise<Deployment>;
-  resolveDeploymentByVersion(tenantId: TenantId, version: string): Promise<Deployment>;
+  resolveDeployment(
+    tenantId: TenantId,
+    deploymentId: string,
+  ): Promise<Deployment>;
+  resolveDeploymentByVersion(
+    tenantId: TenantId,
+    version: string,
+  ): Promise<Deployment>;
   invalidateActiveDeployment(tenantId: TenantId): Promise<void>;
 }
 
@@ -31,7 +50,8 @@ export interface DefinitionRowLike {
   name: string;
   schemaRef: string;
   currentVersion: string;
-  status: 'draft' | 'validated' | 'compiled' | 'published' | 'deployed' | 'retired';
+  status:
+    'draft' | 'validated' | 'compiled' | 'published' | 'deployed' | 'retired';
   labels?: Record<string, string>;
   createdBy: string;
 }
@@ -62,7 +82,10 @@ export interface DefinitionWritePort {
     scope: TenantScope,
     events?: AuditEvent[],
   ): Promise<{versionInserted: boolean}>;
-  getDefinition(definitionId: string, scope: TenantScope): Promise<DefinitionRowLike | null>;
+  getDefinition(
+    definitionId: string,
+    scope: TenantScope,
+  ): Promise<DefinitionRowLike | null>;
 }
 
 export interface DeploymentRowInputLike {
@@ -91,5 +114,9 @@ export interface DeploymentWritePort {
     scope: TenantScope,
     events?: AuditEvent[],
   ): Promise<void>;
-  repointActive(newDep: DeploymentRowInputLike, fromVersion: string, scope: TenantScope): Promise<void>;
+  repointActive(
+    newDep: DeploymentRowInputLike,
+    fromVersion: string,
+    scope: TenantScope,
+  ): Promise<void>;
 }

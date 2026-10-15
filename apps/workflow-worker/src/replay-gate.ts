@@ -20,10 +20,14 @@ import type {
   WorkerBuildId,
 } from '@platform-internal/temporal-client';
 
-export const FIXTURE_DIR = fileURLToPath(new URL('../test/replay-fixtures/golden', import.meta.url));
+export const FIXTURE_DIR = fileURLToPath(
+  new URL('../test/replay-fixtures/golden', import.meta.url),
+);
 
 /** Load committed golden fixtures (`<fixtureId>.history.json`, written by the capture flag on the e2e). */
-export function loadFixtures(dir: string = FIXTURE_DIR): ReplayHistoryFixture[] {
+export function loadFixtures(
+  dir: string = FIXTURE_DIR,
+): ReplayHistoryFixture[] {
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
     .filter(f => f.endsWith('.history.json'))
@@ -56,7 +60,10 @@ export async function runReplayGate(
       fixturesRun: 0,
       fixturesPassed: 0,
       nondeterminismErrors: [
-        {fixtureId: '<gate>', message: `only ${fixtures.length} fixtures found; minFixtures=${config.minFixtures}`},
+        {
+          fixtureId: '<gate>',
+          message: `only ${fixtures.length} fixtures found; minFixtures=${config.minFixtures}`,
+        },
       ],
       passed: false,
     };
@@ -68,7 +75,10 @@ export async function runReplayGate(
     {workflowsPath: fileURLToPath(new URL('./workflows.js', import.meta.url))},
     (function* () {
       for (const f of fixtures) {
-        yield {history: historyFromJSON(f.history as never), workflowId: f.fixtureId};
+        yield {
+          history: historyFromJSON(f.history as never),
+          workflowId: f.fixtureId,
+        };
       }
     })(),
   );

@@ -15,7 +15,11 @@ import {EvidenceRecord, ToolResult} from './agent-runtime.js';
 /* --------------------------- Composed timeline -------------------------- */
 
 export const AuditTimelineEntryKind = z.enum([
-  'audit', 'tool-execution', 'policy-decision', 'evidence', 'tombstone',
+  'audit',
+  'tool-execution',
+  'policy-decision',
+  'evidence',
+  'tombstone',
 ]);
 export type AuditTimelineEntryKind = z.infer<typeof AuditTimelineEntryKind>;
 
@@ -26,7 +30,9 @@ export const AuditTimelineEntry = z.object({
   correlationId: z.string().min(1),
   turnId: TurnId.nullable(),
   /** The underlying typed row, when decryptable; null for a 'tombstone' entry. */
-  detail: z.union([AuditEvent, PolicyDecision, EvidenceRecord, ToolResult]).nullable(),
+  detail: z
+    .union([AuditEvent, PolicyDecision, EvidenceRecord, ToolResult])
+    .nullable(),
   /** Present only when kind='tombstone' (retention-job crypto-shred). */
   tombstoneReason: z.enum(['crypto-shredded', 'retention-purged']).optional(),
 });
@@ -34,9 +40,15 @@ export type AuditTimelineEntry = z.infer<typeof AuditTimelineEntry>;
 
 export interface AuditQueryService {
   /** Read-only join across audit_events/tool_executions/policy_decisions/evidence_records. */
-  composeTimeline(tenantId: TenantId, correlationId: string): Promise<AuditTimelineEntry[]>;
+  composeTimeline(
+    tenantId: TenantId,
+    correlationId: string,
+  ): Promise<AuditTimelineEntry[]>;
   /** Filtered variant for the audit_events-only view (compliance export). */
-  queryAuditEvents(tenantId: TenantId, filter: {correlationId?: string; action?: AuditAction}): Promise<AuditEvent[]>;
+  queryAuditEvents(
+    tenantId: TenantId,
+    filter: {correlationId?: string; action?: AuditAction},
+  ): Promise<AuditEvent[]>;
 }
 
 /* -------------------------------- Replay --------------------------------- */
@@ -56,7 +68,10 @@ export interface WorkflowStateSnapshot {
 /** Read-only. Never executes an activity function — replays recorded ActivityTaskCompleted results
  *  (worker versioning and replay). A NonDeterminismError is surfaced, never swallowed. */
 export interface ReplayService {
-  replayWorkflow(workflowId: string, runId: string): Promise<WorkflowStateSnapshot>;
+  replayWorkflow(
+    workflowId: string,
+    runId: string,
+  ): Promise<WorkflowStateSnapshot>;
 }
 
 export const SimulationOverrides = z.object({

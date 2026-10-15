@@ -4,7 +4,14 @@
 // a flag; resolution is a Temporal signal. The workflow/temporal signal wiring + admin inbox are separate
 // packs — this is the shared contract.
 import {z} from 'zod';
-import {HandoffId, TenantId, ConversationId, PrincipalId, TurnId, IsoTimestamp} from './substrate.js';
+import {
+  HandoffId,
+  TenantId,
+  ConversationId,
+  PrincipalId,
+  TurnId,
+  IsoTimestamp,
+} from './substrate.js';
 import {EvidenceRecord} from './agent-runtime.js';
 
 /* ------------------------------ Request -------------------------------- */
@@ -87,7 +94,12 @@ export type HandoffState = z.infer<typeof HandoffState>;
 
 /* ---------------------------- Resolution ------------------------------- */
 
-export const HandoffDisposition = z.enum(['completed', 'return-to-agent', 'closed-no-action', 'abandoned']);
+export const HandoffDisposition = z.enum([
+  'completed',
+  'return-to-agent',
+  'closed-no-action',
+  'abandoned',
+]);
 export type HandoffDisposition = z.infer<typeof HandoffDisposition>;
 
 /** The signal payload that resumes/terminates the parked workflow. */
@@ -107,7 +119,10 @@ export type HandoffResolution = z.infer<typeof HandoffResolution>;
 export interface HandoffService {
   request(req: HandoffRequest): Promise<HandoffState>;
   assign(handoffId: HandoffId, operatorId: PrincipalId): Promise<HandoffState>;
-  takeover(handoffId: HandoffId, operatorId: PrincipalId): Promise<HandoffState>;
+  takeover(
+    handoffId: HandoffId,
+    operatorId: PrincipalId,
+  ): Promise<HandoffState>;
   resolve(resolution: HandoffResolution): Promise<HandoffState>;
   get(handoffId: HandoffId): Promise<HandoffState | null>;
 }

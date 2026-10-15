@@ -20,11 +20,27 @@
 //   HERMES_CREDENTIALS_MASTER_KEY=<64 hex> pnpm -r build && node apps/agent-worker/dist/pack-e.e2e.js
 import {Client, Connection} from '@temporalio/client';
 import {loadConfig} from '@platform-internal/config';
-import {createAuditQueryService, createCredentialRowStore, createRoleRegistry} from '@platform-internal/drizzle';
-import {EnvelopeCredentialStore, LocalAesGcmCipher} from '@platform-internal/secrets';
-import {createWorkflowWorker, installElectricianPack, WORKFLOW_QUEUE} from '@platform-internal/workflow-worker';
+import {
+  createAuditQueryService,
+  createCredentialRowStore,
+  createRoleRegistry,
+} from '@platform-internal/drizzle';
+import {
+  EnvelopeCredentialStore,
+  LocalAesGcmCipher,
+} from '@platform-internal/secrets';
+import {
+  createWorkflowWorker,
+  installElectricianPack,
+  WORKFLOW_QUEUE,
+} from '@platform-internal/workflow-worker';
 import {createActivityWorker} from '@platform-internal/activity-worker';
-import type {CapabilityName, Principal, TenantId, ToolResult} from '@platform/contracts';
+import type {
+  CapabilityName,
+  Principal,
+  TenantId,
+  ToolResult,
+} from '@platform/contracts';
 import {createAgentWorker} from './worker.js';
 
 const TENANT = 'tnt_elec_demo';
@@ -46,7 +62,8 @@ const TENANT_SLOT_TEMPLATE = '09:15:00-05:00';
 const CASES: Case[] = [
   {
     name: 'emergency → safety reply',
-    intent: 'my breaker keeps tripping and there is a faint burning smell near the panel',
+    intent:
+      'my breaker keeps tripping and there is a faint burning smell near the panel',
     expectToolCall: false,
   },
   {
@@ -62,20 +79,39 @@ async function main(): Promise<void> {
 
   // 1. Install the electrician vertical from data (author the 5 defs + publish the deployment) —
   //    exactly what the admin API does, headless. Returns the plan refs + the pinned deployment.
-  const install = await installElectricianPack(cfg.stores.authoritative.url, cfg.stores.ephemeral.url, TENANT);
-  console.log(`[pack-e] installed electrician deployment ${install.deployment.deploymentId} (v${install.deployment.version}) for ${TENANT}`);
+  const install = await installElectricianPack(
+    cfg.stores.authoritative.url,
+    cfg.stores.ephemeral.url,
+    TENANT,
+  );
+  console.log(
+    `[pack-e] installed electrician deployment ${install.deployment.deploymentId} (v${install.deployment.version}) for ${TENANT}`,
+  );
 
   // 1b. The tenant brings its own provider configuration (ADR-026): one rotate(), no deploy. The
   //     agent-worker resolves this same row per turn through the envelope store layered over the
   //     platform defaults.
-  if (!cfg.credentials) throw new Error('pack-e e2e needs HERMES_CREDENTIALS_MASTER_KEY (ADR-026 envelope store)');
+  if (!cfg.credentials)
+    throw new Error(
+      'pack-e e2e needs HERMES_CREDENTIALS_MASTER_KEY (ADR-026 envelope store)',
+    );
   const rows = createCredentialRowStore(cfg.stores.authoritative.url);
-  const credStore = new EnvelopeCredentialStore(rows.repo, new LocalAesGcmCipher(cfg.credentials.masterKey));
-  await credStore.rotate(TENANT as Parameters<typeof credStore.rotate>[0], 'internal-scheduler', SLOT_READ as CapabilityName, {
-    slotTemplates: TENANT_SLOT_TEMPLATE,
-  });
+  const credStore = new EnvelopeCredentialStore(
+    rows.repo,
+    new LocalAesGcmCipher(cfg.credentials.masterKey),
+  );
+  await credStore.rotate(
+    TENANT as Parameters<typeof credStore.rotate>[0],
+    'internal-scheduler',
+    SLOT_READ as CapabilityName,
+    {
+      slotTemplates: TENANT_SLOT_TEMPLATE,
+    },
+  );
   await rows.close();
-  console.log(`[pack-e] rotated tenant-own internal-scheduler credentials (slotTemplates=${TENANT_SLOT_TEMPLATE})`);
+  console.log(
+    `[pack-e] rotated tenant-own internal-scheduler credentials (slotTemplates=${TENANT_SLOT_TEMPLATE})`,
+  );
 
   const connection = await Connection.connect({address: cfg.temporal.address});
   const client = new Client({connection, namespace: cfg.temporal.namespace});
@@ -86,21 +122,29 @@ async function main(): Promise<void> {
   // 2. The acting caller — a customer of the electrician. AUTH-2: scopes are RESOLVED FROM ROLES per
   //    request (no literals). The platform 'customer' role (seed 0029) carries appointment.slot.read,
   //    which is exactly what gates the dispatcher's tool set — the pack's engine allows that capability.
-  const {repo: roleRegistry, close: closeRoles} = createRoleRegistry(cfg.stores.authoritative.url);
+  const {repo: roleRegistry, close: closeRoles} = createRoleRegistry(
+    cfg.stores.authoritative.url,
+  );
   const principal: Principal = {
     id: 'prn_elec_caller' as Principal['id'],
     tenantId: TENANT as Principal['tenantId'],
     kind: 'user',
     roles: ['customer'],
-    scopes: await roleRegistry.resolveScopes(TENANT as Principal['tenantId'], ['customer']),
+    scopes: await roleRegistry.resolveScopes(TENANT as Principal['tenantId'], [
+      'customer',
+    ]),
     attributes: {externalHandle: '+15125550000', channel: 'sms'},
   };
   await closeRoles();
   if (!principal.scopes.includes(SLOT_READ as Principal['scopes'][number])) {
-    throw new Error(`role resolution did not yield ${SLOT_READ}: ${JSON.stringify(principal.scopes)}`);
+    throw new Error(
+      `role resolution did not yield ${SLOT_READ}: ${JSON.stringify(principal.scopes)}`,
+    );
   }
 
-  const {repo: audit, close: closeAudit} = createAuditQueryService(cfg.stores.authoritative.url);
+  const {repo: audit, close: closeAudit} = createAuditQueryService(
+    cfg.stores.authoritative.url,
+  );
   const results: {name: string; pass: boolean; detail: string}[] = [];
 
   const clientWork = (async () => {
@@ -126,29 +170,42 @@ async function main(): Promise<void> {
       });
       const out = (await handle.result()) as {path: string[]; outcome?: string};
 
-      const pathOk = JSON.stringify(out.path) === JSON.stringify(['triage', 'assist', 'end']);
+      const pathOk =
+        JSON.stringify(out.path) ===
+        JSON.stringify(['triage', 'assist', 'end']);
 
       // The DURABLE proof: the audit timeline joins runtime.tool_executions, so a tool entry here means
       // the call was really dispatched AND committed — and metrics.providerId names the adapter that
       // served it. A fixture could never put 'internal-scheduler' in that field.
-      const timeline = await audit.composeTimeline(TENANT as TenantId, correlationId);
+      const timeline = await audit.composeTimeline(
+        TENANT as TenantId,
+        correlationId,
+      );
       const toolCalls = timeline
         .filter(e => e.kind === 'tool-execution' && e.detail !== null)
         .map(e => e.detail as ToolResult)
         .filter(r => r.capability === SLOT_READ);
-      const viaProvider = toolCalls.filter(r => r.metrics?.providerId === 'internal-scheduler');
+      const viaProvider = toolCalls.filter(
+        r => r.metrics?.providerId === 'internal-scheduler',
+      );
 
       // The slots must carry the TENANT's template — platform defaults here mean the envelope
       // chain silently fell through, which is exactly the regression this guards against.
       const tenantSlots = viaProvider.every(r =>
-        ((r.output as {slots?: string[]})?.slots ?? []).every(slot => slot.endsWith(`T${TENANT_SLOT_TEMPLATE}`)),
+        ((r.output as {slots?: string[]})?.slots ?? []).every(slot =>
+          slot.endsWith(`T${TENANT_SLOT_TEMPLATE}`),
+        ),
       );
-      const toolOk = c.expectToolCall ? viaProvider.length > 0 && viaProvider.every(r => r.ok) && tenantSlots : true;
+      const toolOk = c.expectToolCall
+        ? viaProvider.length > 0 && viaProvider.every(r => r.ok) && tenantSlots
+        : true;
       results.push({
         name: c.name,
         pass: pathOk && toolOk,
         detail: `path=${JSON.stringify(out.path)} toolCalls=${toolCalls.length} viaInternalScheduler=${viaProvider.length}${
-          viaProvider[0]?.output ? ` slots=${JSON.stringify((viaProvider[0].output as {slots?: unknown}).slots)}` : ''
+          viaProvider[0]?.output
+            ? ` slots=${JSON.stringify((viaProvider[0].output as {slots?: unknown}).slots)}`
+            : ''
         }`,
       });
     }
@@ -164,7 +221,8 @@ async function main(): Promise<void> {
   await connection.close();
   await closeAudit();
 
-  for (const r of results) console.log(`${r.pass ? '✅ PASS' : '❌ FAIL'} ${r.name}: ${r.detail}`);
+  for (const r of results)
+    console.log(`${r.pass ? '✅ PASS' : '❌ FAIL'} ${r.name}: ${r.detail}`);
   if (results.some(r => !r.pass) || results.length !== CASES.length) {
     console.error('\nPack E live-turn E2E FAILED');
     process.exit(1);

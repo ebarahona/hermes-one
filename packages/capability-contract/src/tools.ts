@@ -2,10 +2,17 @@
 // authored allowedCapabilities and the deployment's available contracts, then gated by the principal's
 // scopes (ADR-019 — scopes drive tool visibility). A tool the principal lacks the requiredScope for is
 // never surfaced, even if the engine allows it.
-import type {CapabilityContract, CapabilityName, Scope} from '@platform/contracts';
+import type {
+  CapabilityContract,
+  CapabilityName,
+  Scope,
+} from '@platform/contracts';
 
 /** True if any granted scope covers `required` (segment-wise, `*` wildcards allowed in granted). */
-export function scopeSatisfies(granted: readonly Scope[], required: Scope): boolean {
+export function scopeSatisfies(
+  granted: readonly Scope[],
+  required: Scope,
+): boolean {
   const req = required.split('.');
   return granted.some(g => {
     const segs = g.split('.');

@@ -11,7 +11,11 @@ import {TenantId, PrincipalId, IsoTimestamp} from './substrate.js'; // substrate
 
 /** The concrete method that authenticated the caller. */
 export const AuthMethod = z.enum([
-  'oidc', 'oauth2', 'api-key', 'signed-webhook', 'service-identity',
+  'oidc',
+  'oauth2',
+  'api-key',
+  'signed-webhook',
+  'service-identity',
 ]);
 export type AuthMethod = z.infer<typeof AuthMethod>;
 
@@ -20,12 +24,12 @@ export type AuthMethod = z.infer<typeof AuthMethod>;
  * Ordered weakest→strongest; policy pre-gates compare against a required minimum.
  */
 export const AuthStrength = z.enum([
-  'anonymous',   // never authenticated (rejected before mapping — present for completeness)
-  'single',      // single factor (password/OIDC without amr=mfa, plain bearer)
-  'mfa',         // multi-factor at login (amr includes mfa/otp/hwk)
-  'step-up',     // fresh re-authentication for a sensitive action
-  'api-key',     // long-lived service credential (non-interactive)
-  'workload',    // platform-issued workload/mTLS identity (non-interactive, strong)
+  'anonymous', // never authenticated (rejected before mapping — present for completeness)
+  'single', // single factor (password/OIDC without amr=mfa, plain bearer)
+  'mfa', // multi-factor at login (amr includes mfa/otp/hwk)
+  'step-up', // fresh re-authentication for a sensitive action
+  'api-key', // long-lived service credential (non-interactive)
+  'workload', // platform-issued workload/mTLS identity (non-interactive, strong)
 ]);
 export type AuthStrength = z.infer<typeof AuthStrength>;
 
@@ -44,7 +48,7 @@ export type SessionMeta = z.infer<typeof SessionMeta>;
  * downstream policy (step-up) and audit.
  */
 export const AuthenticatedIdentity = z.object({
-  principal: Principal,                 // fully-formed, tenant-scoped
+  principal: Principal, // fully-formed, tenant-scoped
   method: AuthMethod,
   authStrength: AuthStrength,
   /** Absolute session/credential expiry; null for stateless single-request credentials. */
@@ -76,15 +80,18 @@ export interface PrincipalMapper {
 
 /** OIDC/OAuth2 token verification against a cached JWKS (issuer/audience pinned per tenant). */
 export interface JwtVerifier {
-  verify(token: string, opts: {issuer: string; audience: string}): Promise<VerifiedClaims>;
+  verify(
+    token: string,
+    opts: {issuer: string; audience: string},
+  ): Promise<VerifiedClaims>;
 }
 export const VerifiedClaims = z.object({
   sub: z.string().min(1),
   /** Tenant claim; claim name is configurable per issuer (see AuthConfig). */
   tid: z.string().min(1).optional(),
   roles: z.array(z.string()).default([]),
-  scope: z.string().optional(),          // space-delimited OAuth2 scopes
-  amr: z.array(z.string()).default([]),  // auth methods refs → AuthStrength
+  scope: z.string().optional(), // space-delimited OAuth2 scopes
+  amr: z.array(z.string()).default([]), // auth methods refs → AuthStrength
   exp: z.number().int(),
   iat: z.number().int(),
 });
@@ -112,8 +119,8 @@ export interface WebhookSignatureVerifier {
     rawBody: Buffer;
     timestamp: string;
     signature: string;
-    secretRef: string;                   // secret:// pointer (135)
-  }): Promise<boolean>;                   // constant-time compare
+    secretRef: string; // secret:// pointer (135)
+  }): Promise<boolean>; // constant-time compare
 }
 
 /** mTLS client-cert / SPIFFE / cloud workload-OIDC verifier. */
@@ -123,7 +130,7 @@ export interface ServiceIdentityVerifier {
 export const WorkloadClaims = z.object({
   /** SPIFFE ID or cloud service-account subject. */
   workloadId: z.string().min(1),
-  allowedTenants: z.array(TenantId),     // '*' expands to platform-scope service principals
+  allowedTenants: z.array(TenantId), // '*' expands to platform-scope service principals
   scopes: z.array(Scope),
 });
 export type WorkloadClaims = z.infer<typeof WorkloadClaims>;

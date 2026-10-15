@@ -8,7 +8,11 @@ import type {
   RuleOperator,
   SemVer,
 } from '@platform/contracts';
-import {BUILTIN_OPERATORS, builtinRegistry, InMemoryOperatorRegistry} from '@platform/expression-core';
+import {
+  BUILTIN_OPERATORS,
+  builtinRegistry,
+  InMemoryOperatorRegistry,
+} from '@platform/expression-core';
 import {compileRule, RuleCompileError} from './compile.js';
 import {createRuleRuntime, RuleEvaluationError} from './runtime.js';
 
@@ -120,7 +124,9 @@ describe('rule-dsl compile', () => {
     expect(() => compileRule(bad, compileOpts)).toThrow(RuleCompileError);
   });
 
-  const withWhen = (when: RuleDefinition['body']['branches'][0]['when']): RuleDefinition => ({
+  const withWhen = (
+    when: RuleDefinition['body']['branches'][0]['when'],
+  ): RuleDefinition => ({
     ...missedCallRule,
     body: {...missedCallRule.body, branches: [{outcome: 'x', when}]},
   });
@@ -140,20 +146,40 @@ describe('rule-dsl compile', () => {
 
   it('rejects an impure operator → RULE_OPERATOR_NOT_PURE (spec.pure asserted at compile)', () => {
     const impure: RuleOperator = {
-      spec: {op: 'clock.now', arity: 0, version: '1.0.0' as SemVer, returns: 'boolean', pure: false as unknown as true},
+      spec: {
+        op: 'clock.now',
+        arity: 0,
+        version: '1.0.0' as SemVer,
+        returns: 'boolean',
+        pure: false as unknown as true,
+      },
       evaluate: () => true,
     };
-    const tainted = new InMemoryOperatorRegistry('1.0.0' as SemVer, [...BUILTIN_OPERATORS, impure]);
+    const tainted = new InMemoryOperatorRegistry('1.0.0' as SemVer, [
+      ...BUILTIN_OPERATORS,
+      impure,
+    ]);
     const bad = withWhen({type: 'op', op: 'clock.now', args: []});
-    expect(() => compileRule(bad, {...compileOpts, registry: tainted})).toThrow(/RULE_OPERATOR_NOT_PURE/);
+    expect(() => compileRule(bad, {...compileOpts, registry: tainted})).toThrow(
+      /RULE_OPERATOR_NOT_PURE/,
+    );
   });
 
   it('rejects a non-boolean operator in a boolean position → RULE_OPERATOR_RETURN_TYPE', () => {
     const numeric: RuleOperator = {
-      spec: {op: 'math.sum', arity: 2, version: '1.0.0' as SemVer, returns: 'number', pure: true},
+      spec: {
+        op: 'math.sum',
+        arity: 2,
+        version: '1.0.0' as SemVer,
+        returns: 'number',
+        pure: true,
+      },
       evaluate: () => 0,
     };
-    const extended = new InMemoryOperatorRegistry('1.0.0' as SemVer, [...BUILTIN_OPERATORS, numeric]);
+    const extended = new InMemoryOperatorRegistry('1.0.0' as SemVer, [
+      ...BUILTIN_OPERATORS,
+      numeric,
+    ]);
     const bad = withWhen({
       type: 'op',
       op: 'math.sum',
@@ -162,15 +188,20 @@ describe('rule-dsl compile', () => {
         {type: 'literal', value: 2},
       ],
     });
-    expect(() => compileRule(bad, {...compileOpts, registry: extended})).toThrow(/RULE_OPERATOR_RETURN_TYPE/);
+    expect(() =>
+      compileRule(bad, {...compileOpts, registry: extended}),
+    ).toThrow(/RULE_OPERATOR_RETURN_TYPE/);
   });
 
   it('bounds expression nesting → RULE_EXPRESSION_TOO_DEEP (maxExpressionDepth)', () => {
-    let when: RuleDefinition['body']['branches'][0]['when'] = {type: 'fact', path: 'flag'};
+    let when: RuleDefinition['body']['branches'][0]['when'] = {
+      type: 'fact',
+      path: 'flag',
+    };
     for (let i = 0; i < 5; i++) when = {type: 'not', expr: when};
-    expect(() => compileRule(withWhen(when), {...compileOpts, maxExpressionDepth: 4})).toThrow(
-      /RULE_EXPRESSION_TOO_DEEP/,
-    );
+    expect(() =>
+      compileRule(withWhen(when), {...compileOpts, maxExpressionDepth: 4}),
+    ).toThrow(/RULE_EXPRESSION_TOO_DEEP/);
     // the default bound (32) still accepts it
     expect(() => compileRule(withWhen(when), compileOpts)).not.toThrow();
   });

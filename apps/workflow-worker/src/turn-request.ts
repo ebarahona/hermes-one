@@ -48,7 +48,11 @@ export function buildAgentTurnRequest(
           createdAt: '2026-07-11T00:00:00.000Z',
         },
         tenantId,
-        deployment: {deploymentId: deployment.deploymentId, tenantId, version: deployment.version},
+        deployment: {
+          deploymentId: deployment.deploymentId,
+          tenantId,
+          version: deployment.version,
+        },
         quotaProfile: {
           profileId: 'qp_demo',
           maxModelCostUsdPerDay: null,

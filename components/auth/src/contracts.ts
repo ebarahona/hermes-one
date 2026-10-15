@@ -11,7 +11,11 @@
 // EXTENSION_FOR tag. Recorded in the deferral ledger.
 import {z} from 'zod';
 import type {Request} from '@loopback/rest';
-import {type AuthenticatedIdentity, type AuthMethod, PlatformErrorException} from '@platform/contracts';
+import {
+  type AuthenticatedIdentity,
+  type AuthMethod,
+  PlatformErrorException,
+} from '@platform/contracts';
 
 /**
  * Every authentication method is a DI provider implementing this contract, discovered at the
@@ -30,11 +34,11 @@ export interface AuthStrategy {
 
 /** One OIDC issuer's verification + claim-mapping config (design 001 Configuration `oidc.issuers[]`). */
 export const OidcIssuerConfig = z.object({
-  issuer: z.string().min(1),                         // expected `iss`
-  audience: z.string().min(1),                       // expected `aud`
-  jwksRef: z.string().min(1),                         // secret:// pointer to the JWKS (URL or key set)
-  tenantClaim: z.string().min(1).default('tid'),      // token claim carrying the tenant id → VerifiedClaims.tid
-  rolesClaim: z.string().min(1).default('roles'),     // token claim carrying the role names → VerifiedClaims.roles
+  issuer: z.string().min(1), // expected `iss`
+  audience: z.string().min(1), // expected `aud`
+  jwksRef: z.string().min(1), // secret:// pointer to the JWKS (URL or key set)
+  tenantClaim: z.string().min(1).default('tid'), // token claim carrying the tenant id → VerifiedClaims.tid
+  rolesClaim: z.string().min(1).default('roles'), // token claim carrying the role names → VerifiedClaims.roles
   jwksCacheTtlSeconds: z.number().int().positive().default(900),
 });
 export type OidcIssuerConfig = z.infer<typeof OidcIssuerConfig>;

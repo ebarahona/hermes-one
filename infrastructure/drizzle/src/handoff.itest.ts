@@ -6,7 +6,10 @@ import {Pool} from 'pg';
 import {loadConfig} from '@platform-internal/config';
 import type {TenantId} from '@platform/contracts';
 import {runMigrations} from './migrate.js';
-import {createHandoffRepository, type HandoffRepositoryHandle} from './client.js';
+import {
+  createHandoffRepository,
+  type HandoffRepositoryHandle,
+} from './client.js';
 import type {HandoffTaskRow} from './handoff-repository.js';
 
 const cfg = loadConfig();
@@ -24,12 +27,28 @@ const row: HandoffTaskRow = {
   priority: 'normal',
   summary: 'Customer requires supervisor sign-off for a $3,200 job.',
   evidenceSnapshot: [
-    {id: 'evd_h1', turnId: 'trn_handoff_itest', kind: 'authoritative-read', statement: 'estimate $3,200', data: {estimateUsd: 3200}, source: 'authoritative', trusted: true, observedAt: '2026-07-13T00:00:00.000Z'},
+    {
+      id: 'evd_h1',
+      turnId: 'trn_handoff_itest',
+      kind: 'authoritative-read',
+      statement: 'estimate $3,200',
+      data: {estimateUsd: 3200},
+      source: 'authoritative',
+      trusted: true,
+      observedAt: '2026-07-13T00:00:00.000Z',
+    },
   ],
   queue: 'supervisors',
   status: 'requested',
   owner: 'agent',
-  transitions: [{from: null, to: 'requested', by: 'prn_system', at: '2026-07-13T00:00:01.000Z'}],
+  transitions: [
+    {
+      from: null,
+      to: 'requested',
+      by: 'prn_system',
+      at: '2026-07-13T00:00:01.000Z',
+    },
+  ],
   requestedAt: new Date('2026-07-13T00:00:01.000Z'),
 };
 
@@ -37,11 +56,15 @@ beforeAll(async () => {
   await runMigrations(PG);
   owner = new Pool({connectionString: PG, max: 2});
   handoffs = createHandoffRepository(PG);
-  await owner.query(`DELETE FROM runtime.handoff_tasks WHERE tenant_id = $1`, [TENANT]);
+  await owner.query(`DELETE FROM runtime.handoff_tasks WHERE tenant_id = $1`, [
+    TENANT,
+  ]);
 });
 
 afterAll(async () => {
-  await owner.query(`DELETE FROM runtime.handoff_tasks WHERE tenant_id = $1`, [TENANT]);
+  await owner.query(`DELETE FROM runtime.handoff_tasks WHERE tenant_id = $1`, [
+    TENANT,
+  ]);
   await owner.end();
   await handoffs.close();
 });
@@ -58,15 +81,24 @@ describe('DrizzleHandoffRepository.requestHandoff (live)', () => {
     );
     expect(r.rowCount).toBe(1);
     expect(r.rows[0]).toMatchObject({
-      tenant_id: TENANT, conversation_id: 'cnv_handoff_itest', reason: 'policy-required',
-      priority: 'normal', status: 'requested', owner: 'agent', queue: 'supervisors',
-      evidence_n: 1, transitions_n: 1,
+      tenant_id: TENANT,
+      conversation_id: 'cnv_handoff_itest',
+      reason: 'policy-required',
+      priority: 'normal',
+      status: 'requested',
+      owner: 'agent',
+      queue: 'supervisors',
+      evidence_n: 1,
+      transitions_n: 1,
     });
   });
 
   it('is idempotent — a replayed handoff request collapses to one row', async () => {
     await handoffs.repo.requestHandoff(row, {tenantId: TENANT});
-    const c = await owner.query(`SELECT count(*)::int AS n FROM runtime.handoff_tasks WHERE tenant_id = $1`, [TENANT]);
+    const c = await owner.query(
+      `SELECT count(*)::int AS n FROM runtime.handoff_tasks WHERE tenant_id = $1`,
+      [TENANT],
+    );
     expect(c.rows[0].n).toBe(1);
   });
 });

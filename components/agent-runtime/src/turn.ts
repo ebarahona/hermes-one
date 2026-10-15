@@ -78,7 +78,12 @@ export interface TurnLedger {
   evidence: EvidenceRecord[];
   policyDecisions: TurnLedgerPolicyDecision[];
   /** Model usage accumulated over the turn (for usage metering / billing). */
-  usage: {modelCostUsd: number; inputTokens: number; outputTokens: number; toolCount: number};
+  usage: {
+    modelCostUsd: number;
+    inputTokens: number;
+    outputTokens: number;
+    toolCount: number;
+  };
   /** Present only when outcome='handoff' — the initial handoff request to persist. */
   handoff?: TurnLedgerHandoff;
 }
@@ -90,7 +95,10 @@ export interface TurnPolicy {
 }
 
 /** Approve a pending `approval`/`confirm` — a human/policy decision in production. Default: reject. */
-export type ApproveFn = (decision: PolicyDecision, call: ToolCall) => boolean | Promise<boolean>;
+export type ApproveFn = (
+  decision: PolicyDecision,
+  call: ToolCall,
+) => boolean | Promise<boolean>;
 
 export interface TurnDeps {
   executor: PlatformToolExecutor;
@@ -111,13 +119,19 @@ export interface TurnDeps {
 
 type Outcome = TurnResult['outcome'];
 
-const PREGATE_STOP: Record<Exclude<PolicyOutcome, 'allow' | 'approval' | 'repair'>, Outcome> = {
+const PREGATE_STOP: Record<
+  Exclude<PolicyOutcome, 'allow' | 'approval' | 'repair'>,
+  Outcome
+> = {
   deny: 'failed',
   defer: 'deferred',
   handoff: 'handoff',
 };
 
-export async function runTurn(request: TurnRequest, deps: TurnDeps): Promise<TurnResult> {
+export async function runTurn(
+  request: TurnRequest,
+  deps: TurnDeps,
+): Promise<TurnResult> {
   const req = TurnRequestSchema.parse(request); // serializable-boundary validation (ADR-017)
   const nowMs = deps.clock?.nowMs ?? (() => Date.now());
   const iso = (ms: number) => new Date(ms).toISOString() as IsoTimestamp;
@@ -144,7 +158,11 @@ export async function runTurn(request: TurnRequest, deps: TurnDeps): Promise<Tur
   let lastText: string | undefined;
 
   // Deterministic surrogate id for a policy decision — stable across activity replay (no random/clock).
-  const recordDecision = (site: PolicySite, decision: PolicyDecision, capability?: CapabilityName) => {
+  const recordDecision = (
+    site: PolicySite,
+    decision: PolicyDecision,
+    capability?: CapabilityName,
+  ) => {
     const seq = policyDecisions.length;
     const decisionId = `pld_${createHash('sha256')
       .update(`${req.turnId}:${seq}:${site}:${decision.policyRuleId}`)
@@ -171,11 +189,19 @@ export async function runTurn(request: TurnRequest, deps: TurnDeps): Promise<Tur
   // The initial handoff request, built from the stopping cause + grounded evidence (ADR-012). An
   // explicit override wins; else a policy/confirm gate → 'policy-required'; else 'agent-uncertain'.
   const buildHandoff = (): TurnLedgerHandoff => {
-    const gatedForHuman = gateDecision?.outcome === 'handoff' || gateDecision?.outcome === 'approval';
-    const reason: HandoffReason = handoffOverride?.reason ?? (gatedForHuman ? 'policy-required' : 'agent-uncertain');
-    const summary = handoffOverride?.summary ?? gateDecision?.reason ?? 'Agent handed off to a human';
+    const gatedForHuman =
+      gateDecision?.outcome === 'handoff' ||
+      gateDecision?.outcome === 'approval';
+    const reason: HandoffReason =
+      handoffOverride?.reason ??
+      (gatedForHuman ? 'policy-required' : 'agent-uncertain');
+    const summary =
+      handoffOverride?.summary ??
+      gateDecision?.reason ??
+      'Agent handed off to a human';
     return {
-      handoffId: `hof_${createHash('sha256').update(req.turnId).digest('hex').slice(0, 24)}` as HandoffId,
+      handoffId:
+        `hof_${createHash('sha256').update(req.turnId).digest('hex').slice(0, 24)}` as HandoffId,
       reason,
       summary,
       evidenceSnapshot: [...evidence],
@@ -194,7 +220,9 @@ export async function runTurn(request: TurnRequest, deps: TurnDeps): Promise<Tur
     deadlineAt,
   });
 
-  const policyCtx = (extra: Partial<PolicyEvaluationContext>): PolicyEvaluationContext => ({
+  const policyCtx = (
+    extra: Partial<PolicyEvaluationContext>,
+  ): PolicyEvaluationContext => ({
     principal,
     facts: {...principal.attributes, ...(extra.facts ?? {})},
     now: iso(nowMs()),
@@ -203,7 +231,10 @@ export async function runTurn(request: TurnRequest, deps: TurnDeps): Promise<Tur
     ...extra,
   });
 
-  const finish = async (outcome: Outcome, reply?: string): Promise<TurnResult> => {
+  const finish = async (
+    outcome: Outcome,
+    reply?: string,
+  ): Promise<TurnResult> => {
     const result = TurnResultSchema.parse({
       turnId: req.turnId,
       outcome,
@@ -243,11 +274,20 @@ export async function runTurn(request: TurnRequest, deps: TurnDeps): Promise<Tur
   // typeof guards are defensive).
   const overBudget = (): string | null => {
     const {maxInputTokens, maxOutputTokens, maxModelCostUsd} = budgets;
-    if (typeof maxInputTokens === 'number' && usage.inputTokens > maxInputTokens)
+    if (
+      typeof maxInputTokens === 'number' &&
+      usage.inputTokens > maxInputTokens
+    )
       return `inputTokens ${usage.inputTokens} > maxInputTokens ${maxInputTokens}`;
-    if (typeof maxOutputTokens === 'number' && usage.outputTokens > maxOutputTokens)
+    if (
+      typeof maxOutputTokens === 'number' &&
+      usage.outputTokens > maxOutputTokens
+    )
       return `outputTokens ${usage.outputTokens} > maxOutputTokens ${maxOutputTokens}`;
-    if (typeof maxModelCostUsd === 'number' && usage.modelCostUsd > maxModelCostUsd)
+    if (
+      typeof maxModelCostUsd === 'number' &&
+      usage.modelCostUsd > maxModelCostUsd
+    )
       return `modelCostUsd ${usage.modelCostUsd} > maxModelCostUsd ${maxModelCostUsd}`;
     return null;
   };
@@ -292,7 +332,10 @@ export async function runTurn(request: TurnRequest, deps: TurnDeps): Promise<Tur
     if (deps.policy) {
       const pre = deps.policy.runtime.evaluatePreGates(
         deps.policy.plan,
-        policyCtx({capability: call.capability, facts: {capability: call.capability, ...call.input}}),
+        policyCtx({
+          capability: call.capability,
+          facts: {capability: call.capability, ...call.input},
+        }),
       );
       recordDecision('preGate', pre, call.capability); // audit every gate evaluation, allow included
       if (pre.outcome !== 'allow') {
@@ -319,12 +362,20 @@ export async function runTurn(request: TurnRequest, deps: TurnDeps): Promise<Tur
         decidedAt: iso(nowMs()),
       };
       recordDecision('preGate', approvalDecision, call.capability);
-      const approved = deps.approve ? await deps.approve(approvalDecision, call) : false;
+      const approved = deps.approve
+        ? await deps.approve(approvalDecision, call)
+        : false;
       if (!approved) {
         gateDecision = approvalDecision;
         return finish('handoff');
       }
-      call = {...call, input: {...call.input, confirmationToken: dispatch.pendingConfirmation.token}};
+      call = {
+        ...call,
+        input: {
+          ...call.input,
+          confirmationToken: dispatch.pendingConfirmation.token,
+        },
+      };
       dispatch = await deps.executor.dispatch(call, ctx());
     }
 
@@ -375,7 +426,12 @@ export async function runTurn(request: TurnRequest, deps: TurnDeps): Promise<Tur
       // composer cannot reshape a grounded reply, so it yields the same draft and the re-gate fails
       // again → escalate to a human. Either way a reply a policy flagged for repair is never
       // delivered unrepaired, and the budget is exactly one attempt (no repair loop).
-      const repaired = compose(ctx(), req.objective, lastText, post.detail?.repairInstruction);
+      const repaired = compose(
+        ctx(),
+        req.objective,
+        lastText,
+        post.detail?.repairInstruction,
+      );
       const regate = deps.policy.runtime.evaluatePostGates(
         deps.policy.plan,
         policyCtx({draftReply: repaired, facts: {draftReply: repaired}}),
@@ -389,7 +445,8 @@ export async function runTurn(request: TurnRequest, deps: TurnDeps): Promise<Tur
       gateDecision = regate;
       handoffOverride = {
         reason: 'policy-required',
-        summary: regate.reason || 'Reply could not be repaired to satisfy policy',
+        summary:
+          regate.reason || 'Reply could not be repaired to satisfy policy',
       };
       return finish('handoff');
     }

@@ -41,7 +41,9 @@ export class WorkflowWorkerRoot implements CompositionRoot<Context> {
   }
 
   async createWorker(): Promise<Worker> {
-    const connection = await NativeConnection.connect({address: this.config.temporal.address});
+    const connection = await NativeConnection.connect({
+      address: this.config.temporal.address,
+    });
     this.worker = await Worker.create({
       connection,
       namespace: this.config.temporal.namespace,
@@ -54,7 +56,9 @@ export class WorkflowWorkerRoot implements CompositionRoot<Context> {
 
   async serve(_app: Context, stop: AbortSignal): Promise<void> {
     const worker = this.worker ?? (await this.createWorker());
-    await worker.runUntil(new Promise<void>(res => stop.addEventListener('abort', () => res())));
+    await worker.runUntil(
+      new Promise<void>(res => stop.addEventListener('abort', () => res())),
+    );
   }
 
   async stop(): Promise<void> {

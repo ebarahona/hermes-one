@@ -11,7 +11,11 @@ import {
 import type {Context} from '@agentback/context';
 import {createAgentPlaneApp} from '@platform-internal/agentback-runtime';
 import type {CapabilityName, ToolCall, TurnContext} from '@platform/contracts';
-import {PlatformToolExecutor, type CapabilityMeta, type CapabilityMetaSource} from './executor.js';
+import {
+  PlatformToolExecutor,
+  type CapabilityMeta,
+  type CapabilityMetaSource,
+} from './executor.js';
 import {createEnvelopeHook} from './envelope-hook.js';
 
 const META: Record<string, CapabilityMeta> = {
@@ -21,7 +25,8 @@ const META: Record<string, CapabilityMeta> = {
     changedDomains: ['appointment', 'conversation'],
   },
 };
-const metaSource: CapabilityMetaSource = name => META[name] ?? {sideEffect: 'read', changedDomains: ['none']};
+const metaSource: CapabilityMetaSource = name =>
+  META[name] ?? {sideEffect: 'read', changedDomains: ['none']};
 const ctx = {turnId: 'trn_t3'} as unknown as TurnContext;
 
 // Deterministic hook clock/ids so evidence + metrics are assertable.
@@ -55,7 +60,11 @@ describe('ToolResult envelope synthesis (ADR-018)', () => {
   it("synthesizes a full envelope around agentback's unwrapped result", async () => {
     await using t = await createTestApp(bootFactory());
     const server = await t.app.get<MCPServer>(MCPBindings.SERVER);
-    const exec = new PlatformToolExecutor(server, t.app as unknown as Context, metaSource);
+    const exec = new PlatformToolExecutor(
+      server,
+      t.app as unknown as Context,
+      metaSource,
+    );
 
     const result = await exec.execute(readCall, ctx);
 
@@ -85,12 +94,19 @@ describe('ToolResult envelope synthesis (ADR-018)', () => {
     // Default hook: id = evd_<sha256(turnId:toolCallId:ordinal)> — no per-process counter.
     const boot = () => {
       const app = createAgentPlaneApp({fixtures: true});
-      app.bind('platform.hook.envelope').to(createEnvelopeHook()).tag(MCP_DISPATCH_HOOK_TAG);
+      app
+        .bind('platform.hook.envelope')
+        .to(createEnvelopeHook())
+        .tag(MCP_DISPATCH_HOOK_TAG);
       return app;
     };
     await using t = await createTestApp(boot);
     const server = await t.app.get<MCPServer>(MCPBindings.SERVER);
-    const exec = new PlatformToolExecutor(server, t.app as unknown as Context, metaSource);
+    const exec = new PlatformToolExecutor(
+      server,
+      t.app as unknown as Context,
+      metaSource,
+    );
 
     const ctxA = {turnId: 'trn_a'} as unknown as TurnContext;
     const ctxB = {turnId: 'trn_b'} as unknown as TurnContext;
@@ -116,7 +132,11 @@ describe('ToolResult envelope synthesis (ADR-018)', () => {
   it('maps a dispatch failure to ok:false with an error envelope', async () => {
     await using t = await createTestApp(bootFactory());
     const server = await t.app.get<MCPServer>(MCPBindings.SERVER);
-    const exec = new PlatformToolExecutor(server, t.app as unknown as Context, metaSource);
+    const exec = new PlatformToolExecutor(
+      server,
+      t.app as unknown as Context,
+      metaSource,
+    );
 
     const bad: ToolCall = {
       ...readCall,

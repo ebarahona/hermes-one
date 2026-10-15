@@ -4,7 +4,11 @@
 // this inline at the controller (via assertScope); the middleware-based route→scope gate that runs
 // before invokeMethod is a later refinement (flagged) — this helper is the reusable primitive either
 // way. Wildcard matching is shared with the capability plane's tool-visibility gate (scopeSatisfies).
-import {type Principal, PlatformErrorException, type Scope} from '@platform/contracts';
+import {
+  type Principal,
+  PlatformErrorException,
+  type Scope,
+} from '@platform/contracts';
 import {scopeSatisfies} from '@platform/capability-contract';
 
 /** The canonical 403 for a missing scope. Generic body — no scope/route detail leaked. */

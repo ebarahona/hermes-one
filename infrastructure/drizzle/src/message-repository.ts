@@ -6,7 +6,13 @@ import {TenantAwareRepository} from './tenant-aware.repository.js';
 import {messages} from './schema/runtime.schema.js';
 
 type MessageStatus =
-  | 'received' | 'queued' | 'sent' | 'delivered' | 'read' | 'failed' | 'undelivered';
+  | 'received'
+  | 'queued'
+  | 'sent'
+  | 'delivered'
+  | 'read'
+  | 'failed'
+  | 'undelivered';
 type Channel = 'sms' | 'whatsapp' | 'webchat' | 'email' | 'voice' | 'api';
 
 export interface OutboundMessageRow {
@@ -34,7 +40,10 @@ export interface InboundMessageRow {
 
 export class DrizzleMessageRepository extends TenantAwareRepository {
   /** Persist an inbound message for a tenant. Idempotent — a replayed provider webhook collapses. */
-  async appendInbound(msg: InboundMessageRow, scope: TenantScope): Promise<void> {
+  async appendInbound(
+    msg: InboundMessageRow,
+    scope: TenantScope,
+  ): Promise<void> {
     await this.withTenant(scope, async tx => {
       await tx
         .insert(messages)
@@ -55,7 +64,10 @@ export class DrizzleMessageRepository extends TenantAwareRepository {
   }
 
   /** Persist an outbound message for a tenant. Idempotent on message_id. */
-  async appendOutbound(msg: OutboundMessageRow, scope: TenantScope): Promise<void> {
+  async appendOutbound(
+    msg: OutboundMessageRow,
+    scope: TenantScope,
+  ): Promise<void> {
     await this.withTenant(scope, async tx => {
       await tx
         .insert(messages)

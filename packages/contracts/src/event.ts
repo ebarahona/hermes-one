@@ -13,7 +13,10 @@ export type EventId = z.infer<typeof EventId>;
 /** Dot-namespaced event type: `<domain>.<subject>.<verb>`, e.g. `workflow.execution.completed`. */
 export const EventType = z
   .string()
-  .regex(/^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*){1,3}$/, 'expected "domain.subject.verb"');
+  .regex(
+    /^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*){1,3}$/,
+    'expected "domain.subject.verb"',
+  );
 export type EventType = z.infer<typeof EventType>;
 
 /* ------------------------------- Envelope -------------------------------- */
@@ -78,7 +81,10 @@ export interface EventOutboxRow {
 /** Write side — bound in the SAME transaction as the domain row (commit-and-publish). */
 export interface EventOutboxRepository {
   enqueue(
-    row: Pick<EventOutboxRow, 'tenantId' | 'aggregateType' | 'aggregateId' | 'eventType' | 'payload'>,
+    row: Pick<
+      EventOutboxRow,
+      'tenantId' | 'aggregateType' | 'aggregateId' | 'eventType' | 'payload'
+    >,
     tx: unknown, // the caller's open Drizzle transaction (ADR-022) — never opens its own
   ): Promise<void>;
   /** Poller read — ORDER BY sequence, status='pending'. */
@@ -93,14 +99,18 @@ export interface EventPublisher {
 }
 
 /** Pure mapper — outbox row (storage) → envelope (wire). No I/O. */
-export function toEventEnvelope(row: EventOutboxRow, schemaVersion: SemVer): EventEnvelope {
+export function toEventEnvelope(
+  row: EventOutboxRow,
+  schemaVersion: SemVer,
+): EventEnvelope {
   return {
     eventId: EventId.parse(`evt_${row.outboxId.replace(/^obx_/, '')}`),
     type: row.eventType,
     schemaVersion,
     tenantId: row.tenantId,
     aggregate: {type: row.aggregateType, id: row.aggregateId},
-    correlationId: (row.payload.correlationId as string | undefined) ?? row.aggregateId,
+    correlationId:
+      (row.payload.correlationId as string | undefined) ?? row.aggregateId,
     causationId: (row.payload.causationId as string | undefined) ?? null,
     occurredAt: row.createdAt,
     idempotencyKey: deriveEventIdempotencyKey({

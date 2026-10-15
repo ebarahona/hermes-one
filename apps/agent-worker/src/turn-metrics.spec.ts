@@ -8,7 +8,14 @@ const ledger = (): TurnLedger => ({
   tenantId: 'tnt' as TurnLedger['tenantId'],
   correlationId: 'trn',
   toolExecutions: [
-    {call: {} as never, result: {capability: 'appointment.slot.read', ok: true, metrics: {latencyMs: 12}} as never},
+    {
+      call: {} as never,
+      result: {
+        capability: 'appointment.slot.read',
+        ok: true,
+        metrics: {latencyMs: 12},
+      } as never,
+    },
   ],
   evidence: [],
   policyDecisions: [
@@ -24,11 +31,23 @@ describe('emitTurnMetrics', () => {
     emitTurnMetrics(m, ledger(), 'replied', 250);
     const s = m.snapshot();
 
-    expect(s.counters['agent.turn.count{outcome=replied,tenantId=tnt}']).toBe(1);
-    expect(s.counters['agent.tool.invocation.count{capability=appointment.slot.read,ok=true}']).toBe(1);
-    expect(s.counters['policy.gate.decision.count{outcome=allow,site=preGate}']).toBe(1);
-    expect(s.counters['policy.gate.decision.count{outcome=allow,site=postGate}']).toBe(1);
+    expect(s.counters['agent.turn.count{outcome=replied,tenantId=tnt}']).toBe(
+      1,
+    );
+    expect(
+      s.counters[
+        'agent.tool.invocation.count{capability=appointment.slot.read,ok=true}'
+      ],
+    ).toBe(1);
+    expect(
+      s.counters['policy.gate.decision.count{outcome=allow,site=preGate}'],
+    ).toBe(1);
+    expect(
+      s.counters['policy.gate.decision.count{outcome=allow,site=postGate}'],
+    ).toBe(1);
     expect(s.histograms['agent.turn.latency_ms{tenantId=tnt}']).toEqual([250]);
-    expect(s.histograms['agent.tool.latency_ms{capability=appointment.slot.read}']).toEqual([12]);
+    expect(
+      s.histograms['agent.tool.latency_ms{capability=appointment.slot.read}'],
+    ).toEqual([12]);
   });
 });

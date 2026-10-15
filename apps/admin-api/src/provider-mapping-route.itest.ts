@@ -22,16 +22,28 @@ const KEY_NOSCOPE = 'itest-pm-noscope';
 
 const key = (k: string, principalId: string, scopes: Scope[]): ApiKeySeed => ({
   key: k,
-  record: {keyId: `apk_${principalId}`, tenantId: TENANT, principalId: principalId as PrincipalId, scopes, status: 'active', expiresAt: null},
+  record: {
+    keyId: `apk_${principalId}`,
+    tenantId: TENANT,
+    principalId: principalId as PrincipalId,
+    scopes,
+    status: 'active',
+    expiresAt: null,
+  },
 });
 
 // Minimal capability contract (mirrors definition-route.itest.ts's capabilityBody) — the "default"
 // providerMapping the override surface falls back to when no tenant override row exists.
-const defaultMapping = {providers: [{providerId: 'internal-default', priority: 100}], eligibility: [], onNoProvider: 'fail'};
+const defaultMapping = {
+  providers: [{providerId: 'internal-default', priority: 100}],
+  eligibility: [],
+  onNoProvider: 'fail',
+};
 const capabilityBody = {
   name: CAP_NAME,
   title: 'Itest provider-mapping capability',
-  description: 'A capability used solely to exercise the provider-mapping override surface.',
+  description:
+    'A capability used solely to exercise the provider-mapping override surface.',
   inputJsonSchema: {type: 'object', properties: {}},
   outputJsonSchema: {type: 'object', properties: {}},
   sideEffect: 'read',
@@ -64,12 +76,29 @@ async function cleanupDefinitions(): Promise<void> {
   const c = await owner.connect();
   try {
     await c.query(`SELECT set_config('app.tenant_id', $1, false)`, [TENANT]);
-    await c.query(`DELETE FROM capability.provider_mappings WHERE tenant_id = $1`, [TENANT]);
-    await c.query(`DELETE FROM substrate.validated_contracts WHERE definition_id = $1`, [DEF_ID]);
-    await c.query(`DELETE FROM substrate.definition_versions WHERE definition_id = $1`, [DEF_ID]);
-    await c.query(`DELETE FROM audit.audit_events WHERE tenant_id = $1 AND action = 'definition.published'`, [TENANT]);
-    await c.query(`DELETE FROM event.event_outbox WHERE tenant_id = $1`, [TENANT]);
-    await c.query(`DELETE FROM substrate.definitions WHERE definition_id = $1`, [DEF_ID]);
+    await c.query(
+      `DELETE FROM capability.provider_mappings WHERE tenant_id = $1`,
+      [TENANT],
+    );
+    await c.query(
+      `DELETE FROM substrate.validated_contracts WHERE definition_id = $1`,
+      [DEF_ID],
+    );
+    await c.query(
+      `DELETE FROM substrate.definition_versions WHERE definition_id = $1`,
+      [DEF_ID],
+    );
+    await c.query(
+      `DELETE FROM audit.audit_events WHERE tenant_id = $1 AND action = 'definition.published'`,
+      [TENANT],
+    );
+    await c.query(`DELETE FROM event.event_outbox WHERE tenant_id = $1`, [
+      TENANT,
+    ]);
+    await c.query(
+      `DELETE FROM substrate.definitions WHERE definition_id = $1`,
+      [DEF_ID],
+    );
   } finally {
     c.release();
   }
@@ -83,7 +112,11 @@ beforeAll(async () => {
   const cfg = {...cfg0, api: {...cfg0.api, port: 0}};
   const root = new AdminApiRoot(cfg, {
     apiKeySeeds: [
-      key(KEY_FULL, 'prn_svc_pmfull', ['definition.write', 'capability.read', 'tenant.provider-mapping.write'] as Scope[]),
+      key(KEY_FULL, 'prn_svc_pmfull', [
+        'definition.write',
+        'capability.read',
+        'tenant.provider-mapping.write',
+      ] as Scope[]),
       key(KEY_NOSCOPE, 'prn_svc_pmnos', ['tenant.role.read'] as Scope[]),
     ],
   });
@@ -111,23 +144,35 @@ afterAll(async () => {
 });
 
 const getEffective = (k: string, tenantId: string) =>
-  fetch(`${base}/v1/capabilities/${CAP_NAME}/provider-mapping?tenantId=${tenantId}`, {headers: {'x-api-key': k}});
+  fetch(
+    `${base}/v1/capabilities/${CAP_NAME}/provider-mapping?tenantId=${tenantId}`,
+    {headers: {'x-api-key': k}},
+  );
 
 const putOverride = (k: string, tenantId: string, body: unknown) =>
-  fetch(`${base}/v1/tenants/${tenantId}/capabilities/${CAP_NAME}/provider-mapping`, {
-    method: 'PUT',
-    headers: {'x-api-key': k, 'content-type': 'application/json'},
-    body: JSON.stringify(body),
-  });
+  fetch(
+    `${base}/v1/tenants/${tenantId}/capabilities/${CAP_NAME}/provider-mapping`,
+    {
+      method: 'PUT',
+      headers: {'x-api-key': k, 'content-type': 'application/json'},
+      body: JSON.stringify(body),
+    },
+  );
 
 const deleteOverride = (k: string, tenantId: string) =>
-  fetch(`${base}/v1/tenants/${tenantId}/capabilities/${CAP_NAME}/provider-mapping`, {
-    method: 'DELETE',
-    headers: {'x-api-key': k},
-  });
+  fetch(
+    `${base}/v1/tenants/${tenantId}/capabilities/${CAP_NAME}/provider-mapping`,
+    {
+      method: 'DELETE',
+      headers: {'x-api-key': k},
+    },
+  );
 
 const overrideBody = {
-  providers: [{providerId: 'twilio', priority: 200}, {providerId: 'internal-default', priority: 50}],
+  providers: [
+    {providerId: 'twilio', priority: 200},
+    {providerId: 'internal-default', priority: 50},
+  ],
   eligibility: [],
   onNoProvider: 'handoff',
 };
@@ -144,7 +189,12 @@ describe('GET/PUT/DELETE .../provider-mapping (live)', () => {
   it('PUT an override (different provider ranking) → 200 source:tenant-override', async () => {
     const res = await putOverride(KEY_FULL, TENANT, overrideBody);
     expect(res.status).toBe(200);
-    const body = (await res.json()) as {source: string; mapping: unknown; updatedAt?: string; updatedBy?: string};
+    const body = (await res.json()) as {
+      source: string;
+      mapping: unknown;
+      updatedAt?: string;
+      updatedBy?: string;
+    };
     expect(body.source).toBe('tenant-override');
     expect(body.mapping).toEqual(overrideBody);
     expect(body.updatedAt).toBeTruthy();
@@ -184,13 +234,20 @@ describe('GET/PUT/DELETE .../provider-mapping (live)', () => {
   });
 
   it('unauthenticated → 401 (before routing)', async () => {
-    const res = await fetch(`${base}/v1/capabilities/${CAP_NAME}/provider-mapping?tenantId=${TENANT}`);
+    const res = await fetch(
+      `${base}/v1/capabilities/${CAP_NAME}/provider-mapping?tenantId=${TENANT}`,
+    );
     expect(res.status).toBe(401);
   });
 
   it('rejects an invalid body (providers: []) → 422', async () => {
-    const res = await putOverride(KEY_FULL, TENANT, {...overrideBody, providers: []});
+    const res = await putOverride(KEY_FULL, TENANT, {
+      ...overrideBody,
+      providers: [],
+    });
     expect(res.status).toBe(422);
-    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe('validation_failed');
+    expect(((await res.json()) as {error?: {code?: string}}).error?.code).toBe(
+      'validation_failed',
+    );
   });
 });

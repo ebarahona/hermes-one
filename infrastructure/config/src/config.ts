@@ -51,7 +51,9 @@ export const HermesConfig = z.object({
   // Tenant provider-credential encryption (ADR-026). When the master key is present, composition
   // roots layer the envelope store (per-tenant rows) over the static env bundle; absent → static
   // only. The key is 32 bytes hex and NEVER leaves the composition root.
-  credentials: z.object({masterKey: z.string().regex(/^[0-9a-f]{64}$/i)}).optional(),
+  credentials: z
+    .object({masterKey: z.string().regex(/^[0-9a-f]{64}$/i)})
+    .optional(),
   // Transactional-outbox publisher. The loop drains
   // per tenant under RLS — the tenant list is a config stand-in until the tenant registry exists
   // (CT1/CT2; the cross-tenant relay role is an unresolved question). Empty tenants → loop off.
@@ -140,7 +142,10 @@ export function loadConfig(
       pollIntervalMs: g('HERMES_OUTBOX_POLL_MS'),
       maxAttempts: g('HERMES_OUTBOX_MAX_ATTEMPTS'),
       channelPattern: g('HERMES_OUTBOX_CHANNEL_PATTERN'),
-      tenants: g('HERMES_OUTBOX_TENANTS').split(',').map(t => t.trim()).filter(Boolean),
+      tenants: g('HERMES_OUTBOX_TENANTS')
+        .split(',')
+        .map(t => t.trim())
+        .filter(Boolean),
     },
     api: {
       port: g('HERMES_ADMIN_API_PORT'),

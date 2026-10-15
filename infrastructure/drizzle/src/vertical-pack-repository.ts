@@ -39,7 +39,10 @@ export class DrizzleVerticalPackInstallationRepository extends TenantAwareReposi
           installedBy: install.installedBy,
         })
         .onConflictDoUpdate({
-          target: [verticalPackInstallations.tenantId, verticalPackInstallations.packId],
+          target: [
+            verticalPackInstallations.tenantId,
+            verticalPackInstallations.packId,
+          ],
           set: {
             packVersion: install.packVersion,
             status: install.status,
@@ -51,12 +54,20 @@ export class DrizzleVerticalPackInstallationRepository extends TenantAwareReposi
     );
   }
 
-  async get(tenantId: TenantId, packId: string): Promise<VerticalPackInstallation | null> {
+  async get(
+    tenantId: TenantId,
+    packId: string,
+  ): Promise<VerticalPackInstallation | null> {
     return this.withTenant({tenantId}, async tx => {
       const rows = await tx
         .select()
         .from(verticalPackInstallations)
-        .where(and(eq(verticalPackInstallations.tenantId, tenantId), eq(verticalPackInstallations.packId, packId)));
+        .where(
+          and(
+            eq(verticalPackInstallations.tenantId, tenantId),
+            eq(verticalPackInstallations.packId, packId),
+          ),
+        );
       const r = rows[0];
       if (!r) return null;
       return {
@@ -65,7 +76,8 @@ export class DrizzleVerticalPackInstallationRepository extends TenantAwareReposi
         packId: r.packId,
         packVersion: r.packVersion,
         status: r.status,
-        installedDefinitions: (r.installedDefinitions ?? []) as InstalledDefinitionRef[],
+        installedDefinitions: (r.installedDefinitions ??
+          []) as InstalledDefinitionRef[],
         installedBy: r.installedBy as PrincipalId,
       };
     });

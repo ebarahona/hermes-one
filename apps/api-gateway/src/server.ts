@@ -3,7 +3,12 @@
 // NOTE (flagged): this is a thin node:http handler for the *channel webhook* ingress (channel ingestion,
 // not the admin REST surface). The admin/API surface (workflow/conversation/tenant controllers) is
 // LoopBack REST per api/*.md — a separate, later build.
-import {createServer, type IncomingMessage, type Server, type ServerResponse} from 'node:http';
+import {
+  createServer,
+  type IncomingMessage,
+  type Server,
+  type ServerResponse,
+} from 'node:http';
 import type {SmsChannelTransport} from '@platform-internal/channels';
 import type {Tracer} from '@platform-internal/telemetry';
 import {startFromInbound, type IngestDeps} from './ingestor.js';
@@ -19,7 +24,8 @@ function readBody(req: IncomingMessage): Promise<string> {
 
 const lowerHeaders = (req: IncomingMessage): Record<string, string> => {
   const out: Record<string, string> = {};
-  for (const [k, v] of Object.entries(req.headers)) out[k.toLowerCase()] = Array.isArray(v) ? v.join(',') : (v ?? '');
+  for (const [k, v] of Object.entries(req.headers))
+    out[k.toLowerCase()] = Array.isArray(v) ? v.join(',') : (v ?? '');
   return out;
 };
 
@@ -39,28 +45,42 @@ export function createGatewayServer(deps: GatewayDeps): Server {
     }
     // edge.request: the trace root. Its traceparent is threaded onto the workflow start ref so the whole
     // downstream (workflow → activity → turn → tool) joins one trace.
-    const span = deps.tracer.startSpan('edge.request', {attributes: {'http.route': '/webhooks/sms'}});
+    const span = deps.tracer.startSpan('edge.request', {
+      attributes: {'http.route': '/webhooks/sms'},
+    });
     try {
       const rawBody = await readBody(req);
       const parsed = JSON.parse(rawBody || '{}');
-      const msg = await deps.transport.ingest({rawBody, parsed}, lowerHeaders(req));
+      const msg = await deps.transport.ingest(
+        {rawBody, parsed},
+        lowerHeaders(req),
+      );
       if (!msg) {
         span.end(); // verified but dropped (not our tenant / malformed)
         res.writeHead(204).end();
         return;
       }
-      const started = await startFromInbound(msg, deps.ingest, span.traceparent);
-      span.setAttributes({'tenant.id': msg.tenantId, 'workflow.id': started.workflowId});
+      const started = await startFromInbound(
+        msg,
+        deps.ingest,
+        span.traceparent,
+      );
+      span.setAttributes({
+        'tenant.id': msg.tenantId,
+        'workflow.id': started.workflowId,
+      });
       span.end();
-      res.writeHead(202, {'content-type': 'application/json'}).end(JSON.stringify(started));
+      res
+        .writeHead(202, {'content-type': 'application/json'})
+        .end(JSON.stringify(started));
     } catch (err) {
       // Verification failure or malformed request — reject without starting anything. The body is
       // GENERIC (no claim/schema/reason leakage on 401); the real
       // reason goes to the span/log only.
       span.end({ok: false, error: err as Error});
-      res.writeHead(401, {'content-type': 'application/json'}).end(
-        JSON.stringify({error: 'Authentication failed.'}),
-      );
+      res
+        .writeHead(401, {'content-type': 'application/json'})
+        .end(JSON.stringify({error: 'Authentication failed.'}));
     }
   });
 }

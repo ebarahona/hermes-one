@@ -18,12 +18,17 @@ import type {HermesConfig} from '@platform-internal/config';
 import {PersistingMessageProvider} from './messaging.js';
 import {SmsChannelTransport} from './sms-transport.js';
 import {StaticProviderCredentialStore} from '@platform-internal/secrets';
-import {VendorSmsProvider, TWILIO_SMS_PROVIDER_ID} from './vendor-sms-provider.js';
+import {
+  VendorSmsProvider,
+  TWILIO_SMS_PROVIDER_ID,
+} from './vendor-sms-provider.js';
 
 export class ChannelComponent implements Component, PlatformComponentBoundary {
   readonly plane = 'edge' as const;
   readonly bindsKeys: readonly string[] = []; // contributes extensions, owns no platform.* key
-  readonly implementsExtensionPoints = [PlatformExtensionPoints.PROVIDER_ADAPTERS];
+  readonly implementsExtensionPoints = [
+    PlatformExtensionPoints.PROVIDER_ADAPTERS,
+  ];
   readonly consumesExtensionPoints: readonly string[] = [];
   readonly contributesTags = [PlatformExtensionPoints.PROVIDER_ADAPTERS];
 
@@ -33,10 +38,15 @@ export class ChannelComponent implements Component, PlatformComponentBoundary {
     this.bindings = [
       Binding.bind('platform.providers.internal-message-log')
         .toDynamicValue(
-          ({context}) => new PersistingMessageProvider(context.getSync(PlatformBindings.MESSAGE_REPOSITORY)),
+          ({context}) =>
+            new PersistingMessageProvider(
+              context.getSync(PlatformBindings.MESSAGE_REPOSITORY),
+            ),
         )
         .inScope(BindingScope.SINGLETON)
-        .tag({[CoreTags.EXTENSION_FOR]: PlatformExtensionPoints.PROVIDER_ADAPTERS}),
+        .tag({
+          [CoreTags.EXTENSION_FOR]: PlatformExtensionPoints.PROVIDER_ADAPTERS,
+        }),
     ];
     if (cfg.sms) {
       const sms = cfg.sms;
@@ -45,16 +55,29 @@ export class ChannelComponent implements Component, PlatformComponentBoundary {
           .toDynamicValue(({context}) => {
             // Outbound-only transport instance; deliver() reads creds from ctx.config.
             const transport = new SmsChannelTransport({
-              signingSecret: 'unused-outbound', signatureHeader: 'x-signature', tenantByNumber: () => null,
-              vendorBaseUrl: sms.baseUrl, timeoutMs: sms.timeoutMs,
+              signingSecret: 'unused-outbound',
+              signatureHeader: 'x-signature',
+              tenantByNumber: () => null,
+              vendorBaseUrl: sms.baseUrl,
+              timeoutMs: sms.timeoutMs,
             });
             const creds = new StaticProviderCredentialStore({
-              [TWILIO_SMS_PROVIDER_ID]: {accountSid: sms.accountSid, authToken: sms.authToken, from: sms.from},
+              [TWILIO_SMS_PROVIDER_ID]: {
+                accountSid: sms.accountSid,
+                authToken: sms.authToken,
+                from: sms.from,
+              },
             });
-            return new VendorSmsProvider(transport, context.getSync(PlatformBindings.MESSAGE_REPOSITORY), creds);
+            return new VendorSmsProvider(
+              transport,
+              context.getSync(PlatformBindings.MESSAGE_REPOSITORY),
+              creds,
+            );
           })
           .inScope(BindingScope.SINGLETON)
-          .tag({[CoreTags.EXTENSION_FOR]: PlatformExtensionPoints.PROVIDER_ADAPTERS}),
+          .tag({
+            [CoreTags.EXTENSION_FOR]: PlatformExtensionPoints.PROVIDER_ADAPTERS,
+          }),
       );
     }
   }

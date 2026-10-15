@@ -1,7 +1,7 @@
 # Build plan — from proven thesis to operable multi-tenant platform
 
-> Companion to `DEFERRED-AND-FLAGGED.md` (the exhaustive per-item registry). That file is the *what*;
-> this file is the *order and why*. Updated at each phase boundary. Governing laws: **composable**
+> Companion to `DEFERRED-AND-FLAGGED.md` (the exhaustive per-item registry). That file is the _what_;
+> this file is the _order and why_. Updated at each phase boundary. Governing laws: **composable**
 > (ports in `@platform/contracts`, impls in `infrastructure/*`, planes meet only at serializable
 > boundaries, wiring only at composition roots — ADR-017/024) and **scalable** (costs O(1) in tenants
 > wherever possible; deterministic-first; nothing on the hot path that breaks at 1,000 tenants).
@@ -26,12 +26,12 @@ detail; current open totals live in the ledger's header.
 Zero code. Four design conflicts were found during the build and flagged instead of improvised;
 each now has a ratified answer:
 
-| ADR | Ledger | Decision |
-|---|---|---|
-| 025 | S5 | ONE `SecretProvider` (the security design's); refs never name vendors; backend = unpinned config |
-| 026 | S6 | Tenant vendor credentials = envelope-encrypted rows under the tenant CMK, NOT secret-manager entries; `resolve()` returns the record; `configKey` deleted |
-| 027 | PE4 | The role matrix governs role scopes; seeded default roles never carry wildcards |
-| 028 | A6 | Tool-output evidence is `authoritative/trusted`; `CapabilityInvoker` aligns; `trusted:false` = retrieved-content injection defense |
+| ADR | Ledger | Decision                                                                                                                                                  |
+| --- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 025 | S5     | ONE `SecretProvider` (the security design's); refs never name vendors; backend = unpinned config                                                          |
+| 026 | S6     | Tenant vendor credentials = envelope-encrypted rows under the tenant CMK, NOT secret-manager entries; `resolve()` returns the record; `configKey` deleted |
+| 027 | PE4    | The role matrix governs role scopes; seeded default roles never carry wildcards                                                                           |
+| 028 | A6     | Tool-output evidence is `authoritative/trusted`; `CapabilityInvoker` aligns; `trusted:false` = retrieved-content injection defense                        |
 
 Follow-through edits owned by later phases: the seeded default role scopes (027), `CapabilityInvoker`
 stamping (028, Phase 1 since that file is already open there), table-catalog and secrets documentation
@@ -58,6 +58,7 @@ PE7), and BOTH planes passed `providerConfig: {}`.
 ## Phase 2 — Write-path integrity ✅ (AU2 ✅ · AU4 ✅ 2026-07-17; AU3 moved to the messaging convergence, L1c to the interceptor stack — see ledger)
 
 Two coupled fixes, both about durable truth:
+
 1. ✅ **Replay-stable time (DONE 2026-07-17):** stamp `occurredAt` in the WORKFLOW (Temporal's deterministic clock),
    thread through `TurnRequest` — the audit `integrityHash` covers `occurredAt`, which was
    wall-clock-fresh per attempt; tamper-reject (AU2) required this to land first. Contract change

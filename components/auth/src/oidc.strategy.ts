@@ -36,9 +36,12 @@ export class OidcStrategy implements AuthStrategy {
   readonly name = 'oidc' as const;
 
   constructor(
-    @inject(AuthBindings.JWT_VERIFIER, {optional: true}) private readonly verifier?: JwtVerifier,
-    @inject(AuthBindings.CONFIG, {optional: true}) private readonly config?: AuthConfig,
-    @inject(PlatformBindings.ROLE_REGISTRY, {optional: true}) private readonly roles?: RoleRegistry,
+    @inject(AuthBindings.JWT_VERIFIER, {optional: true})
+    private readonly verifier?: JwtVerifier,
+    @inject(AuthBindings.CONFIG, {optional: true})
+    private readonly config?: AuthConfig,
+    @inject(PlatformBindings.ROLE_REGISTRY, {optional: true})
+    private readonly roles?: RoleRegistry,
   ) {}
 
   private bearer(request: Request): string | undefined {
@@ -54,7 +57,9 @@ export class OidcStrategy implements AuthStrategy {
     return this.bearer(request) !== undefined;
   }
 
-  async authenticate(request: Request): Promise<AuthenticatedIdentity | undefined> {
+  async authenticate(
+    request: Request,
+  ): Promise<AuthenticatedIdentity | undefined> {
     const token = this.bearer(request);
     if (!token || !this.verifier || !this.config?.oidc) return undefined;
 
@@ -71,7 +76,10 @@ export class OidcStrategy implements AuthStrategy {
 
     let claims;
     try {
-      claims = await this.verifier.verify(token, {issuer: issuer.issuer, audience: issuer.audience});
+      claims = await this.verifier.verify(token, {
+        issuer: issuer.issuer,
+        audience: issuer.audience,
+      });
     } catch {
       throw unauthorizedError('oidc_verify_failed'); // bad signature / aud / expired
     }

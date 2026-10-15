@@ -16,7 +16,11 @@ const EMITTED = '2026-07-13T09:00:00.000Z' as UsageEvent['emittedAt']; // period
 let owner: Pool;
 let usage: UsageMeterHandle;
 
-const ev = (meterKind: MeterKind, quantity: number, unit: UsageEvent['unit']): UsageEvent => ({
+const ev = (
+  meterKind: MeterKind,
+  quantity: number,
+  unit: UsageEvent['unit'],
+): UsageEvent => ({
   id: `usg_${meterKind}` as UsageEvent['id'],
   tenantId: TENANT,
   principalId: 'prn_usage' as UsageEvent['principalId'],
@@ -34,20 +38,32 @@ beforeAll(async () => {
   await runMigrations(PG);
   owner = new Pool({connectionString: PG, max: 2});
   usage = createUsageMeter(PG);
-  await owner.query(`DELETE FROM audit.usage_records WHERE tenant_id = $1`, [TENANT]);
+  await owner.query(`DELETE FROM audit.usage_records WHERE tenant_id = $1`, [
+    TENANT,
+  ]);
 });
 
 afterAll(async () => {
-  await owner.query(`DELETE FROM audit.usage_records WHERE tenant_id = $1`, [TENANT]);
+  await owner.query(`DELETE FROM audit.usage_records WHERE tenant_id = $1`, [
+    TENANT,
+  ]);
   await owner.end();
   await usage.close();
 });
 
 describe('DrizzleUsageMeter (live)', () => {
   it('records usage and summarizes per meter kind for the period', async () => {
-    expect((await usage.repo.record(ev('model.input.tokens', 1200, 'tokens'))).inserted).toBe(true);
-    expect((await usage.repo.record(ev('model.output.tokens', 340, 'tokens'))).inserted).toBe(true);
-    expect((await usage.repo.record(ev('model.cost.usd', 0.0021, 'usd'))).inserted).toBe(true);
+    expect(
+      (await usage.repo.record(ev('model.input.tokens', 1200, 'tokens')))
+        .inserted,
+    ).toBe(true);
+    expect(
+      (await usage.repo.record(ev('model.output.tokens', 340, 'tokens')))
+        .inserted,
+    ).toBe(true);
+    expect(
+      (await usage.repo.record(ev('model.cost.usd', 0.0021, 'usd'))).inserted,
+    ).toBe(true);
 
     const summary = await usage.repo.summarize(TENANT, '2026-07');
     expect(summary['model.input.tokens']).toBe(1200);
@@ -58,7 +74,9 @@ describe('DrizzleUsageMeter (live)', () => {
 
   it('collapses a re-emitted event on dedupeKey — exactly-once billing (first quantity wins)', async () => {
     // Same dedupeKey, DIFFERENT quantity (a retry re-emitting different token count) → dropped.
-    const res = await usage.repo.record(ev('model.input.tokens', 999999, 'tokens'));
+    const res = await usage.repo.record(
+      ev('model.input.tokens', 999999, 'tokens'),
+    );
     expect(res.inserted).toBe(false);
     const summary = await usage.repo.summarize(TENANT, '2026-07');
     expect(summary['model.input.tokens']).toBe(1200); // unchanged — the first record stands

@@ -31,9 +31,17 @@ export interface ObservabilityCorrelationContext {
 
 /** Pure derivation — never invents an id, only reads it off the values already in scope. */
 export function correlationFromWorkspace(
-  ws: {workspaceId: WorkspaceId; tenantRuntime: {tenantId: TenantId}; conversationId: ConversationId | null; correlationId: string},
+  ws: {
+    workspaceId: WorkspaceId;
+    tenantRuntime: {tenantId: TenantId};
+    conversationId: ConversationId | null;
+    correlationId: string;
+  },
   turnId: TurnId | null,
-): Pick<ObservabilityCorrelationContext, 'tenantId' | 'workspaceId' | 'conversationId' | 'turnId' | 'correlationId'> {
+): Pick<
+  ObservabilityCorrelationContext,
+  'tenantId' | 'workspaceId' | 'conversationId' | 'turnId' | 'correlationId'
+> {
   return {
     tenantId: ws.tenantRuntime.tenantId,
     workspaceId: ws.workspaceId,
@@ -67,8 +75,16 @@ export interface SloTarget {
 
 /** platform.telemetry.meter — JIT interface (impl deferred to the OTel wiring). */
 export interface Meter {
-  increment(metric: MetricName, tags?: Record<string, string>, by?: number): void;
-  record(metric: MetricName, value: number, tags?: Record<string, string>): void;
+  increment(
+    metric: MetricName,
+    tags?: Record<string, string>,
+    by?: number,
+  ): void;
+  record(
+    metric: MetricName,
+    value: number,
+    tags?: Record<string, string>,
+  ): void;
 }
 
 /* -------------------------------- Logging -------------------------------- */
@@ -93,7 +109,8 @@ export interface Logger {
 
 /** PII field-classification reused from the retention jobs' PiiCipher dataClass tagging —
  *  NOT a second scheme. A field tagged here with a dataClass gets redacted, never logged raw. */
-export type PiiDataClass = 'direct-identifier' | 'contact-info' | 'financial' | 'health' | 'free-text';
+export type PiiDataClass =
+  'direct-identifier' | 'contact-info' | 'financial' | 'health' | 'free-text';
 
 export interface RedactionRule {
   readonly fieldPath: string; // dot path within LogRecord.fields, e.g. "input.phoneNumber"

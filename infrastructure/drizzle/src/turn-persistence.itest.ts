@@ -61,7 +61,13 @@ const bundle = (): TurnPersistenceBundle => ({
         sideEffect: 'read',
         stateChanged: false,
         changedDomains: ['none'],
-        metrics: {latencyMs: 9, providerId: 'appt-provider', retries: 0, costUsd: 0, idempotentReplay: false},
+        metrics: {
+          latencyMs: 9,
+          providerId: 'appt-provider',
+          retries: 0,
+          costUsd: 0,
+          idempotentReplay: false,
+        },
         proposedAt: new Date(AT),
       },
     ],
@@ -94,12 +100,18 @@ const bundle = (): TurnPersistenceBundle => ({
     requestedAt: new Date(AT),
     updatedAt: new Date(AT),
   },
-  auditEvents: [auditEvent('aud_atomic_1', 'tool.invoked'), auditEvent('aud_atomic_2', 'decision.policy')],
+  auditEvents: [
+    auditEvent('aud_atomic_1', 'tool.invoked'),
+    auditEvent('aud_atomic_2', 'decision.policy'),
+  ],
   usageEvents: [usageEvent],
 });
 
 const count = async (schemaTable: string): Promise<number> => {
-  const r = await owner.query(`SELECT count(*)::int AS n FROM ${schemaTable} WHERE tenant_id = $1`, [TENANT]);
+  const r = await owner.query(
+    `SELECT count(*)::int AS n FROM ${schemaTable} WHERE tenant_id = $1`,
+    [TENANT],
+  );
   return r.rows[0].n as number;
 };
 const TABLES = [
@@ -113,7 +125,8 @@ const TABLES = [
 
 const wipe = async () => {
   // audit_events is append-only for platform_app; the owner (table owner) may clean test residue.
-  for (const t of TABLES) await owner.query(`DELETE FROM ${t} WHERE tenant_id = $1`, [TENANT]);
+  for (const t of TABLES)
+    await owner.query(`DELETE FROM ${t} WHERE tenant_id = $1`, [TENANT]);
 };
 
 beforeAll(async () => {
@@ -145,7 +158,13 @@ describe('DrizzleTurnPersistence.persistTurnAtomic (live, F3)', () => {
       `SELECT conversation_id, triggering_turn_id, status FROM runtime.handoff_tasks WHERE tenant_id = $1`,
       [TENANT],
     );
-    expect(ho.rows).toEqual([{conversation_id: 'cnv_atomic', triggering_turn_id: TURN, status: 'requested'}]);
+    expect(ho.rows).toEqual([
+      {
+        conversation_id: 'cnv_atomic',
+        triggering_turn_id: TURN,
+        status: 'requested',
+      },
+    ]);
 
     // Commit-and-publish: one pending outbox row per audit event, deterministic id, payload = the event.
     const obx = await owner.query(
@@ -155,8 +174,12 @@ describe('DrizzleTurnPersistence.persistTurnAtomic (live, F3)', () => {
     );
     expect(obx.rows).toHaveLength(2);
     expect(obx.rows[0]).toMatchObject({
-      outbox_id: 'obx_atomic_1', aggregate_type: 'audit_event', aggregate_id: 'aud_atomic_1',
-      event_type: 'tool.invoked', status: 'pending', action: 'tool.invoked',
+      outbox_id: 'obx_atomic_1',
+      aggregate_type: 'audit_event',
+      aggregate_id: 'aud_atomic_1',
+      event_type: 'tool.invoked',
+      status: 'pending',
+      action: 'tool.invoked',
     });
 
     // Billing fan-out: the inserted UsageRecord rides the SAME txn as
@@ -167,7 +190,12 @@ describe('DrizzleTurnPersistence.persistTurnAtomic (live, F3)', () => {
       [TENANT],
     );
     expect(billing.rows).toEqual([
-      {aggregate_id: usageEvent.dedupeKey, event_type: 'usage.record.recorded', status: 'pending', meter: 'tool.invocation'},
+      {
+        aggregate_id: usageEvent.dedupeKey,
+        event_type: 'usage.record.recorded',
+        status: 'pending',
+        meter: 'tool.invocation',
+      },
     ]);
   });
 
@@ -182,15 +210,24 @@ describe('DrizzleTurnPersistence.persistTurnAtomic (live, F3)', () => {
     const poisoned = bundle();
     // Fresh ids so nothing collapses against the committed rows...
     poisoned.ledger.toolExecutions[0] = {
-      ...poisoned.ledger.toolExecutions[0], toolCallId: 'tc_atomic_2', idempotencyKey: 'idem-atomic-2',
+      ...poisoned.ledger.toolExecutions[0],
+      toolCallId: 'tc_atomic_2',
+      idempotencyKey: 'idem-atomic-2',
     };
-    poisoned.ledger.policyDecisions[0] = {...poisoned.ledger.policyDecisions[0], decisionId: 'pld_atomic_2'};
+    poisoned.ledger.policyDecisions[0] = {
+      ...poisoned.ledger.policyDecisions[0],
+      decisionId: 'pld_atomic_2',
+    };
     poisoned.handoff = {...poisoned.handoff!, handoffId: 'hof_atomic_2'};
     poisoned.auditEvents = [auditEvent('aud_atomic_3', 'tool.invoked')];
     // ...except the usage event, which violates a NOT NULL at the END of the transaction.
-    poisoned.usageEvents = [{...usageEvent, dedupeKey: 'dk_atomic_2', meterKind: null as never}];
+    poisoned.usageEvents = [
+      {...usageEvent, dedupeKey: 'dk_atomic_2', meterKind: null as never},
+    ];
 
-    await expect(sut.repo.persistTurnAtomic(poisoned, {tenantId: TENANT})).rejects.toThrow();
+    await expect(
+      sut.repo.persistTurnAtomic(poisoned, {tenantId: TENANT}),
+    ).rejects.toThrow();
 
     // NOTHING from the poisoned batch committed — counts are exactly the pre-failure state.
     expect(await count('runtime.tool_executions')).toBe(1);
@@ -205,10 +242,15 @@ describe('DrizzleTurnPersistence.persistTurnAtomic (live, F3)', () => {
     // The WITH CHECK policy rejects a row whose tenant_id differs from the pinned GUC.
     const crossTenant = bundle();
     crossTenant.auditEvents = [
-      {...auditEvent('aud_atomic_x', 'tool.invoked'), tenantId: 'tnt_other' as TenantId} as AuditEvent,
+      {
+        ...auditEvent('aud_atomic_x', 'tool.invoked'),
+        tenantId: 'tnt_other' as TenantId,
+      } as AuditEvent,
     ];
     crossTenant.usageEvents = [];
     crossTenant.handoff = undefined;
-    await expect(sut.repo.persistTurnAtomic(crossTenant, {tenantId: TENANT})).rejects.toThrow();
+    await expect(
+      sut.repo.persistTurnAtomic(crossTenant, {tenantId: TENANT}),
+    ).rejects.toThrow();
   });
 });

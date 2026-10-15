@@ -22,7 +22,10 @@ import {
 
 export interface ScalabilityDataSources {
   /** Per-meter totals for the period (UsageMeter.summarize). */
-  summarize(tenantId: TenantId, period: string): Promise<Record<MeterKind, number>>;
+  summarize(
+    tenantId: TenantId,
+    period: string,
+  ): Promise<Record<MeterKind, number>>;
   /** Count of ALL routing decisions made by the deterministic rail — audit_events action='decision.rule'
    *  (one per inbound). The KPI denominator; the subset that stayed deterministic = this − model turns. */
   countRuleDecisions(tenantId: TenantId, period: string): Promise<number>;
@@ -36,10 +39,15 @@ export class UsageScalabilityAnalyticsService implements ScalabilityAnalyticsSer
     private readonly clock: () => Date = () => new Date(),
   ) {}
 
-  async dashboard(tenantId: TenantId | null, period: string): Promise<ScalabilityMetricsType> {
+  async dashboard(
+    tenantId: TenantId | null,
+    period: string,
+  ): Promise<ScalabilityMetricsType> {
     if (tenantId === null) {
       // Cross-tenant aggregation would require a privileged (RLS-bypassing) aggregator — not wired.
-      throw new Error('platform-wide scalability rollup (tenantId=null) is not supported in this build');
+      throw new Error(
+        'platform-wide scalability rollup (tenantId=null) is not supported in this build',
+      );
     }
     const [totals, decisions, modelTurns] = await Promise.all([
       this.data.summarize(tenantId, period),
@@ -51,7 +59,9 @@ export class UsageScalabilityAnalyticsService implements ScalabilityAnalyticsSer
     // current single-turn workflows) — multi-turn conversations need per-conversation counting (flagged).
     const turns = decisions; // total routing decisions = total work units
     const deterministicHits = Math.max(0, decisions - modelTurns);
-    const tokens = (totals['model.input.tokens'] ?? 0) + (totals['model.output.tokens'] ?? 0);
+    const tokens =
+      (totals['model.input.tokens'] ?? 0) +
+      (totals['model.output.tokens'] ?? 0);
     const cost = totals['model.cost.usd'] ?? 0;
     const per = (n: number) => (turns === 0 ? 0 : n / turns);
 
@@ -78,31 +88,70 @@ export class ThresholdScalabilityRegressionGate implements ScalabilityRegression
     candidate: ScalabilityMetricsType,
     baseline: ScalabilityMetricsType,
     thresholds: ScalabilityThresholds,
-  ): {pass: true} | {pass: false; reason: string; violations: Array<{kpi: ScalabilityKpi; value: number; limit: number}>} {
-    const violations: Array<{kpi: ScalabilityKpi; value: number; limit: number}> = [];
+  ):
+    | {pass: true}
+    | {
+        pass: false;
+        reason: string;
+        violations: Array<{kpi: ScalabilityKpi; value: number; limit: number}>;
+      } {
+    const violations: Array<{
+      kpi: ScalabilityKpi;
+      value: number;
+      limit: number;
+    }> = [];
 
     if (candidate.deterministicHitRate < thresholds.deterministicHitRateMin) {
-      violations.push({kpi: 'deterministic_hit_rate', value: candidate.deterministicHitRate, limit: thresholds.deterministicHitRateMin});
+      violations.push({
+        kpi: 'deterministic_hit_rate',
+        value: candidate.deterministicHitRate,
+        limit: thresholds.deterministicHitRateMin,
+      });
     }
     // Relative regression vs the baseline deployment.
-    const dropPct = baseline.deterministicHitRate > 0
-      ? ((baseline.deterministicHitRate - candidate.deterministicHitRate) / baseline.deterministicHitRate) * 100
-      : 0;
+    const dropPct =
+      baseline.deterministicHitRate > 0
+        ? ((baseline.deterministicHitRate - candidate.deterministicHitRate) /
+            baseline.deterministicHitRate) *
+          100
+        : 0;
     if (dropPct > thresholds.maxDeterministicHitRateDropPct) {
-      const limit = baseline.deterministicHitRate * (1 - thresholds.maxDeterministicHitRateDropPct / 100);
-      violations.push({kpi: 'deterministic_hit_rate', value: candidate.deterministicHitRate, limit});
+      const limit =
+        baseline.deterministicHitRate *
+        (1 - thresholds.maxDeterministicHitRateDropPct / 100);
+      violations.push({
+        kpi: 'deterministic_hit_rate',
+        value: candidate.deterministicHitRate,
+        limit,
+      });
     }
     if (candidate.llmCallsPerTurn > thresholds.maxLlmCallsPerTurn) {
-      violations.push({kpi: 'llm_calls_per_turn', value: candidate.llmCallsPerTurn, limit: thresholds.maxLlmCallsPerTurn});
+      violations.push({
+        kpi: 'llm_calls_per_turn',
+        value: candidate.llmCallsPerTurn,
+        limit: thresholds.maxLlmCallsPerTurn,
+      });
     }
     if (candidate.smallModelShare < thresholds.minSmallModelShare) {
-      violations.push({kpi: 'small_model_share', value: candidate.smallModelShare, limit: thresholds.minSmallModelShare});
+      violations.push({
+        kpi: 'small_model_share',
+        value: candidate.smallModelShare,
+        limit: thresholds.minSmallModelShare,
+      });
     }
     if (candidate.tokensPerTurn > thresholds.maxTokensPerTurn) {
-      violations.push({kpi: 'tokens_per_turn', value: candidate.tokensPerTurn, limit: thresholds.maxTokensPerTurn});
+      violations.push({
+        kpi: 'tokens_per_turn',
+        value: candidate.tokensPerTurn,
+        limit: thresholds.maxTokensPerTurn,
+      });
     }
     if (candidate.costPerTurnUsd > thresholds.maxCostPerTurnUsd) {
-      violations.push({kpi: 'cost_per_turn_usd', value: candidate.costPerTurnUsd, limit: thresholds.maxCostPerTurnUsd});
+      violations.push({
+        kpi: 'cost_per_turn_usd',
+        value: candidate.costPerTurnUsd,
+        limit: thresholds.maxCostPerTurnUsd,
+      });
     }
 
     if (violations.length === 0) return {pass: true};

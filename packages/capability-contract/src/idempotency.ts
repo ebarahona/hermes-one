@@ -4,10 +4,15 @@
 import type {CapabilityContract} from '@platform/contracts';
 
 function atPath(input: Record<string, unknown>, path: string): unknown {
-  return path.split('.').reduce<unknown>(
-    (acc, seg) => (acc && typeof acc === 'object' ? (acc as Record<string, unknown>)[seg] : undefined),
-    input,
-  );
+  return path
+    .split('.')
+    .reduce<unknown>(
+      (acc, seg) =>
+        acc && typeof acc === 'object'
+          ? (acc as Record<string, unknown>)[seg]
+          : undefined,
+      input,
+    );
 }
 
 /** `${turnId}:${name}:${keyFieldValues...}` — matches the tool_executions idempotency_key format. */
@@ -16,6 +21,8 @@ export function deriveIdempotencyKey(
   input: Record<string, unknown>,
   turnId: string,
 ): string {
-  const parts = cap.idempotency.keyFields.map(p => JSON.stringify(atPath(input, p) ?? null));
+  const parts = cap.idempotency.keyFields.map(p =>
+    JSON.stringify(atPath(input, p) ?? null),
+  );
   return [turnId, cap.name, ...parts].join(':');
 }

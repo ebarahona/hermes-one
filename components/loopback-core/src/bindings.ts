@@ -31,7 +31,11 @@ import type {
   EventOutboxRepository,
   EventPublisher,
 } from '@platform/contracts';
-import type {CapabilityInvoker, ProviderRegistry, ProviderResolver} from '@platform/capability-contract';
+import type {
+  CapabilityInvoker,
+  ProviderRegistry,
+  ProviderResolver,
+} from '@platform/capability-contract';
 import type {
   CompiledPlanStore,
   DrizzleHandoffRepository,
@@ -44,7 +48,10 @@ import type {
 } from '@platform-internal/drizzle';
 import type {RedisClient} from '@platform-internal/redis';
 import type {HermesConfig} from '@platform-internal/config';
-import type {DefinitionRegistry, DeploymentService} from '@platform/definition-substrate';
+import type {
+  DefinitionRegistry,
+  DeploymentService,
+} from '@platform/definition-substrate';
 
 /**
  * PlatformBindings — every edge/data-plane (`@loopback/context`) binding key.
@@ -59,35 +66,52 @@ export namespace PlatformBindings {
   export const CAPABILITY_RESOLVER = BindingKey.create<ProviderResolver>(
     'platform.capability.resolver',
   );
-  export const PROVIDER_REGISTRY = BindingKey.create<ProviderRegistry>('platform.provider.registry');
+  export const PROVIDER_REGISTRY = BindingKey.create<ProviderRegistry>(
+    'platform.provider.registry',
+  );
   /** Grammar-derived (flagged): the resolve+execute path over the registry/resolver (ADR-018). */
-  export const CAPABILITY_INVOKER = BindingKey.create<CapabilityInvoker>('platform.capability.invoker');
+  export const CAPABILITY_INVOKER = BindingKey.create<CapabilityInvoker>(
+    'platform.capability.invoker',
+  );
   /** New key, flagged (ProviderMappingController): the tenant
    *  OVERRIDE surface over capability.provider_mappings (ledger CT3). */
-  export const PROVIDER_MAPPING_REPOSITORY = BindingKey.create<DrizzleProviderMappingRepository>(
-    'platform.capability.providerMappingRepository',
-  );
+  export const PROVIDER_MAPPING_REPOSITORY =
+    BindingKey.create<DrizzleProviderMappingRepository>(
+      'platform.capability.providerMappingRepository',
+    );
 
   // ── policy runtime (ADR-019) ─────────────────────────────────────────────
-  export const POLICY_RUNTIME = BindingKey.create<PolicyRuntime>('platform.policy.runtime');
+  export const POLICY_RUNTIME = BindingKey.create<PolicyRuntime>(
+    'platform.policy.runtime',
+  );
 
   // ── rule runtime (ADR-015) ──────────────────────────────────────────────
-  export const RULE_RUNTIME = BindingKey.create<RuleRuntime>('platform.rule.runtime');
+  export const RULE_RUNTIME = BindingKey.create<RuleRuntime>(
+    'platform.rule.runtime',
+  );
 
   // ── workflow runtime (ADR-014) ────────────────────────────────────────────
-  export const WORKFLOW_RUNTIME = BindingKey.create<WorkflowRuntime>('platform.workflow.runtime');
+  export const WORKFLOW_RUNTIME = BindingKey.create<WorkflowRuntime>(
+    'platform.workflow.runtime',
+  );
 
   // ── tool executor (ADR-018, wraps agentback invokeTool) ──────────────────
-  export const TOOL_EXECUTOR = BindingKey.create<ToolExecutor>('platform.tool.executor');
+  export const TOOL_EXECUTOR = BindingKey.create<ToolExecutor>(
+    'platform.tool.executor',
+  );
 
   // ── audit + usage metering (T7) ───────────────────────────────────────────
   export const AUDIT_SINK = BindingKey.create<AuditSink>('platform.audit.sink');
-  export const USAGE_METER = BindingKey.create<UsageMeter>('platform.usage.meter');
+  export const USAGE_METER = BindingKey.create<UsageMeter>(
+    'platform.usage.meter',
+  );
 
   // ── datasources (singletons) ────────────────────────────────────────────
   /** Spec type `PostgresDatabase` (@platform/data, unbuilt) — the repo's PlatformDbHandle carries
    *  the drizzle db + pool the lifecycle observer needs (flagged). */
-  export const POSTGRES = BindingKey.create<PlatformDbHandle>('platform.data.postgres');
+  export const POSTGRES = BindingKey.create<PlatformDbHandle>(
+    'platform.data.postgres',
+  );
   export const REDIS = BindingKey.create<RedisClient>('platform.data.redis');
 
   // ── repository / store ports (database-pack grammar `platform.data.<name>`) ──
@@ -110,9 +134,10 @@ export namespace PlatformBindings {
   export const HANDOFF_REPOSITORY = BindingKey.create<DrizzleHandoffRepository>(
     'platform.data.handoff-repository',
   );
-  export const EVENT_OUTBOX_REPOSITORY = BindingKey.create<EventOutboxRepository>(
-    'platform.data.event-outbox-repository',
-  );
+  export const EVENT_OUTBOX_REPOSITORY =
+    BindingKey.create<EventOutboxRepository>(
+      'platform.data.event-outbox-repository',
+    );
   export const EVENT_OUTBOX_PUBLISHER = BindingKey.create<EventPublisher>(
     'platform.data.event-outbox-publisher',
   );
@@ -124,7 +149,9 @@ export namespace PlatformBindings {
   // ── tenant context (tenant scope) ───────────────────────────────────────
   export const TENANT_ID = BindingKey.create<string>('platform.tenant.id');
   /** Canonical key — role NAMES → scopes at runtime, never cached. */
-  export const ROLE_REGISTRY = BindingKey.create<RoleRegistry>('platform.tenant.roleRegistry');
+  export const ROLE_REGISTRY = BindingKey.create<RoleRegistry>(
+    'platform.tenant.roleRegistry',
+  );
   export const TENANT_REPOSITORY = BindingKey.create<DrizzleTenantRepository>(
     'platform.data.tenant-repository',
   );
@@ -133,10 +160,18 @@ export namespace PlatformBindings {
   );
 
   // ── request context (request scope) ─────────────────────────────────────
-  export const REQUEST_PRINCIPAL = BindingKey.create<Principal>('platform.request.principal');
-  export const CORRELATION_ID = BindingKey.create<string>('platform.request.correlation-id');
-  export const REQUEST_LOCALE = BindingKey.create<string>('platform.request.locale');
-  export const REQUEST_CHANNEL = BindingKey.create<string>('platform.request.channel');
+  export const REQUEST_PRINCIPAL = BindingKey.create<Principal>(
+    'platform.request.principal',
+  );
+  export const CORRELATION_ID = BindingKey.create<string>(
+    'platform.request.correlation-id',
+  );
+  export const REQUEST_LOCALE = BindingKey.create<string>(
+    'platform.request.locale',
+  );
+  export const REQUEST_CHANNEL = BindingKey.create<string>(
+    'platform.request.channel',
+  );
 
   // ── configuration subtree (immutable after boot, secrets lazy) ──────────
   export const CONFIG = BindingKey.create<HermesConfig>('platform.config.root');

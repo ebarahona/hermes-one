@@ -10,12 +10,16 @@ import {createTestApp} from '@agentback/testing';
 import {MCPBindings, type MCPServer} from '@agentback/mcp';
 import type {CapabilityContract, ProviderAdapter} from '@platform/contracts';
 import {createAgentPlaneApp} from './app.js';
-import {CapabilityToolProjector, type ProjectionContext} from './tool-projection.js';
+import {
+  CapabilityToolProjector,
+  type ProjectionContext,
+} from './tool-projection.js';
 
 const SLOT_READ = {
   name: 'appointment.slot.read',
   title: 'Read appointment slots',
-  description: 'List open service-visit slots for a given date and service type.',
+  description:
+    'List open service-visit slots for a given date and service type.',
   inputJsonSchema: {
     type: 'object',
     required: ['date'],
@@ -44,7 +48,9 @@ const ctx = (): ProjectionContext => ({
   idempotencyKeyFor: () => 'idem_projected',
 });
 
-const schedulerAdapter = (execute: ProviderAdapter['execute']): ProviderAdapter =>
+const schedulerAdapter = (
+  execute: ProviderAdapter['execute'],
+): ProviderAdapter =>
   ({
     providerId: 'internal-scheduler',
     capability: 'appointment.slot.read',
@@ -66,7 +72,10 @@ describe('projected capability → real agentback dispatch → provider', () => 
       slots: [`${(input as {date: string}).date}T14:00:00-05:00`],
     }));
     const resolve = vi.fn(async () => schedulerAdapter(execute));
-    const {bindings} = new CapabilityToolProjector(resolve).project([SLOT_READ], ctx());
+    const {bindings} = new CapabilityToolProjector(resolve).project(
+      [SLOT_READ],
+      ctx(),
+    );
 
     const output = await server.callTool(
       'appointment.slot.read',
@@ -84,12 +93,18 @@ describe('projected capability → real agentback dispatch → provider', () => 
     const server = await t.app.get<MCPServer>(MCPBindings.SERVER);
 
     const execute = vi.fn(async () => ({slots: []}));
-    const {bindings} = new CapabilityToolProjector(async () => schedulerAdapter(execute)).project([SLOT_READ], ctx());
+    const {bindings} = new CapabilityToolProjector(async () =>
+      schedulerAdapter(execute),
+    ).project([SLOT_READ], ctx());
     const binding = bindings.get('appointment.slot.read');
 
     // `date` is required by inputJsonSchema → agentback rejects BEFORE the provider is ever resolved.
-    await expect(server.callTool('appointment.slot.read', {}, {binding})).rejects.toThrow();
-    await expect(server.callTool('appointment.slot.read', {date: 42}, {binding})).rejects.toThrow();
+    await expect(
+      server.callTool('appointment.slot.read', {}, {binding}),
+    ).rejects.toThrow();
+    await expect(
+      server.callTool('appointment.slot.read', {date: 42}, {binding}),
+    ).rejects.toThrow();
     expect(execute).not.toHaveBeenCalled();
   });
 
@@ -101,11 +116,15 @@ describe('projected capability → real agentback dispatch → provider', () => 
     const server = await t.app.get<MCPServer>(MCPBindings.SERVER);
 
     expect((await t.mcp.listTools()).tools).toHaveLength(0);
-    await expect(server.callTool('appointment.slot.read', {date: '2026-07-20'})).rejects.toThrow(/Unknown tool/);
+    await expect(
+      server.callTool('appointment.slot.read', {date: '2026-07-20'}),
+    ).rejects.toThrow(/Unknown tool/);
   });
 
   it('the fixtures remain available only behind an explicit opt-in (spike specs)', async () => {
-    await using t = await createTestApp(() => createAgentPlaneApp({fixtures: true}));
+    await using t = await createTestApp(() =>
+      createAgentPlaneApp({fixtures: true}),
+    );
     const names = (await t.mcp.listTools()).tools.map(x => x.name);
     expect(names).toContain('appointment.slot.read');
   });
@@ -117,12 +136,20 @@ describe('projected capability → real agentback dispatch → provider', () => 
       schedulerAdapter(async () => ({slots: ['tenant-scoped']})),
     );
 
-    const a = projector.project([SLOT_READ], {...ctx(), tenantId: 'tnt_a' as ProjectionContext['tenantId']});
-    const b = projector.project([SLOT_READ], {...ctx(), tenantId: 'tnt_b' as ProjectionContext['tenantId']});
+    const a = projector.project([SLOT_READ], {
+      ...ctx(),
+      tenantId: 'tnt_a' as ProjectionContext['tenantId'],
+    });
+    const b = projector.project([SLOT_READ], {
+      ...ctx(),
+      tenantId: 'tnt_b' as ProjectionContext['tenantId'],
+    });
 
     // Same capability NAME, independent bindings — nothing is registered on the shared app context,
     // so tenant B's projection cannot clobber tenant A's (the multi-tenant reason for per-turn).
-    expect(a.bindings.get('appointment.slot.read')).not.toBe(b.bindings.get('appointment.slot.read'));
+    expect(a.bindings.get('appointment.slot.read')).not.toBe(
+      b.bindings.get('appointment.slot.read'),
+    );
     for (const projected of [a, b]) {
       const out = await server.callTool(
         'appointment.slot.read',

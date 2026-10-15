@@ -24,7 +24,9 @@ export interface CapabilityMeta {
 }
 
 /** Resolves a capability's envelope metadata — built from the CapabilityContract, not hardcoded. */
-export type CapabilityMetaSource = (capability: CapabilityName) => CapabilityMeta;
+export type CapabilityMetaSource = (
+  capability: CapabilityName,
+) => CapabilityMeta;
 
 /**
  * A dispatch outcome. When agentback refuses a `confirm:` tool it throws with code
@@ -45,10 +47,17 @@ export interface DispatchResult {
 const CONFIRMATION_REQUIRED = 'confirmation_required';
 const NO_PROVIDER = 'no_provider';
 const MUTATING = new Set<SideEffectClass>(['write', 'external', 'payment']);
-const READ_META: CapabilityMeta = {sideEffect: 'read', changedDomains: ['none']};
+const READ_META: CapabilityMeta = {
+  sideEffect: 'read',
+  changedDomains: ['none'],
+};
 
 /** Error → envelope error fields. agentback throws AgentError-shaped errors. */
-function toErrorFields(err: unknown): {code: string; message: string; retryable: boolean} {
+function toErrorFields(err: unknown): {
+  code: string;
+  message: string;
+  retryable: boolean;
+} {
   const e = err as {code?: string; message?: string; retryable?: boolean};
   return {
     code: e.code ?? 'internal_error',
@@ -63,7 +72,9 @@ function toErrorFields(err: unknown): {code: string; message: string; retryable:
  * ProviderAdapter — instead of a statically-registered tool discovered off the shared app context.
  * Absent → agentback resolves the name against its registered tools (the pre-projection path).
  */
-export type ToolBindingSource = (capability: CapabilityName) => ToolBinding | undefined;
+export type ToolBindingSource = (
+  capability: CapabilityName,
+) => ToolBinding | undefined;
 
 /**
  * Names the adapter that served a capability's dispatch, for `ToolMetrics.providerId` (canonical in
@@ -71,7 +82,9 @@ export type ToolBindingSource = (capability: CapabilityName) => ToolBinding | un
  * selection happens inside the projected tool body, so the executor cannot know it otherwise. Absent
  * → providerId is omitted, exactly as before.
  */
-export type ProviderIdSource = (capability: CapabilityName) => string | undefined;
+export type ProviderIdSource = (
+  capability: CapabilityName,
+) => string | undefined;
 
 export class PlatformToolExecutor implements ToolExecutor {
   constructor(
@@ -144,7 +157,11 @@ export class PlatformToolExecutor implements ToolExecutor {
       const token = (err as {confirmationToken?: string}).confirmationToken;
       // NoProviderError carries its onNoProvider disposition + reasons (capability-contract). Surface
       // a handoff signal when the mapping says 'handoff' so the loop escalates instead of re-prompting.
-      const np = err as {code?: string; onNoProvider?: 'fail' | 'handoff'; reasons?: readonly string[]};
+      const np = err as {
+        code?: string;
+        onNoProvider?: 'fail' | 'handoff';
+        reasons?: readonly string[];
+      };
       const pendingHandoff =
         fields.code === NO_PROVIDER && np.onNoProvider === 'handoff'
           ? {reason: (np.reasons ?? []).join('; ') || 'no eligible provider'}
@@ -162,7 +179,9 @@ export class PlatformToolExecutor implements ToolExecutor {
           metrics: metrics(),
           error: fields,
         }),
-        ...(fields.code === CONFIRMATION_REQUIRED && token ? {pendingConfirmation: {token}} : {}),
+        ...(fields.code === CONFIRMATION_REQUIRED && token
+          ? {pendingConfirmation: {token}}
+          : {}),
         ...(pendingHandoff ? {pendingHandoff} : {}),
       };
     }
@@ -171,10 +190,15 @@ export class PlatformToolExecutor implements ToolExecutor {
 
 /** Build a CapabilityMetaSource from a lookup of pinned CapabilityContracts. */
 export function metaSourceFrom(
-  lookup: (name: CapabilityName) => {sideEffect: SideEffectClass; changedDomains: ChangedDomain[]} | undefined,
+  lookup: (
+    name: CapabilityName,
+  ) =>
+    {sideEffect: SideEffectClass; changedDomains: ChangedDomain[]} | undefined,
 ): CapabilityMetaSource {
   return name => {
     const c = lookup(name);
-    return c ? {sideEffect: c.sideEffect, changedDomains: c.changedDomains} : READ_META;
+    return c
+      ? {sideEffect: c.sideEffect, changedDomains: c.changedDomains}
+      : READ_META;
   };
 }

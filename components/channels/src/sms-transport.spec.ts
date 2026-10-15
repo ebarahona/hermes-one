@@ -10,19 +10,27 @@ import {
   type TenantId,
 } from '@platform/contracts';
 import type {NonceStore} from '@platform-internal/redis';
-import {SmsChannelTransport, smsSignedMaterial, type FetchLike, type SmsTransportConfig} from './sms-transport.js';
+import {
+  SmsChannelTransport,
+  smsSignedMaterial,
+  type FetchLike,
+  type SmsTransportConfig,
+} from './sms-transport.js';
 
 const SECRET = 'shh';
 const NOW = '2026-07-12T00:00:00.000Z';
 const NOW_S = Math.floor(Date.parse(NOW) / 1000);
 const sign = (body: string, ts: string) =>
-  createHmac('sha256', SECRET).update(smsSignedMaterial(body, ts)).digest('hex');
+  createHmac('sha256', SECRET)
+    .update(smsSignedMaterial(body, ts))
+    .digest('hex');
 
 const makeTransport = (over: Partial<SmsTransportConfig> = {}) =>
   new SmsChannelTransport({
     signingSecret: SECRET,
     signatureHeader: 'x-signature',
-    tenantByNumber: to => (to === '+15125550100' ? ('tnt_acme' as TenantId) : null),
+    tenantByNumber: to =>
+      to === '+15125550100' ? ('tnt_acme' as TenantId) : null,
     clock: () => NOW,
     ...over,
   });
@@ -30,12 +38,20 @@ const transport = makeTransport();
 
 const raw = (parsed: Record<string, string>, ts: string = String(NOW_S)) => {
   const rawBody = JSON.stringify(parsed);
-  return {rawWebhook: {rawBody, parsed}, headers: {'x-signature': sign(rawBody, ts), 'x-timestamp': ts}};
+  return {
+    rawWebhook: {rawBody, parsed},
+    headers: {'x-signature': sign(rawBody, ts), 'x-timestamp': ts},
+  };
 };
 
 describe('SmsChannelTransport.ingest (AUTH-1 verification ladder)', () => {
   it('verifies the signature and normalizes to an InboundMessage', async () => {
-    const {rawWebhook, headers} = raw({From: '+15125559999', To: '+15125550100', Body: 'help', MessageSid: 'SM1'});
+    const {rawWebhook, headers} = raw({
+      From: '+15125559999',
+      To: '+15125550100',
+      Body: 'help',
+      MessageSid: 'SM1',
+    });
     const msg = await transport.ingest(rawWebhook, headers);
     expect(msg).not.toBeNull();
     expect(msg!.tenantId).toBe('tnt_acme');
@@ -46,30 +62,57 @@ describe('SmsChannelTransport.ingest (AUTH-1 verification ladder)', () => {
   });
 
   it('rejects a forged request (bad signature)', async () => {
-    const {rawWebhook, headers} = raw({From: '+1', To: '+15125550100', Body: 'x', MessageSid: 'SM2'});
+    const {rawWebhook, headers} = raw({
+      From: '+1',
+      To: '+15125550100',
+      Body: 'x',
+      MessageSid: 'SM2',
+    });
     await expect(
       transport.ingest(rawWebhook, {...headers, 'x-signature': 'deadbeef'}),
     ).rejects.toThrow(/signature/);
   });
 
   it('rejects a missing timestamp (timestamp is part of the contract, not optional)', async () => {
-    const {rawWebhook, headers} = raw({From: '+1', To: '+15125550100', Body: 'x', MessageSid: 'SM2a'});
+    const {rawWebhook, headers} = raw({
+      From: '+1',
+      To: '+15125550100',
+      Body: 'x',
+      MessageSid: 'SM2a',
+    });
     const {['x-timestamp']: _ts, ...withoutTs} = headers;
-    await expect(transport.ingest(rawWebhook, withoutTs)).rejects.toThrow(/signature/);
+    await expect(transport.ingest(rawWebhook, withoutTs)).rejects.toThrow(
+      /signature/,
+    );
   });
 
   it('rejects a stale timestamp BEFORE any HMAC work (skew window, default 300s)', async () => {
     const stale = String(NOW_S - 301);
-    const {rawWebhook, headers} = raw({From: '+1', To: '+15125550100', Body: 'x', MessageSid: 'SM2b'}, stale);
-    await expect(transport.ingest(rawWebhook, headers)).rejects.toThrow(/timestamp/);
+    const {rawWebhook, headers} = raw(
+      {From: '+1', To: '+15125550100', Body: 'x', MessageSid: 'SM2b'},
+      stale,
+    );
+    await expect(transport.ingest(rawWebhook, headers)).rejects.toThrow(
+      /timestamp/,
+    );
   });
 
   it('the timestamp is INSIDE the signed material — resigning the body alone fails', async () => {
-    const parsed = {From: '+1', To: '+15125550100', Body: 'x', MessageSid: 'SM2c'};
+    const parsed = {
+      From: '+1',
+      To: '+15125550100',
+      Body: 'x',
+      MessageSid: 'SM2c',
+    };
     const rawBody = JSON.stringify(parsed);
-    const bodyOnlySig = createHmac('sha256', SECRET).update(rawBody).digest('hex'); // pre-AUTH-1 material
+    const bodyOnlySig = createHmac('sha256', SECRET)
+      .update(rawBody)
+      .digest('hex'); // pre-AUTH-1 material
     await expect(
-      transport.ingest({rawBody, parsed}, {'x-signature': bodyOnlySig, 'x-timestamp': String(NOW_S)}),
+      transport.ingest(
+        {rawBody, parsed},
+        {'x-signature': bodyOnlySig, 'x-timestamp': String(NOW_S)},
+      ),
     ).rejects.toThrow(/signature/);
   });
 
@@ -79,7 +122,12 @@ describe('SmsChannelTransport.ingest (AUTH-1 verification ladder)', () => {
       reserve: async key => (seen.has(key) ? false : (seen.add(key), true)),
     };
     const guarded = makeTransport({nonces});
-    const {rawWebhook, headers} = raw({From: '+15125559999', To: '+15125550100', Body: 'hi', MessageSid: 'SM2d'});
+    const {rawWebhook, headers} = raw({
+      From: '+15125559999',
+      To: '+15125550100',
+      Body: 'hi',
+      MessageSid: 'SM2d',
+    });
     expect(await guarded.ingest(rawWebhook, headers)).not.toBeNull();
     await expect(guarded.ingest(rawWebhook, headers)).rejects.toThrow(/replay/);
   });
@@ -92,7 +140,15 @@ describe('SmsChannelTransport.ingest (AUTH-1 verification ladder)', () => {
     const guarded = makeTransport({nonces, skewWindowSeconds: 120});
     // Vendor clock ahead by the full skew: signature stays valid until ts+skew = now+2×skew.
     const future = String(NOW_S + 120);
-    const {rawWebhook, headers} = raw({From: '+15125559999', To: '+15125550100', Body: 'hi', MessageSid: 'SM2g'}, future);
+    const {rawWebhook, headers} = raw(
+      {
+        From: '+15125559999',
+        To: '+15125550100',
+        Body: 'hi',
+        MessageSid: 'SM2g',
+      },
+      future,
+    );
     expect(await guarded.ingest(rawWebhook, headers)).not.toBeNull();
     expect(reserved).toEqual([240]); // 2 * skewWindowSeconds — never just skew
   });
@@ -100,7 +156,10 @@ describe('SmsChannelTransport.ingest (AUTH-1 verification ladder)', () => {
   it('resolves the signing secret through the SecretRef seam (rotation-ready)', async () => {
     let resolved = 0;
     const secrets: SecretProvider = {
-      resolve: async () => (resolved++, {value: SECRET, version: 'v1', resolvedAt: NOW}),
+      resolve: async () => (
+        resolved++,
+        {value: SECRET, version: 'v1', resolvedAt: NOW}
+      ),
       invalidate: () => {},
     };
     const viaRef = makeTransport({
@@ -108,19 +167,36 @@ describe('SmsChannelTransport.ingest (AUTH-1 verification ladder)', () => {
       signingSecretRef: SecretRef.parse('secret://webhooks/acme/signing'),
       secrets,
     });
-    const {rawWebhook, headers} = raw({From: '+1', To: '+15125550100', Body: 'x', MessageSid: 'SM2e'});
+    const {rawWebhook, headers} = raw({
+      From: '+1',
+      To: '+15125550100',
+      Body: 'x',
+      MessageSid: 'SM2e',
+    });
     expect(await viaRef.ingest(rawWebhook, headers)).not.toBeNull();
     expect(resolved).toBe(1);
   });
 
   it('fails closed when no signing secret is configured at all', async () => {
     const none = makeTransport({signingSecret: undefined});
-    const {rawWebhook, headers} = raw({From: '+1', To: '+15125550100', Body: 'x', MessageSid: 'SM2f'});
-    await expect(none.ingest(rawWebhook, headers)).rejects.toThrow(/no webhook signing secret/);
+    const {rawWebhook, headers} = raw({
+      From: '+1',
+      To: '+15125550100',
+      Body: 'x',
+      MessageSid: 'SM2f',
+    });
+    await expect(none.ingest(rawWebhook, headers)).rejects.toThrow(
+      /no webhook signing secret/,
+    );
   });
 
   it('drops a message to a number no tenant owns', async () => {
-    const {rawWebhook, headers} = raw({From: '+1', To: '+19999999999', Body: 'x', MessageSid: 'SM3'});
+    const {rawWebhook, headers} = raw({
+      From: '+1',
+      To: '+19999999999',
+      Body: 'x',
+      MessageSid: 'SM3',
+    });
     expect(await transport.ingest(rawWebhook, headers)).toBeNull();
   });
 });
@@ -143,25 +219,43 @@ const ctx: ProviderExecutionContext = {
 
 const deliverTransport = (fetchImpl: FetchLike) =>
   new SmsChannelTransport({
-    signingSecret: SECRET, signatureHeader: 'x-signature', tenantByNumber: () => null,
-    vendorBaseUrl: 'https://fake-twilio.test', timeoutMs: 5000, fetchImpl,
+    signingSecret: SECRET,
+    signatureHeader: 'x-signature',
+    tenantByNumber: () => null,
+    vendorBaseUrl: 'https://fake-twilio.test',
+    timeoutMs: 5000,
+    fetchImpl,
   });
 const res = (status: number, body: unknown): ReturnType<FetchLike> =>
-  Promise.resolve({status, text: async () => JSON.stringify(body), json: async () => body});
+  Promise.resolve({
+    status,
+    text: async () => JSON.stringify(body),
+    json: async () => body,
+  });
 
 describe('SmsChannelTransport.deliver (outcome mapping)', () => {
   it('posts to the vendor and returns the SID on 2xx', async () => {
-    let seen: {url: string; body: string; auth?: string; idem?: string} | undefined;
+    let seen:
+      {url: string; body: string; auth?: string; idem?: string} | undefined;
     const t = deliverTransport(async (url, init) => {
-      seen = {url, body: init.body, auth: init.headers.authorization, idem: init.headers['idempotency-key']};
+      seen = {
+        url,
+        body: init.body,
+        auth: init.headers.authorization,
+        idem: init.headers['idempotency-key'],
+      };
       return res(201, {sid: 'SMabc'});
     });
     const out = await t.deliver(outbound, ctx);
     expect(out.providerMessageId).toBe('SMabc');
-    expect(seen!.url).toBe('https://fake-twilio.test/2010-04-01/Accounts/AC123/Messages.json');
+    expect(seen!.url).toBe(
+      'https://fake-twilio.test/2010-04-01/Accounts/AC123/Messages.json',
+    );
     expect(seen!.body).toContain('To=%2B15125559999');
     expect(seen!.body).toContain('From=%2B18885550100');
-    expect(seen!.auth).toBe(`Basic ${Buffer.from('AC123:tok').toString('base64')}`);
+    expect(seen!.auth).toBe(
+      `Basic ${Buffer.from('AC123:tok').toString('base64')}`,
+    );
     // Best-effort vendor idempotency token rides on every send.
     expect(seen!.idem).toBe('idem-1');
   });
@@ -169,19 +263,31 @@ describe('SmsChannelTransport.deliver (outcome mapping)', () => {
   it('maps a 5xx to a retryable infrastructure error', async () => {
     const t = deliverTransport(async () => res(503, {message: 'overloaded'}));
     await expect(t.deliver(outbound, ctx)).rejects.toMatchObject({
-      error: {category: 'infrastructure', code: 'infrastructure_error', retryable: true},
+      error: {
+        category: 'infrastructure',
+        code: 'infrastructure_error',
+        retryable: true,
+      },
     });
   });
 
   it('maps a 4xx business rejection to a non-retryable provider error', async () => {
-    const t = deliverTransport(async () => res(400, {message: 'invalid number'}));
+    const t = deliverTransport(async () =>
+      res(400, {message: 'invalid number'}),
+    );
     await expect(t.deliver(outbound, ctx)).rejects.toMatchObject({
-      error: {category: 'provider', code: 'provider_rejected', retryable: false},
+      error: {
+        category: 'provider',
+        code: 'provider_rejected',
+        retryable: false,
+      },
     });
   });
 
   it('maps a network failure to a retryable infrastructure error', async () => {
-    const t = deliverTransport(async () => Promise.reject(new Error('ECONNRESET')));
+    const t = deliverTransport(async () =>
+      Promise.reject(new Error('ECONNRESET')),
+    );
     await expect(t.deliver(outbound, ctx)).rejects.toMatchObject({
       error: {code: 'infrastructure_error', retryable: true},
     });
@@ -198,8 +304,12 @@ describe('SmsChannelTransport.deliver (outcome mapping)', () => {
         }),
       );
     const t = new SmsChannelTransport({
-      signingSecret: SECRET, signatureHeader: 'x-signature', tenantByNumber: () => null,
-      vendorBaseUrl: 'https://fake-twilio.test', timeoutMs: 5, fetchImpl: hang,
+      signingSecret: SECRET,
+      signatureHeader: 'x-signature',
+      tenantByNumber: () => null,
+      vendorBaseUrl: 'https://fake-twilio.test',
+      timeoutMs: 5,
+      fetchImpl: hang,
     });
     await expect(t.deliver(outbound, ctx)).rejects.toMatchObject({
       error: {category: 'timeout', code: 'deadline_exceeded', retryable: true},
@@ -208,8 +318,8 @@ describe('SmsChannelTransport.deliver (outcome mapping)', () => {
 
   it('fails closed (non-retryable) when credentials are incomplete', async () => {
     const t = deliverTransport(async () => res(201, {sid: 'SMx'}));
-    await expect(t.deliver(outbound, {...ctx, config: {accountSid: 'AC123'}})).rejects.toBeInstanceOf(
-      PlatformErrorException,
-    );
+    await expect(
+      t.deliver(outbound, {...ctx, config: {accountSid: 'AC123'}}),
+    ).rejects.toBeInstanceOf(PlatformErrorException);
   });
 });

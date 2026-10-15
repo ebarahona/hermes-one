@@ -12,7 +12,11 @@
 // Imports canonical contracts only; introduces no new @platform/contracts types.
 import {z} from 'zod';
 import {ApplicationFailure} from '@temporalio/common';
-import type {PlatformError, ErrorCode, ErrorCategory} from '@platform/contracts';
+import type {
+  PlatformError,
+  ErrorCode,
+  ErrorCategory,
+} from '@platform/contracts';
 import {RETRYABLE_BY_CATEGORY} from '@platform/contracts';
 import type {SideEffectClass} from '@platform/contracts';
 
@@ -80,7 +84,9 @@ export const ACTIVITY_CATEGORY_TO_RETRY_POLICY_CLASS: Record<
  * `IdempotencySpec.required` is mandatory for it; `external`/`payment` are only *best-effort*
  * idempotent at the vendor and are therefore guarded (see the per-class rationale below).
  */
-export function retryPolicyClassForCapability(sideEffect: SideEffectClass): RetryPolicyClass {
+export function retryPolicyClassForCapability(
+  sideEffect: SideEffectClass,
+): RetryPolicyClass {
   switch (sideEffect) {
     case 'none':
     case 'read':
@@ -100,26 +106,27 @@ export function retryPolicyClassForCapability(sideEffect: SideEffectClass): Retr
  * ensuring an `Error` suffix (never doubled for codes already ending `_error`). This is the ONE
  * place a `PlatformError.code` becomes a Temporal-matchable string; activities never invent their own.
  */
-export const ERROR_CODE_TO_APPLICATION_FAILURE_TYPE: Record<ErrorCode, string> = {
-  validation_failed: 'ValidationFailedError',
-  output_validation_failed: 'OutputValidationFailedError',
-  unauthorized: 'UnauthorizedError',
-  forbidden_scope: 'ForbiddenScopeError',
-  not_found: 'NotFoundError',
-  idempotency_conflict: 'IdempotencyConflictError',
-  version_conflict: 'VersionConflictError',
-  rate_limited: 'RateLimitedError',
-  quota_exceeded: 'QuotaExceededError',
-  payment_required: 'PaymentRequiredError',
-  provider_unavailable: 'ProviderUnavailableError',
-  provider_rejected: 'ProviderRejectedError',
-  infrastructure_error: 'InfrastructureError', // already Error-suffixed — not doubled
-  deadline_exceeded: 'DeadlineExceededError',
-  confirmation_required: 'ConfirmationRequiredError',
-  policy_blocked: 'PolicyBlockedError',
-  tenant_not_resolved: 'TenantNotResolvedError',
-  internal_error: 'InternalError', // already Error-suffixed — not doubled
-};
+export const ERROR_CODE_TO_APPLICATION_FAILURE_TYPE: Record<ErrorCode, string> =
+  {
+    validation_failed: 'ValidationFailedError',
+    output_validation_failed: 'OutputValidationFailedError',
+    unauthorized: 'UnauthorizedError',
+    forbidden_scope: 'ForbiddenScopeError',
+    not_found: 'NotFoundError',
+    idempotency_conflict: 'IdempotencyConflictError',
+    version_conflict: 'VersionConflictError',
+    rate_limited: 'RateLimitedError',
+    quota_exceeded: 'QuotaExceededError',
+    payment_required: 'PaymentRequiredError',
+    provider_unavailable: 'ProviderUnavailableError',
+    provider_rejected: 'ProviderRejectedError',
+    infrastructure_error: 'InfrastructureError', // already Error-suffixed — not doubled
+    deadline_exceeded: 'DeadlineExceededError',
+    confirmation_required: 'ConfirmationRequiredError',
+    policy_blocked: 'PolicyBlockedError',
+    tenant_not_resolved: 'TenantNotResolvedError',
+    internal_error: 'InternalError', // already Error-suffixed — not doubled
+  };
 
 /**
  * Canonical `CATEGORY_BY_CODE` (T3): which `ErrorCategory` each `ErrorCode` belongs to — the complement to
@@ -155,8 +162,8 @@ export const CATEGORY_BY_CODE: Record<ErrorCode, ErrorCategory> = {
 export const NON_RETRYABLE_ERROR_TYPES: readonly string[] = (
   Object.keys(ERROR_CODE_TO_APPLICATION_FAILURE_TYPE) as ErrorCode[]
 )
-  .filter((code) => !RETRYABLE_BY_CATEGORY[CATEGORY_BY_CODE[code]])
-  .map((code) => ERROR_CODE_TO_APPLICATION_FAILURE_TYPE[code]);
+  .filter(code => !RETRYABLE_BY_CATEGORY[CATEGORY_BY_CODE[code]])
+  .map(code => ERROR_CODE_TO_APPLICATION_FAILURE_TYPE[code]);
 
 /** The one place a thrown `PlatformError` becomes Temporal's typed failure. */
 export function toApplicationFailure(error: PlatformError): ApplicationFailure {
@@ -173,7 +180,10 @@ export function toApplicationFailure(error: PlatformError): ApplicationFailure {
 /** Temporal-native duration string (`"500ms" | "30s" | "2m" | "1h"`, etc.). */
 export const DurationString = z
   .string()
-  .regex(/^\d+(\.\d+)?(ms|s|m|h)$/, 'expected a Temporal duration string, e.g. "30s"');
+  .regex(
+    /^\d+(\.\d+)?(ms|s|m|h)$/,
+    'expected a Temporal duration string, e.g. "30s"',
+  );
 export type DurationString = z.infer<typeof DurationString>;
 
 export const RetryPolicySpec = z.object({
@@ -198,7 +208,10 @@ export const ActivityOptionsSpec = z.object({
 export type ActivityOptionsSpec = z.infer<typeof ActivityOptionsSpec>;
 
 /** The canonical registry — exactly six entries, one per `RetryPolicyClass`. */
-export const RETRY_POLICY_REGISTRY: Record<RetryPolicyClass, ActivityOptionsSpec> = {
+export const RETRY_POLICY_REGISTRY: Record<
+  RetryPolicyClass,
+  ActivityOptionsSpec
+> = {
   'read-only-provider': {
     startToCloseTimeout: '30s',
     scheduleToCloseTimeout: '2m',
@@ -209,7 +222,8 @@ export const RETRY_POLICY_REGISTRY: Record<RetryPolicyClass, ActivityOptionsSpec
       maximumAttempts: 5,
       nonRetryableErrorTypes: [...NON_RETRYABLE_ERROR_TYPES],
     },
-    rationale: 'No mutation — retry generously; a stale read is corrected by the next selective refresh.',
+    rationale:
+      'No mutation — retry generously; a stale read is corrected by the next selective refresh.',
   },
   'idempotent-write': {
     startToCloseTimeout: '30s',
@@ -235,7 +249,7 @@ export const RETRY_POLICY_REGISTRY: Record<RetryPolicyClass, ActivityOptionsSpec
       nonRetryableErrorTypes: [...NON_RETRYABLE_ERROR_TYPES],
     },
     rationale:
-      "external/payment capabilities carry a best-effort idempotency key but the vendor may not honor it (open question) — Temporal must not auto-retry; the workflow decides redo with a fresh idempotencyKey.",
+      'external/payment capabilities carry a best-effort idempotency key but the vendor may not honor it (open question) — Temporal must not auto-retry; the workflow decides redo with a fresh idempotencyKey.',
   },
   'model-call': {
     startToCloseTimeout: '120s',
@@ -262,7 +276,7 @@ export const RETRY_POLICY_REGISTRY: Record<RetryPolicyClass, ActivityOptionsSpec
       nonRetryableErrorTypes: [...NON_RETRYABLE_ERROR_TYPES],
     },
     rationale:
-      "Handoff-queue backends may be briefly unavailable; a wider retry budget with a generous scheduleToCloseTimeout avoids a dropped handoff — the activity must derive its own stable dedupe key since HandoffRequest does not carry one.",
+      'Handoff-queue backends may be briefly unavailable; a wider retry budget with a generous scheduleToCloseTimeout avoids a dropped handoff — the activity must derive its own stable dedupe key since HandoffRequest does not carry one.',
   },
   'internal-db': {
     startToCloseTimeout: '10s',
@@ -285,8 +299,14 @@ export function resolveEffectiveActivityOptions(
   override?: Pick<WorkflowActivityMetadata, 'maximumAttempts'>,
 ): ActivityOptionsSpec {
   const base = RETRY_POLICY_REGISTRY[cls];
-  if (override?.maximumAttempts == null || override.maximumAttempts >= base.retry.maximumAttempts) {
+  if (
+    override?.maximumAttempts == null ||
+    override.maximumAttempts >= base.retry.maximumAttempts
+  ) {
     return base;
   }
-  return {...base, retry: {...base.retry, maximumAttempts: override.maximumAttempts}};
+  return {
+    ...base,
+    retry: {...base.retry, maximumAttempts: override.maximumAttempts},
+  };
 }

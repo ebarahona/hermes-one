@@ -47,10 +47,18 @@ async function main() {
   // Publish the triage plans content-addressed; start by ref (ADR-014). Then publish a real active
   // deployment (engine + capability + policy) so the agent turn is deployment-driven, not hardcoded.
   const bundle = buildTriageBundle({});
-  await publishBundle(bundle, cfg.stores.authoritative.url, cfg.stores.ephemeral.url);
+  await publishBundle(
+    bundle,
+    cfg.stores.authoritative.url,
+    cfg.stores.ephemeral.url,
+  );
   // The publish returns the DeploymentRef the runs are PINNED to (D1) — the agent turn resolves this
   // exact deployment, not whatever is active at turn time.
-  const deployed = await publishAgentDeployment(bundle, cfg.stores.authoritative.url, cfg.stores.ephemeral.url);
+  const deployed = await publishAgentDeployment(
+    bundle,
+    cfg.stores.authoritative.url,
+    cfg.stores.ephemeral.url,
+  );
 
   const connection = await Connection.connect({address: cfg.temporal.address});
   const client = new Client({connection, namespace: cfg.temporal.namespace});
@@ -60,31 +68,45 @@ async function main() {
 
   // OB5 trace-continuity check: simulate the edge trace so the turn spans (emitted on the agent plane,
   // across the real Temporal boundary) parent off this exact traceId — the primary acceptance test.
-  const EDGE_TRACEPARENT = '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01';
+  const EDGE_TRACEPARENT =
+    '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01';
   const EDGE_TRACE_ID = '4bf92f3577b34da6a3ce929d0e0e4736';
 
   // AUTH-2: the acting principal is minted at the edge with scopes RESOLVED FROM ROLES per request —
   // the platform 'customer' role (seed 0029) carries appointment.slot.read, which is what gates the
   // agent's tool set. No demo scope literals.
-  const {repo: roleRegistry, close: closeRoles} = createRoleRegistry(cfg.stores.authoritative.url);
+  const {repo: roleRegistry, close: closeRoles} = createRoleRegistry(
+    cfg.stores.authoritative.url,
+  );
   const principal: Principal = {
     id: 'prn_customer_e2e' as Principal['id'],
     tenantId: E2E_TENANT as Principal['tenantId'],
     kind: 'user',
     roles: ['customer'],
-    scopes: await roleRegistry.resolveScopes(E2E_TENANT as Principal['tenantId'], ['customer']),
+    scopes: await roleRegistry.resolveScopes(
+      E2E_TENANT as Principal['tenantId'],
+      ['customer'],
+    ),
     attributes: {externalHandle: '+15125559999', channel: 'sms'},
   };
   await closeRoles();
-  if (!principal.scopes.includes('appointment.slot.read' as Principal['scopes'][number])) {
-    throw new Error(`role resolution did not yield appointment.slot.read: ${JSON.stringify(principal.scopes)}`);
+  if (
+    !principal.scopes.includes(
+      'appointment.slot.read' as Principal['scopes'][number],
+    )
+  ) {
+    throw new Error(
+      `role resolution did not yield appointment.slot.read: ${JSON.stringify(principal.scopes)}`,
+    );
   }
 
   const clientWork = (async () => {
     const out: {name: string; path: string[]; expect: string[]}[] = [];
     for (const c of CASES) {
       const ref = bundleToRef(
-        bundle, c.input, E2E_TENANT,
+        bundle,
+        c.input,
+        E2E_TENANT,
         {deploymentId: deployed.deploymentId, version: deployed.version},
         principal,
         // Mirrors the ingest edge's minting (`cnv_<short(from)>`) so a handoff turn persists its
@@ -118,7 +140,9 @@ async function main() {
     );
     if (!pass) ok = false;
   }
-  console.log(`(OB5) with HERMES_OTEL_TRACES=console, the agent.turn/agent.tool spans above carry traceId=${EDGE_TRACE_ID} (propagated from the edge across the Temporal boundary).`);
+  console.log(
+    `(OB5) with HERMES_OTEL_TRACES=console, the agent.turn/agent.tool spans above carry traceId=${EDGE_TRACE_ID} (propagated from the edge across the Temporal boundary).`,
+  );
   await connection.close();
   if (!ok) {
     console.error('E2E FAILED');

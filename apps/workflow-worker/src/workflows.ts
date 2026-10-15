@@ -32,8 +32,16 @@ import {ACTIVITY_QUEUE, AGENT_QUEUE} from './queues.js';
 
 /** Edge activities (activity-worker) — bound by name at runtime. */
 interface EdgeActivities {
-  loadWorkflowPlan(a: {tenantId: string; planId: string; contentHash: string}): Promise<CompiledWorkflowPlan>;
-  loadRulePlan(a: {tenantId: string; planId: string; contentHash: string}): Promise<CompiledRulePlan>;
+  loadWorkflowPlan(a: {
+    tenantId: string;
+    planId: string;
+    contentHash: string;
+  }): Promise<CompiledWorkflowPlan>;
+  loadRulePlan(a: {
+    tenantId: string;
+    planId: string;
+    contentHash: string;
+  }): Promise<CompiledRulePlan>;
   evaluateRule(a: {
     rulePlan: CompiledRulePlan;
     parameters: Record<string, unknown>;
@@ -46,7 +54,12 @@ interface EdgeActivities {
     tenantId: string;
     correlationId: string;
     invokeSeq: number;
-  }): Promise<{delivered: boolean; capability: string; ok: boolean; providerMessageId?: string}>;
+  }): Promise<{
+    delivered: boolean;
+    capability: string;
+    ok: boolean;
+    providerMessageId?: string;
+  }>;
   emitDecisionRule(a: {
     tenantId: string;
     correlationId: string;
@@ -79,7 +92,9 @@ const {loadWorkflowPlan, loadRulePlan, evaluateRule, emitDecisionRule} =
   });
 const {invokeCapability} = proxyActivities<EdgeActivities>({
   taskQueue: ACTIVITY_QUEUE,
-  ...toTemporalActivityOptions(RETRY_POLICY_REGISTRY[retryPolicyClassForCapability('external')]),
+  ...toTemporalActivityOptions(
+    RETRY_POLICY_REGISTRY[retryPolicyClassForCapability('external')],
+  ),
 });
 const {agentTurn} = proxyActivities<AgentActivities>({
   taskQueue: AGENT_QUEUE,
@@ -123,23 +138,44 @@ function edgeEffects(
     // the deterministic-hit-rate KPI. One decision per rule visit; idempotent on replay.
     evaluateRule: async (_ref: PinnedRef, facts, now) => {
       const result = await evaluateRule({rulePlan, parameters, facts, now});
-      await emitDecisionRule({tenantId, correlationId, outcome: result.outcome, rulePlanId: rulePlan.planId, occurredAt: now, visitSeq: ruleVisitSeq++});
+      await emitDecisionRule({
+        tenantId,
+        correlationId,
+        outcome: result.outcome,
+        rulePlanId: rulePlan.planId,
+        occurredAt: now,
+        visitSeq: ruleVisitSeq++,
+      });
       return result;
     },
     invokeCapability: (capability, input) =>
-      invokeCapability({capability, input, tenantId, correlationId, invokeSeq: invokeSeq++}),
+      invokeCapability({
+        capability,
+        input,
+        tenantId,
+        correlationId,
+        invokeSeq: invokeSeq++,
+      }),
     now: () => new Date().toISOString() as IsoTimestamp,
   };
 }
 
 /** No-LLM missed-call workflow: load plans (activity) → rule → reply → terminal. */
 export async function runMissedCall(ref: WorkflowRunRef) {
-  const workflowPlan = await loadWorkflowPlan({tenantId: ref.tenantId, ...ref.workflow});
+  const workflowPlan = await loadWorkflowPlan({
+    tenantId: ref.tenantId,
+    ...ref.workflow,
+  });
   const rulePlan = await loadRulePlan({tenantId: ref.tenantId, ...ref.rule});
   return executeCompiledWorkflow(
     workflowPlan,
     {input: ref.input},
-    edgeEffects(rulePlan, ref.parameters, ref.tenantId, workflowInfo().workflowId),
+    edgeEffects(
+      rulePlan,
+      ref.parameters,
+      ref.tenantId,
+      workflowInfo().workflowId,
+    ),
   );
 }
 
@@ -149,10 +185,19 @@ export async function runTriage(ref: WorkflowRunRef) {
   // minted at the edge (AUTH-2) — an agent workflow started without either is a configuration error,
   // failed before any side effect runs.
   const pin = ref.deployment;
-  if (!pin) throw new Error('runTriage requires ref.deployment — the agent turn resolves the PINNED deployment (D1)');
+  if (!pin)
+    throw new Error(
+      'runTriage requires ref.deployment — the agent turn resolves the PINNED deployment (D1)',
+    );
   const principal = ref.principal;
-  if (!principal) throw new Error('runTriage requires ref.principal — the acting identity is minted at the edge (AUTH-2)');
-  const workflowPlan = await loadWorkflowPlan({tenantId: ref.tenantId, ...ref.workflow});
+  if (!principal)
+    throw new Error(
+      'runTriage requires ref.principal — the acting identity is minted at the edge (AUTH-2)',
+    );
+  const workflowPlan = await loadWorkflowPlan({
+    tenantId: ref.tenantId,
+    ...ref.workflow,
+  });
   const rulePlan = await loadRulePlan({tenantId: ref.tenantId, ...ref.rule});
   const correlationId = workflowInfo().workflowId;
   // Deterministic agent-visit counter (workflow state — replay-stable): each agent-node visit in one
@@ -166,13 +211,21 @@ export async function runTriage(ref: WorkflowRunRef) {
     runAgentTurn: async (engine, objective, input) => {
       // Trace propagation (OB5): extract the child trace via the WorkflowTraceInterceptor seam and carry
       // it as an explicit sidecar arg to the turn activity ("traceparent on ActivityOptions").
-      const {childTrace} = new PassThroughWorkflowTrace().onWorkflowExecute({trace: ref.trace});
+      const {childTrace} = new PassThroughWorkflowTrace().onWorkflowExecute({
+        trace: ref.trace,
+      });
       const result = await agentTurn(
         // startedAt = WORKFLOW time (Temporal's sandbox Date is deterministic on replay/reset), so a
         // re-execution with identical args re-derives byte-identical durable rows (audit tamper-reject
         // safe). The activity's wall clock stays for operational concerns only.
         buildAgentTurnRequest(
-          ref.tenantId, pin, principal, engine, objective, input, correlationId,
+          ref.tenantId,
+          pin,
+          principal,
+          engine,
+          objective,
+          input,
+          correlationId,
           // The REAL conversation id from the ingest edge — a handoff turn persists its durable
           // handoff_tasks row only when this is non-null (conversation_id NOT NULL).
           ref.conversationId ?? null,

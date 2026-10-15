@@ -9,6 +9,10 @@ tenant-scoped by row-level security, and every turn is durably recorded for repl
 evaluation. The reasoning behind these choices is in **`docs/WHY-THIS-ARCHITECTURE.md`**; governing
 decisions live in `docs/adr/`; the build sequence in `docs/BUILD-PLAN.md`.
 
+> **Status: pre-1.0.** The core platform runs end to end and is covered by unit, integration,
+> replay, and end-to-end tests. Interfaces may still change between minor versions. Open work is
+> tracked in `docs/DEFERRED-AND-FLAGGED.md`; deployment boundaries are listed in `SECURITY.md`.
+
 ## Capabilities
 
 - **Verticals are data, not code (ADR-013) — proven live.** The electrician vertical is a single
@@ -73,7 +77,7 @@ pnpm -F @platform-internal/workflow-worker replay-gate   # interpreter nondeterm
 
 node apps/workflow-worker/dist/e2e.js   # missed-call flow on real Temporal
 node apps/api-gateway/dist/e2e.js       # signed webhook → workflow (replay-attack rejected live)
-node apps/agent-worker/dist/e2e.js      # 3-plane triage with a live LLM (local model at :8080)
+node apps/agent-worker/dist/e2e.js      # 3-plane triage with a live LLM (see "LLM configuration")
 
 # the electrician vertical, end to end, tool-backed. Needs HERMES_CREDENTIALS_MASTER_KEY in the
 # environment (ADR-026 envelope store): the run resolves the tenant's OWN credentials and fails
@@ -82,6 +86,26 @@ set -a; . ./.env; set +a
 node apps/agent-worker/dist/pack-e.e2e.js
 ```
 
+## LLM configuration
+
+The model client speaks the OpenAI-compatible chat API, so any compatible endpoint works. Set three
+variables in `.env`:
+
+```bash
+# OpenAI
+LLM_BASE_URL=https://api.openai.com/v1
+LLM_MODEL=<model name>
+LLM_API_KEY=<your key>
+
+# Local: Ollama, llama.cpp (llama-server), vLLM, LM Studio, or any OpenAI-compatible server
+LLM_BASE_URL=http://127.0.0.1:11434/v1   # Ollama's default; llama-server defaults to :8080/v1
+LLM_MODEL=<model name>
+LLM_API_KEY=local
+```
+
+The model must support tool calling for the tool-backed agent flows. A provider with a different API
+is added as a `SingleStepModel` adapter in `infrastructure/model-client`.
+
 ## Engineering discipline
 
 Every intentional deferral and design deviation is recorded in `docs/DEFERRED-AND-FLAGGED.md` — nothing
@@ -89,3 +113,12 @@ is silently improvised. The design is the source of truth; where a library or a 
 conflicts, the conflict is ratified as an ADR (`docs/adr/`), never resolved ad hoc. CI runs the
 typecheck, the plane-isolation lint, the unit and integration suites, and the interpreter replay
 gate on every push.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Report security issues privately as described in
+[SECURITY.md](SECURITY.md).
+
+## License
+
+[MIT](LICENSE)

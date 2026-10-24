@@ -1,5 +1,5 @@
 // @hermes-one/contracts — src/telemetry.ts
-// Observability correlation + structured logging + redaction + the metrics catalogue + trace-propagation
+// Observability correlation + structured logging + redaction + the metrics catalog + trace-propagation
 // interfaces. Covers correlation, metrics, logging, redaction, and tracing.
 // IMPLEMENTED in @hermes-one/telemetry: the structured Logger + Redactor. Meter + the Temporal
 // trace interceptors are transcribed as interfaces only — impl deferred (needs the OTel SDK + Temporal

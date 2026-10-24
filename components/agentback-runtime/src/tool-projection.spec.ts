@@ -125,7 +125,7 @@ describe('jsonSchemaToZod (bounded allow-list)', () => {
     expect(() => s.parse({date: '2026-07-20', n: 5, sneaky: 1})).toThrow(); // additionalProperties:false REJECTS
   });
 
-  it('honours additionalProperties given as a schema (catchall), not just booleans', () => {
+  it('honors additionalProperties given as a schema (catchall), not just booleans', () => {
     const s = jsonSchemaToZod({
       type: 'object',
       properties: {a: {type: 'string'}},

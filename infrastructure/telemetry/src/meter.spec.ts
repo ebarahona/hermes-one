@@ -52,7 +52,7 @@ describe('LoggingMeter', () => {
 });
 
 describe('DEFAULT_SLO_TARGETS', () => {
-  it('is the transcribed catalogue (turn p95, tool p99, task-failure errorRate)', () => {
+  it('is the SLO catalog (turn p95, tool p99, task-failure errorRate)', () => {
     expect(DEFAULT_SLO_TARGETS).toContainEqual({
       metric: 'agent.turn.latency_ms',
       objective: 'p95',

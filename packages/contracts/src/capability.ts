@@ -86,7 +86,7 @@ export type EligibilityRule = z.infer<typeof EligibilityRule>;
 export const ProviderMapping = z.object({
   providers: z.array(ProviderRef).min(1),
   eligibility: z.array(EligibilityRule).default([]),
-  /** Behaviour when all providers are unhealthy/ineligible. */
+  /** Behavior when all providers are unhealthy/ineligible. */
   onNoProvider: z.enum(['fail', 'handoff']).default('fail'),
 });
 export type ProviderMapping = z.infer<typeof ProviderMapping>;

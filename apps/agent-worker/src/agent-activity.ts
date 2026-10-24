@@ -112,7 +112,7 @@ const turnLogger: Logger = new RedactingLogger(
     {fieldPath: 'reply', dataClass: 'free-text', strategy: 'mask'},
   ]),
 );
-// Metrics catalogue: emitted as structured logs in dev (OTel exporter is the prod swap, flagged OB5).
+// Metrics catalog: emitted as structured logs in dev (OTel exporter is the prod swap, flagged OB5).
 const meter: Meter = new LoggingMeter(new JsonLogger('info'));
 
 const toolNameOf = (cap: string) => cap.replace(/\./g, '_');
@@ -601,7 +601,7 @@ async function runAgentTurn(
     throw err;
   }
 
-  // Metrics catalogue (Tier 3.7): turn count/latency, per-tool invocation count/latency, per-gate decision
+  // Metrics catalog (Tier 3.7): turn count/latency, per-tool invocation count/latency, per-gate decision
   // count — the SLO signals. Derived from the captured ledger + wall latency.
   if (capturedLedger)
     emitTurnMetrics(

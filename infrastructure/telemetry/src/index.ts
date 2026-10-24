@@ -1,5 +1,5 @@
 // @hermes-one/telemetry — infrastructure (none plane).
-// Structured logging + PII redaction + metrics catalogue + OTel distributed tracing.
+// Structured logging + PII redaction + metrics catalog + OTel distributed tracing.
 // `initTracing`/`OtelTracer` export real spans over an
 // OTLP/Console exporter; the Temporal trace interceptors live in @hermes-one/temporal-client. The
 // OTel-backed Meter (histogram aggregation) remains the prod swap — see docs/DEFERRED-AND-FLAGGED.md (OB5).

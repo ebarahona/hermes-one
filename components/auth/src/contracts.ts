@@ -26,7 +26,7 @@ import {
 export interface AuthStrategy {
   /** LB4 strategy name, also the AuthMethod value. */
   readonly name: AuthMethod;
-  /** True if this strategy recognises the request's credential shape (cheap, no verification). */
+  /** True if this strategy recognizes the request's credential shape (cheap, no verification). */
   applies(request: Request): boolean;
   /** Verify + build identity, or throw PlatformError(unauthorized). undefined ⇒ not applicable. */
   authenticate(request: Request): Promise<AuthenticatedIdentity | undefined>;

@@ -12,3 +12,4 @@
 - [ ] New tenant tables have row-level security policies
 - [ ] Intentional gaps recorded in `docs/DEFERRED-AND-FLAGGED.md`
 - [ ] Conventional Commit messages
+- [ ] DCO sign-off on every commit (`git commit -s`)

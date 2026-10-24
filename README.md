@@ -1,14 +1,43 @@
 # hermes-one
 
-Hermes is a platform for running customer conversations as workflows. Rules handle the messages
-they can, and an LLM only runs when a message needs it.
+Hermes is a multi-tenant platform for building agentic workflows. You define workflows, rules,
+policies, and AI agents as versioned data, deploy them per tenant, and Hermes runs them on
+[Temporal](https://temporal.io) with the guardrails a production system needs: tenant isolation,
+policy-checked tool calls, idempotent side effects, encrypted per-tenant credentials, a full audit
+trail, and replay testing.
 
-Each inbound message (SMS today) starts a [Temporal](https://temporal.io) workflow. A rule looks at
-the message and picks a route. Known requests get a templated reply, urgent ones get a notice and are
-marked for a person to take over, and anything else goes to an agent step that calls the LLM under policy checks. It's multi-tenant,
-and each business vertical is a JSON file instead of code.
+The workflow is in charge. Deterministic steps (rules, templated replies, capability calls) handle
+everything they can, and an agent step only runs when a task needs judgment. When it does, the
+agent is bounded: it has step, time, token, and cost budgets, every tool call goes through policy
+before it runs, and every reply is checked before it goes out.
 
 The name stands for Hermes Orchestration Node Engine.
+
+What you get:
+
+- A workflow engine on Temporal. One interpreter runs compiled, content-hashed workflow plans, each
+  pinned to the deployment version it started on, and a replay check in CI keeps them deterministic.
+- Three DSLs (workflow, rules, policy) on a shared, versioned expression language.
+- A deployment pipeline per tenant: author, preview, publish, and roll back, plus an eval check
+  you can run before publishing.
+- A bounded agent runtime whose tools are generated from capability contracts and served through
+  [agentback](https://github.com/ninemindai/agentback) over MCP.
+- A vendor-neutral provider layer. Each tenant can rank its own providers and bring its own
+  encrypted credentials.
+- An admin API with API-key and OIDC auth, roles and scopes, and PostgreSQL row-level security.
+- Signed-webhook ingest with replay protection. SMS is the first channel.
+- Durable records: a turn ledger, a tamper-evident audit log, usage metering, and a transactional
+  outbox.
+- OpenTelemetry tracing and PII-masked logs.
+- Any OpenAI-compatible LLM, plus a mock model so every test runs without one.
+
+Two example verticals ship as JSON packs: support-ticket triage and a residential electrician.
+
+## What a vertical looks like
+
+A vertical is a `pack.json` with a workflow, rules, a policy, and an agent setup. You install it
+through the admin API by putting each definition and publishing a deployment. Here's how the
+support pack routes an inbound message:
 
 ```mermaid
 flowchart LR
@@ -20,30 +49,7 @@ flowchart LR
   A --> Y[Reply to the customer]
 ```
 
-## Why build it this way
-
-Most support and intake messages are repetitive. If a rule can answer a message, it never touches
-a model, so it costs no tokens and gives the same answer every time. In the
-support pack that ships with this repo, four of the five routes (password reset, billing, account
-questions, escalation) never call an LLM.
-
-When the agent does run, the model only suggests what to do. The platform checks every tool call
-against the tenant's policy before running it, and checks the reply before it goes out. Side
-effects carry idempotency keys, and each agent turn's tool calls, evidence, and policy decisions
-are saved, so you can audit what happened.
-
-Tenants are isolated in PostgreSQL with row-level security on every table with a
-`tenant_id` column.
-A tenant can plug in its own vendors and its own credentials without a deploy.
-
-You can use any LLM. The model client speaks the OpenAI-compatible API, so OpenAI, Ollama, vLLM,
-LM Studio, llama.cpp, or a gateway all work.
-
-## What a vertical looks like
-
-A vertical is a `pack.json` with a workflow, rules, a policy, and an agent setup. You install it
-through the admin API by putting each definition and publishing a deployment. Here's the routing part of the support pack (`verticals/support/pack.json`,
-reply text shortened):
+And here's that routing in the pack itself (`verticals/support/pack.json`, reply text shortened):
 
 ```json
 "triage": {
@@ -73,7 +79,27 @@ reply text shortened):
 }
 ```
 
-Two verticals ship in `verticals/`: a residential electrician and support-ticket triage.
+A new vertical is a new pack like this one. It needs no new code.
+
+## Why build it this way
+
+Putting the workflow in charge makes an agentic system something you can run in production. The
+steps that must always happen the same way are deterministic, durable, and replayable. The model
+is used only where judgment helps, and inside limits you set.
+
+When the agent does run, the model only suggests what to do. The platform checks every tool call
+against the tenant's policy before running it, and checks the reply before it goes out. Side
+effects carry idempotency keys, and each agent turn's tool calls, evidence, and policy decisions
+are saved, so you can audit what happened.
+
+It also costs less. A request a rule can answer never touches a model, so it uses no tokens and
+gets the same answer every time. In the support pack, four of the five routes (password reset,
+billing, account questions, escalation) never call an LLM.
+
+Tenants are isolated in PostgreSQL with row-level security on every table with a `tenant_id`
+column, and each tenant can plug in its own vendors and credentials without a deploy. You can use
+any LLM: the model client speaks the OpenAI-compatible API, so OpenAI, Ollama, vLLM, LM Studio,
+llama.cpp, or a gateway all work.
 
 ## Status
 
@@ -82,7 +108,7 @@ Interfaces can still change between minor versions. What's planned but not built
 [Roadmap](#roadmap). Open work is tracked in `docs/DEFERRED-AND-FLAGGED.md`, and the limits you
 should know about before deploying are in `SECURITY.md`.
 
-## What's in it
+## More detail
 
 ### Verticals as data
 

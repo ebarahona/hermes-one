@@ -3,56 +3,56 @@
 **Status:** implemented through AUTH-3 bearer (2026-07-15). The "Current reality" table below is the
 pre-build snapshot of 2026-07-14 this design was written against. As built: AUTH-1's webhook
 hardening (timestamp in the signed material, skew window, Redis `NonceStore` replay guard,
-`SecretRef` signing secret) lives inline in `SmsChannelTransport` (`components/channels/src/sms-transport.ts`)
-instead of as a `signed-webhook` strategy in the registry. AUTH-2's `RoleRegistry` and edge principal
-minting are built. AUTH-3 ships the `api-key` and `oidc` strategies, with `oidc` as the bearer-token
-branch only. Not yet built: the `WebhookSignatureVerifier` and `SessionStore` implementations, the
+`SecretRef` signing secret) lives inline in `SmsChannelTransport` (`components/channels/src/sms-transport.ts`),
+not as a `signed-webhook` strategy in the registry; AUTH-2's `RoleRegistry` and edge principal minting
+are built; AUTH-3 ships the `api-key` and `oidc` strategies, with `oidc` as the bearer-token branch
+only. Not yet built: the `WebhookSignatureVerifier` and `SessionStore` implementations, the
 `toUserProfile` adapter, the cookie/session login branch, the `strategyOrder`/`session`/`stepUp`
 config fields, and AUTH-4.
 
-**Original status:** DESIGN, reviewed before build (user-decided 2026-07-14: paper first).
-**Grounds:** the edge-authn layer (authentication strategies), role→scope resolution (role matrix),
+**Original status:** DESIGN — reviewed before build (user-decided 2026-07-14: paper first).
+**Grounds:** the edge-authn substrate (authentication strategies), role→scope resolution (role matrix),
 `SecretRef`/`SecretProvider` (S1), the threat cases `forged-webhook` and `replayed-side-effect-request`,
 `contracts/tenant.ts` (`Principal`), and ADR-017/019/022.
 
 # Purpose
 
-Turn the security requirements into a concrete, phased authn design for hermes-one. It closes the three
-gaps found in the production-readiness review: (a) the webhook edge authenticates only the vendor HMAC with a single
+Turn the security requirements into a concrete, phased authn design for hermes-one — closing the three
+gaps identified in the production-readiness review: (a) the webhook edge authenticates only the vendor HMAC with a single
 shared secret and no replay guard; (b) no human/API caller can authenticate at all (no admin surface);
 (c) the live agent-turn principal and scopes are demo literals (`prn_demo`, hardcoded scope list) in
 `apps/workflow-worker/src/turn-request.ts`.
 
-Authentication answers **"who is calling, and for which tenant"** (authentication strategies). It sits
-strictly upstream of authorization. Strategies produce a `Principal`. The machinery downstream is
-already built and tested (scope-gated tool derivation via `capabilitiesForEngine`, ADR-019 policy
-pre/post gates). This design supplies the identity that machinery consumes and changes nothing
-downstream of it. **No authentication strategy ever runs in the agent plane** (ADR-017). The turn
+Authentication answers **"who is calling, and for which tenant"** (authentication strategies). It is
+strictly upstream of authorization: strategies produce a `Principal`; the ALREADY-BUILT machinery
+downstream (scope-gated tool derivation via `capabilitiesForEngine`, ADR-019 policy pre/post gates) is
+real and tested. This design supplies the identity that machinery consumes, and changes nothing
+downstream of it. **No authentication strategy ever runs in the agent plane** (ADR-017); the turn
 receives its principal value-mapped through the serializable `WorkspaceContext`.
 
 # Scope
 
-**In scope:** the channel-webhook edge setup (hardening the existing live path); the admin-api authn
-layer (designed now, built with the LB4 REST surface, ledger L3); principal/scope assembly at the
+**In scope:** the channel-webhook edge posture (hardening the existing live path); the admin-api authn
+substrate (designed now, built with the LB4 REST surface — ledger L3); principal/scope assembly at the
 ingest edge (replacing the demo literals); role→scope resolution over `tenant.roles`; the `SecretRef`
 seam replacing env-only secrets (S1 path); the confirm-token lifecycle under multi-instance workers.
 
-**Out of scope:** the authorization decision itself (policy gates are built, Tier 1.2; compiled voters
+**Out of scope:** the authorization decision itself (policy gates — built, Tier 1.2; compiled voters
 are not yet enforced at dispatch); PII
 field encryption (encrypted-field registry); SAML; the ABAC attribute catalog beyond what
 `Principal.attributes` already carries.
 
 # Current reality → target gap
 
-| Area                   | Today (verified in code)                                                                                                                                        | Target                                                                                                                                                   |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Webhook authn          | HMAC-SHA256 over raw body, `timingSafeEqual` (`sms-transport.ts`), but a single shared secret, no timestamp in signed material, no skew window, no replay guard | `signed-webhook` strategy: constant-time HMAC over raw body **+ timestamp**, bounded skew, Redis `NonceStore` replay guard, per-provider `secret://` ref |
-| Tenant binding         | `tenantByNumber` demo map (To-number → tenant)                                                                                                                  | server-derived DID/number registry (tenant registry, CT2); the _derivation direction_ is already correct (never client-asserted)                         |
-| Human/API authn        | none (no admin surface)                                                                                                                                         | `oidc` (humans, sessions) + `api-key` (service accounts) strategies on the LB4 REST sequence                                                             |
-| Principal on live path | `prn_demo` + hardcoded `scopes` in `turn-request.ts`                                                                                                            | principal minted at ingest; scopes resolved per-request from roles (`RoleRegistry.resolveScopes`)                                                        |
-| Role→scope             | none (CT2: `tenant.{users,roles}` tables exist, no repos)                                                                                                       | `RoleRegistry` over `tenant.roles`, tenant row shadows platform row of the same name, never cached                                                       |
-| Secrets                | `StaticProviderCredentialStore` env-backed, tenant-agnostic (S1 🔴)                                                                                             | `SecretRef` grammar (`secret://<store>/<path>`) + `SecretProvider` port; per-(tenant, provider) resolution                                               |
-| Confirm tokens         | agentback in-memory `ConfirmationStore` (spike), breaks multi-instance                                                                                          | shared store; token fingerprint-bound to the exact input (threat `replayed-side-effect-request`)                                                         |
+| Area                   | Today (verified in code)                                                                                                                                    | Target                                                                                                                                                   |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Webhook authn          | HMAC-SHA256 over raw body, `timingSafeEqual` (`sms-transport.ts`) — but ONE shared secret, no timestamp in signed material, no skew window, no replay guard | `signed-webhook` strategy: constant-time HMAC over raw body **+ timestamp**, bounded skew, Redis `NonceStore` replay guard, per-provider `secret://` ref |
+| Tenant binding         | `tenantByNumber` demo map (To-number → tenant)                                                                                                              | server-derived DID/number registry (tenant registry, CT2) — the _derivation direction_ is already correct (never client-asserted)                        |
+| Human/API authn        | none (no admin surface)                                                                                                                                     | `oidc` (humans, sessions) + `api-key` (service accounts) strategies on the LB4 REST sequence                                                             |
+| Principal on live path | `prn_demo` + hardcoded `scopes` in `turn-request.ts`                                                                                                        | principal minted at ingest; scopes resolved per-request from roles (`RoleRegistry.resolveScopes`)                                                        |
+| Role→scope             | none (CT2: `tenant.{users,roles}` tables exist, no repos)                                                                                                   | `RoleRegistry` over `tenant.roles`, tenant row shadows platform row of the same name, never cached                                                       |
+| Secrets                | `StaticProviderCredentialStore` env-backed, tenant-agnostic (S1 🔴)                                                                                         | `SecretRef` grammar (`secret://<store>/<path>`) + `SecretProvider` port; per-(tenant, provider) resolution                                               |
+| Confirm tokens         | agentback in-memory `ConfirmationStore` (spike) — breaks multi-instance                                                                                     | shared store; token fingerprint-bound to the exact input (threat `replayed-side-effect-request`)                                                         |
 
 # Architecture
 
@@ -87,12 +87,12 @@ flowchart TB
 ```
 
 The `agent` principal kind is never produced by a strategy. As built, the turn acts as the
-already-authenticated principal it receives in the `WorkspaceContext` (ADR-017). No `agent`
+already-authenticated principal it receives in the `WorkspaceContext` (ADR-017); no `agent`
 principal is minted. Auth strength (`single|mfa|step-up|api-key|workload`)
-rides on the identity as a carried fact. Policy pre-gates consume it for step-up (this layer only
-signals and never enforces).
+rides on the identity as a carried fact; policy pre-gates consume it for step-up (this layer signals,
+never enforces).
 
-# Sequence: the hardened webhook ingest (AUTH-1 target state)
+# Sequence — the hardened webhook ingest (AUTH-1 target state)
 
 ```mermaid
 sequenceDiagram
@@ -117,64 +117,64 @@ sequenceDiagram
   GW->>GW: WorkspaceContext{principal: prn_customer_<h(from)>, deployment: PINNED ref}
 ```
 
-The two principals are deliberate (per the authentication-strategies examples). The **webhook source**
-authenticates as `kind:'system'`, scoped to ingest only. The **customer** the conversation acts _for_
-is a `kind:'user'` principal minted from the inbound handle with roles `['customer']`. Its scopes are
+Two principals are deliberate (per the authentication-strategies examples): the **webhook source**
+authenticates as `kind:'system'` scoped to ingest only; the **customer** the conversation acts _for_
+is a `kind:'user'` principal minted from the inbound handle with roles `['customer']` — its scopes are
 what gate the agent's tools. The pre-design demo literals conflated the two into `prn_demo`.
 
 # TypeScript interfaces (what gets transcribed where)
 
 Verbatim transcriptions when built (no new invention):
 
-- `@hermes-one/contracts/src/role.ts`: `RoleId`, `RoleDefinition` (mirrors `tenant.roles`
+- `@hermes-one/contracts/src/role.ts` — `RoleId`, `RoleDefinition` (mirrors `tenant.roles`
   column-for-column), `RoleCreateInput`/`RoleUpdateInput`, `RoleRegistry` port
   (role matrix; new in this design).
-- `@hermes-one/contracts/src/auth.ts`: `AuthMethod`, `AuthStrength`, `SessionMeta`,
+- `@hermes-one/contracts/src/auth.ts` — `AuthMethod`, `AuthStrength`, `SessionMeta`,
   `AuthenticatedIdentity`, `VerifiedClaims`, `ApiKeyRecord`, `WorkloadClaims`, `StoredSession`
   (authentication strategies). The `AuthStrategy` interface itself lives in the auth
-  component, because it references `@loopback/rest`'s `Request`. Contracts stay container-free, the
-  same split as `PlatformBindings`.
-- `@hermes-one/contracts/src/secret.ts`: `SecretRef` grammar
+  component (it references `@loopback/rest`'s `Request` — contracts stay container-free, same split
+  as `PlatformBindings`).
+- `@hermes-one/contracts/src/secret.ts` — `SecretRef` grammar
   (`^secret:\/\/[a-z0-9][a-z0-9._-]*(\/[a-z0-9][a-z0-9._-]*)+$`) + `SecretProvider` port
   (secrets and key management).
-- `@hermes-one/auth` (new edge component, `components/auth`): `AuthStrategyRegistry`
+- `@hermes-one/auth` (NEW edge component, `components/auth`) — `AuthStrategyRegistry`
   (`@extensionPoint('platform.extensions.authStrategies')`, extension type `auth.strategy`,
   first-match-by-`applies()`, fail-closed when none), `PrincipalMapper` (the single writer of
   `platform.request.principal`), the strategy providers, `toUserProfile` LB4 adapter.
 - Verifier ports (`platform.auth.*` keys): `WebhookSignatureVerifier`, `NonceStore`, `JwtVerifier`,
-  `ApiKeyStore`, `SessionStore`. Redis-backed impls extend `@hermes-one/redis`
+  `ApiKeyStore`, `SessionStore` — Redis-backed impls extend `@hermes-one/redis`
   (`NonceStore.reserve` = `SET NX EX`; the `RedisClient` port gains `setnx`).
 
 # Key design decisions
 
 1. **Evolve, don't fork, the webhook path.** `SmsChannelTransport.ingest`'s HMAC verify is already
-   constant-time over the raw body. AUTH-1 adds the timestamp into the signed material
+   constant-time over the raw body — AUTH-1 adds the timestamp into the signed material
    (`HMAC(rawBody + '.' + timestamp)`), the 300s skew window, and the `NonceStore` replay guard, and
    swaps the inline `signingSecret` for a `SecretRef` resolved through `SecretProvider`. The strategy
    _shape_ (`applies()`/`authenticate()`) wraps this when the auth component lands; the verify logic
-   is shared instead of duplicated. **Breaking change flag:** adding the timestamp to the signed material
-   changes the signature the test-double/e2e vendors compute. It's one coordinated change, covered by itests.
+   is shared, not duplicated. **Breaking change flag:** adding the timestamp to the signed material
+   changes the signature the test-double/e2e vendors compute — one coordinated change, covered by itests.
 2. **Roles are the source; scopes are derived per request, never stored or cached**
    (role matrix `resolveScopes`: never cached; no table stores
-   `Principal.scopes`, because a role edit must take effect on the next request).
-3. **Scope assembly happens at the edge (ingestor) instead of in the workflow.** The workflow sandbox
+   `Principal.scopes` — a role edit must take effect on the next request).
+3. **Scope assembly happens at the EDGE (ingestor), not in the workflow.** The workflow sandbox
    cannot do I/O; `buildAgentTurnRequest` stays pure. The ingestor resolves scopes + mints the
    customer principal into `WorkspaceContext` alongside the deployment pin it already writes (D1
-   pattern). `WorkflowRunRef` carries the principal, and the workflow threads it through.
+   pattern) — `WorkflowRunRef` carries the principal, the workflow threads it through.
 4. **`SecretProvider` is the S1 exit.** `StaticProviderCredentialStore` becomes an env-backed
    `SecretProvider` (`secret://env/<name>` in dev); the KMS/cloud-secret-manager impl swaps in behind
    the same port. Webhook signing secrets and vendor SMS creds resolve per `(tenantId, providerId)`.
-5. **Admin-api authn is designed here and built with LB4 Phase 2** (the REST surface, ledger L3). MVP
+5. **Admin-api authn is DESIGNED here, BUILT with LB4 Phase 2** (the REST surface, ledger L3). MVP
    strategies: `oidc` (humans; JWKS-verified; Redis sessions; issuer/audience/claims from
    `platform.auth.config`) + `api-key` (service accounts; sha-256-hashed lookup, constant-time).
    `oauth2` and `service-identity` (mTLS/SPIFFE) are documented later phases. Strategy order:
    `signed-webhook → api-key → oidc` (cheap-shape first; per the `strategyOrder` config).
-6. **Confirm tokens move to Redis.** The agentback `ConfirmationStore` is in-memory (spike finding).
-   Under multi-instance agent-workers, a confirm issued by one instance must be redeemable on another.
-   The plan is a Redis-backed store keyed by token with input-fingerprint binding (threat
+6. **Confirm tokens move to Redis.** The agentback `ConfirmationStore` is in-memory (spike finding);
+   under multi-instance agent-workers a confirm issued by one instance must be redeemable on another.
+   A Redis-backed store keyed by token with input-fingerprint binding (threat
    `replayed-side-effect-request`: a replayed confirm with a mismatched fingerprint is rejected) and
-   a short TTL. This depends on agentback exposing the store as an injectable seam. Verify against
-   0.7.1, and if it is not injectable, flag upstream (library-vs-design gap, do not fork).
+   a short TTL. Depends on agentback exposing the store as an injectable seam — verify against 0.7.1;
+   if it is not injectable, flag upstream (library-vs-design gap, do not fork).
 
 # Configuration
 
@@ -217,24 +217,24 @@ Verbatim transcriptions when built (no new invention):
 
 | Phase      | Scope                                                                                                                                                                                                                                                                       | Depends on                                                                                                                       |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| **AUTH-1** | Webhook hardening: timestamp-in-material + skew window + `NonceStore` replay guard + `SecretRef`/`SecretProvider` seam (env-backed impl). Itests: forged sig, stale timestamp, replayed signature, rotated secret.                                                          | nothing, buildable now                                                                                                           |
-| **AUTH-2** | `contracts/{role,auth,secret}.ts` transcribed; `RoleRegistry` over `tenant.roles` (repo + seed of the platform-default role matrix); principal minting + `resolveScopes` at the ingestor; `turn-request.ts` demo literals deleted (principal arrives via `WorkflowRunRef`). | **CT1 🔴** (tenant-id type) for the `tenant.users` join; the roles path alone only needs `tenant.roles` (text-keyed, usable now) |
+| **AUTH-1** | Webhook hardening: timestamp-in-material + skew window + `NonceStore` replay guard + `SecretRef`/`SecretProvider` seam (env-backed impl). Itests: forged sig, stale timestamp, replayed signature, rotated secret.                                                          | nothing — buildable now                                                                                                          |
+| **AUTH-2** | `contracts/{role,auth,secret}.ts` transcribed; `RoleRegistry` over `tenant.roles` (repo + seed of the platform-default role matrix); principal minting + `resolveScopes` at the ingestor; `turn-request.ts` demo literals DELETED (principal arrives via `WorkflowRunRef`). | **CT1 🔴** (tenant-id type) for the `tenant.users` join; the roles path alone only needs `tenant.roles` (text-keyed, usable now) |
 | **AUTH-3** | `components/auth`: `AuthStrategyRegistry` + `PrincipalMapper` + `oidc`/`api-key` strategies + Redis `SessionStore`; wired into the LB4 REST sequence.                                                                                                                       | LB4 Phase 2 (RestApplication + sequence, ledger L3)                                                                              |
 | **AUTH-4** | Redis `ConfirmationStore` (multi-instance confirm) + step-up enforcement as a policy pre-gate consuming `authStrength`.                                                                                                                                                     | agentback store-injection seam verified                                                                                          |
 
 # Testing strategy
 
-| Test                          | Asserts                                                                                                                     |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| forged webhook (itest)        | wrong signature → 401, no workflow started, nothing persisted                                                               |
-| stale timestamp (unit)        | `\|now-ts\| > skew` → 401 before any HMAC work                                                                              |
-| replay (itest)                | identical valid request twice → first 200, second 401 (NonceStore), no duplicate workflow                                   |
-| secret rotation (itest)       | old ref → 401 after rotation; new ref verifies                                                                              |
-| role shadowing (itest)        | tenant `customer` row shadows platform default; `resolveScopes` returns the tenant's set                                    |
-| role-edit freshness (itest)   | scope removed from role → next request's principal lacks it (no cache)                                                      |
-| scope-gate integration (e2e)  | customer principal without `appointment.slot.read` → the tool is not derived; turn cannot call it                           |
-| principal isolation (unit)    | webhook `system` principal carries only `channel.inbound.ingest`; it can never reach the agent turn as the acting principal |
-| unauthorized redaction (unit) | 401 body carries no claim/schema detail (no leakage)                                                                        |
+| Test                          | Asserts                                                                                                                      |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| forged webhook (itest)        | wrong signature → 401, no workflow started, nothing persisted                                                                |
+| stale timestamp (unit)        | `                                                                                                                            | now-ts | > skew` → 401 before any HMAC work |
+| replay (itest)                | identical valid request twice → first 200, second 401 (NonceStore), no duplicate workflow                                    |
+| secret rotation (itest)       | old ref → 401 after rotation; new ref verifies                                                                               |
+| role shadowing (itest)        | tenant `customer` row shadows platform default; `resolveScopes` returns the tenant's set                                     |
+| role-edit freshness (itest)   | scope removed from role → next request's principal lacks it (no cache)                                                       |
+| scope-gate integration (e2e)  | customer principal WITHOUT `appointment.slot.read` → the tool is not derived; turn cannot call it                            |
+| principal isolation (unit)    | webhook `system` principal carries ONLY `channel.inbound.ingest` — it can never reach the agent turn as the acting principal |
+| unauthorized redaction (unit) | 401 body carries no claim/schema detail (no leakage)                                                                         |
 
 # Acceptance criteria
 
@@ -253,17 +253,17 @@ Verbatim transcriptions when built (no new invention):
 
 - **CT1 (🔴, gating AUTH-2's user join):** `tenant.tenants`/`tenant.users` PK type (uuid) vs the text
   `tnt_`/`prn_` brand the whole system keys on. **Recommendation: text branded ids everywhere**
-  (migrate the two uuid columns). Every GUC, RLS policy, contract, and existing row already uses
-  the brand, so uuid buys nothing here. Needs sign-off as it contradicts the repository-patterns
+  (migrate the two uuid columns) — every GUC, RLS policy, contract, and existing row already speaks
+  the brand; uuid buys nothing here. Needs sign-off as it contradicts the repository-patterns
   column type.
 - **API-key storage:** `ApiKeyRecord` needs a table (hashed key, tenant, principal, scopes, status,
   expiry). Candidates: a `tenant.api_keys` table (a new row in the table catalog)
-  vs overloading `tenant.users.attributes`. Recommendation: a real table, amended into the catalog.
-  Overloading attributes hides a credential store from RLS review.
+  vs overloading `tenant.users.attributes`. Recommendation: a real table, amended into the catalog —
+  overloading attributes hides a credential store from RLS review.
 - **OIDC IdP:** config-driven issuer list; which IdP the first deployment uses is an ops
-  decision rather than a code one.
-- **Platform-admin cross-tenant access:** the role matrix defines `platform-admin` with cross-tenant
-  scopes, but the RLS relay-role question (the row-level-security open question, the same tension as the
+  decision, not a code one.
+- **Platform-admin cross-tenant posture:** the role matrix defines `platform-admin` with cross-tenant
+  scopes, but the RLS relay-role question (the row-level-security open question — same tension as the
   outbox publisher) is still unresolved upstream. Admin cross-tenant reads stay blocked on it.
 - **DID/number → tenant registry:** stays the demo map until the tenant registry lands (CT2); the
   registry table (`tenant.workspaces` or a new `tenant.numbers`) needs a catalog decision.

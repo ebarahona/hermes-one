@@ -1,9 +1,9 @@
 # hermes-one local infrastructure
 
-All the backing services run in one isolated Docker stack under the
-`hermes-one` Docker project. It shows up as one group in Docker Desktop and
-won't collide with your other projects. The host ports are non-default on
-purpose.
+One isolated Docker stack for all backing services, grouped under the
+**`hermes-one`** Docker project (so it's one tidy group in Docker Desktop and
+never collides with your other projects). Host ports are deliberately
+non-default.
 
 ## Bring it up
 
@@ -13,7 +13,7 @@ docker compose -f infra/docker-compose.yml ps      # all should be healthy
 docker compose -f infra/docker-compose.yml down     # stop (add -v to wipe volumes)
 ```
 
-## Services and ports
+## Services & ports
 
 | Service             | Host port                          | Notes                                           |
 | ------------------- | ---------------------------------- | ----------------------------------------------- |
@@ -25,12 +25,12 @@ docker compose -f infra/docker-compose.yml down     # stop (add -v to wipe volum
 | OTel collector      | `4317` (OTLP gRPC) · `4318` (HTTP) | telemetry pipeline (`otel-collector`)           |
 | Temporal's Postgres | internal only                      | not exposed to the host                         |
 
-Ports 5433/6380/8233 were picked so they can run next to a default
-5432/6379/8080 you may already have running.
+Ports 5433/6380/8233 are chosen to sit beside a default 5432/6379/8080 you may
+already run elsewhere.
 
 ## Verify Temporal end-to-end
 
-This runs the deterministic missed-call workflow on your local Temporal:
+Runs the deterministic missed-call workflow on the real local Temporal:
 
 ```bash
 pnpm -r build
@@ -38,6 +38,6 @@ node apps/workflow-worker/dist/e2e.js
 # ✅ PASS lines for the eligible, out-of-area, and answered cases
 ```
 
-You can also run the worker on its own (`node apps/workflow-worker/dist/worker.js`)
-and submit workflows from your own client against `127.0.0.1:7233`, namespace
+Or run the worker standalone (`node apps/workflow-worker/dist/worker.js`) and
+submit workflows from your own client against `127.0.0.1:7233`, namespace
 `default`, task queue `hermes-workflow`.

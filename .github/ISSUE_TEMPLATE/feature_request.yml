@@ -9,7 +9,7 @@ body:
     id: problem
     attributes:
       label: Problem
-      description: What are you trying to do, and what's in the way? Describe the use case. Save the solution for the next field.
+      description: What are you trying to do, and what gets in the way? Describe the use case, not the solution.
     validations:
       required: true
   - type: textarea
@@ -17,16 +17,16 @@ body:
     attributes:
       label: Proposal
       description: |
-        How it should behave. For a new vertical, describe it as a pack (workflow, rules, policy,
-        capabilities). For a new vendor, describe the provider adapter and the capability it
-        implements.
+        How it should behave. If this is a new vertical, describe it as a pack (workflow, rules,
+        policy, capabilities). If it is a new vendor, describe the provider adapter and the
+        capability it realizes.
     validations:
       required: true
   - type: textarea
     id: alternatives
     attributes:
       label: Alternatives considered
-      description: Other approaches you looked at, and why you passed on them.
+      description: Other approaches you evaluated and why they were set aside.
     validations:
       required: false
   - type: checkboxes

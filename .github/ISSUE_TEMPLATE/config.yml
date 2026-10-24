@@ -2,4 +2,4 @@ blank_issues_enabled: true
 contact_links:
   - name: Report a security vulnerability
     url: https://github.com/ebarahona/hermes-one/security/advisories/new
-    about: Report security issues privately. Don't open a public issue.
+    about: Please report security issues privately, not as public issues.

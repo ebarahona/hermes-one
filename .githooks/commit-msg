@@ -1,0 +1,13 @@
+#!/bin/sh
+# Shared commit-msg hook (Shell Script Delegate pattern).
+#
+# Zero-dependency fallback paired with .githooks/pre-commit. See that file
+# and lefthook.yml for the dual-path explanation.
+#
+# Parity: every "# task:" marker below MUST appear as a command name under
+# commit-msg.commands in lefthook.yml.
+
+set -e
+
+# task: commitlint
+pnpm exec commitlint --edit "$1"

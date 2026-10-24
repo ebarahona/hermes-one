@@ -19,14 +19,18 @@
     "plane-lint": "tsx tools/plane-lint.ts",
     "lint": "eslint . && prettier --check \"**/*.{ts,json,md}\"",
     "lint:fix": "eslint . --fix && prettier --write \"**/*.{ts,json,md}\"",
-    "verify": "pnpm typecheck && pnpm plane-lint && pnpm test"
+    "verify": "pnpm typecheck && pnpm plane-lint && pnpm test",
+    "prepare": "sh scripts/install-hooks.sh"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-conventional": "^21.2.4",
     "@types/node": "^24.13.3",
     "@typescript-eslint/eslint-plugin": "~8.63.0",
     "@typescript-eslint/parser": "~8.63.0",
     "eslint": "~9.18.0",
     "eslint-config-prettier": "^10.0.0",
+    "lefthook": "^2.2.2",
     "prettier": "^3.9.5",
     "tsx": "^4.19.2",
     "typescript": "~5.7.3",

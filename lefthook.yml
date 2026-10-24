@@ -1,0 +1,24 @@
+# https://lefthook.dev
+#
+# Primary git hook runner (parallel, staged-files-aware). Zero-dependency
+# fallback is .githooks/{pre-commit,commit-msg}. Parity between the two
+# paths is maintained by matching `# task:` markers in the shell hooks to
+# command names below.
+#
+# The prettier glob matches the `pnpm lint` scope. YAML is deliberately
+# excluded: vertical manifests and pnpm-lock.yaml are kept byte-exact.
+pre-commit:
+  parallel: true
+  commands:
+    eslint:
+      glob: '*.{ts,js}'
+      run: pnpm exec eslint --fix {staged_files}
+      stage_fixed: true
+    prettier:
+      glob: '*.{ts,json,md}'
+      run: pnpm exec prettier --write {staged_files}
+      stage_fixed: true
+commit-msg:
+  commands:
+    commitlint:
+      run: pnpm exec commitlint --edit {1}

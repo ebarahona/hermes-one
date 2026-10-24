@@ -1,0 +1,21 @@
+#!/bin/sh
+# Shared pre-commit hook (Shell Script Delegate pattern).
+#
+# This script is the zero-dependency fallback. Contributors who can't or
+# won't install lefthook can wire it via:
+#   git config --local core.hooksPath .githooks
+#
+# Primary path: lefthook.yml runs the same task names in parallel against
+# staged files only (faster). This script runs the equivalent checks over
+# the whole tree sequentially.
+#
+# Parity: every "# task:" marker below MUST appear as a command name under
+# pre-commit.commands in lefthook.yml.
+
+set -e
+
+# task: eslint
+pnpm exec eslint .
+
+# task: prettier
+pnpm exec prettier --check "**/*.{ts,json,md}" --log-level warn

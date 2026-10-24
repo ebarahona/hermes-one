@@ -7,4 +7,5 @@ packages:
 allowBuilds:
   '@swc/core': true
   esbuild: true
+  lefthook: false
   protobufjs: true

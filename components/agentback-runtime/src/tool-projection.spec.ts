@@ -1,6 +1,5 @@
-// Tool projection — the rows this slice can assert hermetically (no live stack).
+// Tool projection — the rows that can be asserted hermetically (no live stack).
 import {describe, expect, it, vi} from 'vitest';
-import {z} from 'zod';
 import type {CapabilityContract, ProviderAdapter} from '@hermes-one/contracts';
 import {
   CapabilityToolProjector,

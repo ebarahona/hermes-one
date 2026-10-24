@@ -28,7 +28,6 @@ export class PlatformReject implements Provider<Reject> {
         };
       } else {
         // Unexpected — never surface internals over the wire (matches bootstrap's fatal-log posture).
-        // eslint-disable-next-line no-console
         console.error('[rest] unhandled error', {
           correlationId,
           err: String(err),

@@ -27,7 +27,6 @@ export async function bootstrap<TApp>(
   } catch (err) {
     // Boot/serve failure is fatal — never run half-wired.
     await root.stop(app).catch(() => void 0);
-    // eslint-disable-next-line no-console
     console.error('[bootstrap] fatal', err);
     process.exit(1);
   }

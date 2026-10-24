@@ -134,22 +134,3 @@ export const HTTP_STATUS_BY_CODE: Record<z.infer<typeof ErrorCode>, number> = {
   tenant_not_resolved: 403,
   internal_error: 500,
 };
-
-/** Normalize an agentback error envelope into a PlatformError (no information loss). */
-export interface AgentbackErrorEnvelope {
-  code: string;
-  message: string;
-  issues?: {path: string; message: string; expected?: string}[];
-  schema?: string;
-  retryable?: boolean;
-  remediation?: string;
-  httpStatus?: number;
-  price?: string;
-}
-export function toPlatformError(
-  e: AgentbackErrorEnvelope,
-  correlationId?: string,
-): PlatformError {
-  /* impl in agentback/ */
-  throw new Error('see agentback/ pack for the reference implementation');
-}

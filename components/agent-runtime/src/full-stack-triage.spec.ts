@@ -243,14 +243,6 @@ describe('full-stack: workflow routes deterministic rule OR bounded agent turn',
   });
 
   it('a simple intent routes to the deterministic capability reply (no agent turn)', async () => {
-    await using t = await createTestApp(boot);
-    const server = await t.app.get<MCPServer>(MCPBindings.SERVER);
-    const executor = new PlatformToolExecutor(
-      server,
-      t.app as unknown as Context,
-      metaSource,
-    );
-
     const sent: string[] = [];
     let agentTurns = 0;
 

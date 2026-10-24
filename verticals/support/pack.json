@@ -1,0 +1,580 @@
+{
+  "manifest": {
+    "packId": "support",
+    "packVersion": "1.0.0",
+    "displayName": "Support Ticket Triage",
+    "description": "Inbound customer-support triage for a software product: answer known simple requests (password reset, billing, account settings) with deterministic templated replies, escalate outages and security reports to a human, and hand everything else to a bounded support agent. Authored entirely as data (ADR-013) — no industry code.",
+    "operatorRegistryVersion": "1.0.0"
+  },
+  "definitions": {
+    "workflow": {
+      "definitionId": "def_support_intake",
+      "kind": "workflow",
+      "name": "support-intake",
+      "schemaRef": "support-intake.workflow/v1",
+      "version": "1.0.0",
+      "body": {
+        "entry": "triage",
+        "nodes": {
+          "triage": {
+            "id": "triage",
+            "kind": "rule",
+            "rule": {"definitionId": "def_support_triage", "version": "1.0.0"},
+            "facts": {"text": {"$input": "text"}},
+            "routes": {
+              "escalate": "escalation_notice",
+              "password-reset": "password_reset",
+              "billing": "billing",
+              "account-faq": "account_faq",
+              "default": "assist"
+            }
+          },
+          "password_reset": {
+            "id": "password_reset",
+            "kind": "capability",
+            "capability": "messaging.reply.send",
+            "input": {
+              "to": {"$input": "from"},
+              "template": "support_password_reset",
+              "body": "To reset your password, choose \"Forgot password\" on the sign-in page and follow the link sent to your account email. If the email does not arrive within a few minutes, check your spam folder or reply here and a team member will help."
+            },
+            "next": "end"
+          },
+          "billing": {
+            "id": "billing",
+            "kind": "capability",
+            "capability": "messaging.reply.send",
+            "input": {
+              "to": {"$input": "from"},
+              "template": "support_billing",
+              "body": "Invoices and receipts are available under Settings > Billing, where you can also update your payment method. If anything on an invoice looks incorrect, reply here and a team member will review it."
+            },
+            "next": "end"
+          },
+          "account_faq": {
+            "id": "account_faq",
+            "kind": "capability",
+            "capability": "messaging.reply.send",
+            "input": {
+              "to": {"$input": "from"},
+              "template": "support_account_faq",
+              "body": "You can change your email address, update your profile, turn on two-factor authentication, and export your data under Settings > Account. Reply here if you need help with any of these steps."
+            },
+            "next": "end"
+          },
+          "escalation_notice": {
+            "id": "escalation_notice",
+            "kind": "capability",
+            "capability": "messaging.reply.send",
+            "input": {
+              "to": {"$input": "from"},
+              "template": "support_escalation_notice",
+              "body": "Thank you for reporting this. Your message has been escalated to our on-call team, who will follow up with you directly."
+            },
+            "next": "escalate"
+          },
+          "escalate": {
+            "id": "escalate",
+            "kind": "terminal",
+            "outcome": "handoff",
+            "result": {"queue": "urgent", "reason": "outage-or-security-report"}
+          },
+          "assist": {
+            "id": "assist",
+            "kind": "agent",
+            "agentEngine": {
+              "definitionId": "def_support_engine",
+              "version": "1.0.0"
+            },
+            "objective": "Answer the customer's support question plainly and accurately, asking one clarifying question when the request is ambiguous.",
+            "next": "end"
+          },
+          "end": {"id": "end", "kind": "terminal", "outcome": "completed"}
+        }
+      }
+    },
+    "agentEngine": {
+      "definitionId": "def_support_engine",
+      "kind": "agent-engine",
+      "name": "support-assistant",
+      "schemaRef": "support-assistant.agent-engine/v1",
+      "version": "1.0.0",
+      "body": {
+        "persona": "A courteous, concise customer-support assistant for a software product.",
+        "objectives": [
+          "Answer the customer's question plainly, in a few sentences.",
+          "Ask one clarifying question when the request is ambiguous.",
+          "Never ask the customer to share a password or other credentials."
+        ],
+        "allowedCapabilities": [],
+        "referencedRules": ["support-triage"],
+        "model": {
+          "provider": "openai-compatible",
+          "model": "",
+          "temperature": 0.2
+        },
+        "promptTemplateIds": []
+      }
+    },
+    "policy": {
+      "definitionId": "def_support_policy",
+      "kind": "policy",
+      "name": "support-reply-safety",
+      "schemaRef": "support-reply-safety.policy/v1",
+      "version": "1.0.0",
+      "body": {
+        "rules": [
+          {
+            "id": "no-credential-request",
+            "site": "postGate",
+            "appliesTo": [],
+            "when": {
+              "type": "or",
+              "any": [
+                {
+                  "type": "op",
+                  "op": "contains",
+                  "args": [
+                    {
+                      "type": "op",
+                      "op": "lower",
+                      "args": [{"type": "fact", "path": "draftReply"}]
+                    },
+                    {"type": "literal", "value": "send us your password"}
+                  ]
+                },
+                {
+                  "type": "op",
+                  "op": "contains",
+                  "args": [
+                    {
+                      "type": "op",
+                      "op": "lower",
+                      "args": [{"type": "fact", "path": "draftReply"}]
+                    },
+                    {"type": "literal", "value": "send me your password"}
+                  ]
+                },
+                {
+                  "type": "op",
+                  "op": "contains",
+                  "args": [
+                    {
+                      "type": "op",
+                      "op": "lower",
+                      "args": [{"type": "fact", "path": "draftReply"}]
+                    },
+                    {"type": "literal", "value": "share your password"}
+                  ]
+                },
+                {
+                  "type": "op",
+                  "op": "contains",
+                  "args": [
+                    {
+                      "type": "op",
+                      "op": "lower",
+                      "args": [{"type": "fact", "path": "draftReply"}]
+                    },
+                    {"type": "literal", "value": "provide your password"}
+                  ]
+                }
+              ]
+            },
+            "effect": "repair",
+            "reason": "a support reply must never ask the customer for their password",
+            "detail": {
+              "repairInstruction": "Remove any request for the customer's password or other credentials."
+            }
+          }
+        ],
+        "defaultVoterVerdict": "deny",
+        "parameters": []
+      }
+    },
+    "rules": [
+      {
+        "definitionId": "def_support_triage",
+        "kind": "rule",
+        "name": "support-triage",
+        "schemaRef": "support-triage.rule/v1",
+        "version": "1.0.0",
+        "body": {
+          "branches": [
+            {
+              "outcome": "escalate",
+              "when": {
+                "type": "or",
+                "any": [
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "outage"}
+                    ]
+                  },
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "is down"}
+                    ]
+                  },
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "breach"}
+                    ]
+                  },
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "hacked"}
+                    ]
+                  },
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "compromised"}
+                    ]
+                  },
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "unauthorized"}
+                    ]
+                  },
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "security incident"}
+                    ]
+                  },
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "urgent"}
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "outcome": "password-reset",
+              "when": {
+                "type": "or",
+                "any": [
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "password"}
+                    ]
+                  },
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "locked out"}
+                    ]
+                  },
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "can't log in"}
+                    ]
+                  },
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "cannot log in"}
+                    ]
+                  },
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "can't sign in"}
+                    ]
+                  },
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "cannot sign in"}
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "outcome": "billing",
+              "when": {
+                "type": "or",
+                "any": [
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "invoice"}
+                    ]
+                  },
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "receipt"}
+                    ]
+                  },
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "billing"}
+                    ]
+                  },
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "payment method"}
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "outcome": "account-faq",
+              "when": {
+                "type": "or",
+                "any": [
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "change my email"}
+                    ]
+                  },
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "update my email"}
+                    ]
+                  },
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "update my profile"}
+                    ]
+                  },
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "two-factor"}
+                    ]
+                  },
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "2fa"}
+                    ]
+                  },
+                  {
+                    "type": "op",
+                    "op": "contains",
+                    "args": [
+                      {
+                        "type": "op",
+                        "op": "lower",
+                        "args": [{"type": "fact", "path": "text"}]
+                      },
+                      {"type": "literal", "value": "export my data"}
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "defaultOutcome": "needs-judgment",
+          "parameters": [],
+          "requiredFacts": ["text"]
+        }
+      }
+    ],
+    "capabilities": [
+      {
+        "definitionId": "def_support_reply_send",
+        "kind": "capability",
+        "name": "messaging-reply-send",
+        "schemaRef": "messaging-reply-send.capability/v1",
+        "version": "1.0.0",
+        "body": {
+          "name": "messaging.reply.send",
+          "title": "Send a reply message",
+          "description": "Send a templated reply to a customer on their channel.",
+          "inputJsonSchema": {
+            "type": "object",
+            "required": ["to"],
+            "properties": {
+              "to": {"type": "string"},
+              "template": {"type": "string"},
+              "body": {"type": "string"}
+            }
+          },
+          "outputJsonSchema": {
+            "type": "object",
+            "required": ["providerMessageId", "status"],
+            "properties": {
+              "providerMessageId": {"type": "string"},
+              "status": {"type": "string"}
+            }
+          },
+          "sideEffect": "external",
+          "changedDomains": ["messaging", "conversation"],
+          "idempotency": {
+            "required": true,
+            "keyFields": ["to", "template"],
+            "ttlSeconds": 86400
+          },
+          "confirm": false,
+          "requiredScope": "messaging.reply.send",
+          "providerMapping": {
+            "providers": [
+              {"providerId": "twilio-sms", "priority": 200},
+              {"providerId": "internal-message-log", "priority": 100}
+            ],
+            "eligibility": [],
+            "onNoProvider": "fail"
+          }
+        }
+      }
+    ]
+  }
+}

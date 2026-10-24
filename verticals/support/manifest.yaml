@@ -1,0 +1,12 @@
+id: support
+version: 0.0.0
+platformCompat: ">=0.1.0"
+requiresCapabilities: []
+contains:
+  workflows: false
+  rules: false
+  policies: false
+  prompts: false
+  templates: false
+  knowledge: false
+  evals: false

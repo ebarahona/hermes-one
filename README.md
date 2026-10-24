@@ -20,6 +20,9 @@ decisions live in `docs/adr/`; the build sequence in `docs/BUILD-PLAN.md`.
   platform's own admin API and driving a live LLM turn on real Temporal yields a **tool-backed
   agent conversation** — the model calls `appointment.slot.read`, the platform resolves a ranked
   provider, and the result is durably recorded. A new vertical is a new pack file, not a deploy.
+  Two verticals ship in `verticals/`: a residential electrician (`electrician/`) and support-ticket
+  triage (`support/`), where rules answer or escalate most messages and the model is called only
+  for a message that needs judgment.
 - **Bring-your-own-vendor multi-tenancy.** A tenant can rank its **own provider** first
   (`capability.provider_mappings`, admin-managed) and supply its **own credentials**
   (envelope-encrypted per tenant, rotated with a single `rotate()` call) — zero deploys, proven live:
@@ -86,6 +89,9 @@ node apps/agent-worker/dist/e2e.js      # 3-plane triage with a live LLM (see "L
 # closed rather than falling back to platform defaults.
 set -a; . ./.env; set +a
 node apps/agent-worker/dist/pack-e.e2e.js
+
+# the support-ticket triage vertical: rule-answered, rule-escalated, and agent-handled messages
+node apps/agent-worker/dist/support-pack.e2e.js
 ```
 
 ## LLM configuration

@@ -1,6 +1,23 @@
 # hermes-one
 
-**Hermes Orchestration Node Engine** — a multi-tenant agent orchestration engine.
+**Hermes ONE** (Orchestration Node Engine): a multi-tenant agent orchestration engine.
+
+Hermes is assembled by IoC (inversion of control). Every process is a DI (dependency injection)
+container ([LoopBack 4](https://loopback.io) on the edge plane,
+[agentback](https://github.com/ninemindai/agentback) on the agent plane), and dependencies are ports
+resolved from bindings, with adapters wired at the composition root. Provider adapters (edge plane)
+and authentication strategies plug in as extensions discovered at runtime; adding one is a new
+binding, not a change to the platform.
+
+What runs is decided by data, not by deploys. Workflows, rules, policies, capabilities, and agent
+engines are versioned, content-hashed definitions; publishing a deployment changes a tenant's
+behavior on the next message, while runs in flight stay pinned to the version they started on. Each
+agent turn gets its tools injected at runtime from the pinned capability contracts, filtered to what
+the engine allows and the caller's scopes cover, and bound to the tenant's ranked providers and
+credentials.
+
+The full map of bindings, components, extension points, ports, adapters, composition roots, and
+what is and isn't dynamic is in **`docs/COMPOSITION-AND-RUNTIME.md`**.
 
 A deterministic Temporal workflow rail with bounded agent nodes inside it. The workflow owns
 orchestration; the agent owns bounded reasoning; **the model proposes, the runtime disposes** —

@@ -11,7 +11,7 @@
   "bugs": {
     "url": "https://github.com/ebarahona/hermes-one/issues"
   },
-  "description": "Hermes Orchestration Node Engine — agentic workflow platform monorepo",
+  "description": "Hermes ONE (Orchestration Node Engine): multi-tenant agent orchestration engine",
   "type": "module",
   "engines": {
     "node": ">=22.13"

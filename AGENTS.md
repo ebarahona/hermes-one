@@ -5,7 +5,7 @@ to every agent regardless of tool, and to human contributors equally.
 
 ## Scope
 
-hermes-one (**Hermes Orchestration Node Engine**) is a multi-tenant platform for vertical agentic
+hermes-one (**Hermes ONE**, Orchestration Node Engine) is a multi-tenant platform for vertical agentic
 workflows: a deterministic Temporal workflow rail with bounded agent nodes inside it. It is a pnpm
 workspace (TypeScript, ESM, Node ≥ 22.13, pnpm 11):
 

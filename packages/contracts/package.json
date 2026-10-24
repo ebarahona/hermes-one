@@ -2,6 +2,22 @@
   "name": "@hermes-one/contracts",
   "version": "0.1.0",
   "license": "MIT",
+  "homepage": "https://github.com/ebarahona/hermes-one/tree/main/packages/contracts#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ebarahona/hermes-one.git",
+    "directory": "packages/contracts"
+  },
+  "bugs": {
+    "url": "https://github.com/ebarahona/hermes-one/issues"
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.spec.*",
+    "!dist/**/*.itest.*",
+    "!dist/**/*.e2e.*",
+    "!dist/**/*.map"
+  ],
   "type": "module",
   "exports": {
     ".": {

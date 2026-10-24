@@ -3,6 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
+  "homepage": "https://github.com/ebarahona/hermes-one#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ebarahona/hermes-one.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ebarahona/hermes-one/issues"
+  },
   "description": "Hermes Orchestration Node Engine — agentic workflow platform monorepo",
   "type": "module",
   "engines": {

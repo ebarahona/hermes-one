@@ -2,6 +2,22 @@
   "name": "@hermes-one/expression-core",
   "version": "0.1.0",
   "license": "MIT",
+  "homepage": "https://github.com/ebarahona/hermes-one/tree/main/packages/expression-core#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ebarahona/hermes-one.git",
+    "directory": "packages/expression-core"
+  },
+  "bugs": {
+    "url": "https://github.com/ebarahona/hermes-one/issues"
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.spec.*",
+    "!dist/**/*.itest.*",
+    "!dist/**/*.e2e.*",
+    "!dist/**/*.map"
+  ],
   "type": "module",
   "exports": {
     ".": {

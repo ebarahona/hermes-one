@@ -2,6 +2,15 @@
   "name": "@hermes-one/tenant-context",
   "version": "0.0.0",
   "license": "MIT",
+  "homepage": "https://github.com/ebarahona/hermes-one/tree/main/components/tenant-context#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ebarahona/hermes-one.git",
+    "directory": "components/tenant-context"
+  },
+  "bugs": {
+    "url": "https://github.com/ebarahona/hermes-one/issues"
+  },
   "private": true,
   "type": "module",
   "main": "dist/index.js",

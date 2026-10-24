@@ -43,7 +43,7 @@ importers:
         version: 5.7.3
       vitest:
         specifier: ^5.0.5
-        version: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.13.3)(vite@8.1.4(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))
+        version: 5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.13.3)(vite@8.1.4(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))
 
   apps/activity-worker:
     dependencies:
@@ -142,14 +142,14 @@ importers:
   apps/agent-worker:
     dependencies:
       '@agentback/context':
-        specifier: 0.7.1
-        version: 0.7.1
+        specifier: 0.13.0
+        version: 0.13.0
       '@agentback/core':
-        specifier: 0.7.1
-        version: 0.7.1
+        specifier: 0.13.0
+        version: 0.13.0
       '@agentback/mcp':
-        specifier: 0.7.1
-        version: 0.7.1
+        specifier: 0.13.0
+        version: 0.13.0
       '@hermes-one/agent-runtime':
         specifier: workspace:*
         version: link:../../components/agent-runtime
@@ -331,14 +331,14 @@ importers:
         version: link:../tool-executor
     devDependencies:
       '@agentback/context':
-        specifier: 0.7.1
-        version: 0.7.1
+        specifier: 0.13.0
+        version: 0.13.0
       '@agentback/mcp':
-        specifier: 0.7.1
-        version: 0.7.1
+        specifier: 0.13.0
+        version: 0.13.0
       '@agentback/testing':
-        specifier: 0.7.1
-        version: 0.7.1(@agentback/mcp@0.7.1)(@modelcontextprotocol/sdk@1.29.0(zod@4.4.3))(cors@2.8.6)(express@5.2.1)(hono@4.12.28)(zod@4.4.3)
+        specifier: 0.13.0
+        version: 0.13.0(@agentback/mcp@0.13.0)(cors@2.8.6)(express@5.3.0)(hono@4.12.28)(zod@4.6.7)
       '@hermes-one/agentback-runtime':
         specifier: workspace:*
         version: link:../agentback-runtime
@@ -355,14 +355,14 @@ importers:
   components/agentback-runtime:
     dependencies:
       '@agentback/core':
-        specifier: 0.7.1
-        version: 0.7.1
+        specifier: 0.13.0
+        version: 0.13.0
       '@agentback/mcp':
-        specifier: 0.7.1
-        version: 0.7.1
+        specifier: 0.13.0
+        version: 0.13.0
       '@agentback/security':
-        specifier: 0.7.1
-        version: 0.7.1
+        specifier: 0.13.0
+        version: 0.13.0
       '@hermes-one/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
@@ -377,8 +377,8 @@ importers:
         version: 4.4.3
     devDependencies:
       '@agentback/testing':
-        specifier: 0.7.1
-        version: 0.7.1(@agentback/mcp@0.7.1)(@modelcontextprotocol/sdk@1.29.0(zod@4.4.3))(cors@2.8.6)(express@5.2.1)(hono@4.12.28)(zod@4.4.3)
+        specifier: 0.13.0
+        version: 0.13.0(@agentback/mcp@0.13.0)(cors@2.8.6)(express@5.2.1)(hono@4.12.28)(zod@4.4.3)
 
   components/analytics:
     dependencies:
@@ -526,11 +526,11 @@ importers:
   components/tool-executor:
     dependencies:
       '@agentback/context':
-        specifier: 0.7.1
-        version: 0.7.1
+        specifier: 0.13.0
+        version: 0.13.0
       '@agentback/mcp':
-        specifier: 0.7.1
-        version: 0.7.1
+        specifier: 0.13.0
+        version: 0.13.0
       '@hermes-one/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
@@ -539,8 +539,8 @@ importers:
         version: 4.4.3
     devDependencies:
       '@agentback/testing':
-        specifier: 0.7.1
-        version: 0.7.1(@agentback/mcp@0.7.1)(@modelcontextprotocol/sdk@1.29.0(zod@4.4.3))(cors@2.8.6)(express@5.2.1)(hono@4.12.28)(zod@4.4.3)
+        specifier: 0.13.0
+        version: 0.13.0(@agentback/mcp@0.13.0)(cors@2.8.6)(express@5.3.0)(hono@4.12.28)(zod@4.4.3)
       '@hermes-one/agentback-runtime':
         specifier: workspace:*
         version: link:../agentback-runtime
@@ -727,59 +727,59 @@ importers:
 
 packages:
 
-  '@agentback/authentication@0.7.1':
-    resolution: {integrity: sha512-CsUbwxS33qIZYw5jQpfgVKFTRSIHJinYkZg043F5/G8UW9H91/QwvzHA/7NFmBZ+URn66AzPvnhC4n9rpWiS/A==}
-    engines: {node: '>=22.13'}
+  '@agentback/authentication@0.13.0':
+    resolution: {integrity: sha512-7yjDSgQT5TIhOIQdO1f1XN7j75zH3Fh6PopN7/nXY7EuwZqgLTda9WEP2gIqcOEI2vbdM41rk1Wyb3XK6+rLtQ==}
+    engines: {node: '>=22.18'}
 
-  '@agentback/authorization@0.7.1':
-    resolution: {integrity: sha512-Pjt6Jo+cxkRvSHuFGihyb1eYg53tYX03aCYMmRmEuQXqu4XHZgCTkm7MrGB2wKNnGq7JW+9ANgNAHeqYN60Ubw==}
-    engines: {node: '>=22.13'}
+  '@agentback/authorization@0.13.0':
+    resolution: {integrity: sha512-/dq8z4LA+rvzB0caGyG9wJssweoybNfc0/za5mIPn0d892s4s4OGr7xtCn9f9T1hykJFlxjYOejdinUjGu3l7A==}
+    engines: {node: '>=22.18'}
 
-  '@agentback/client@0.7.1':
-    resolution: {integrity: sha512-pia6Pm5F8f9yy97OA/tONiWW7ptYrCq5mb8AQLU5VlzJ89ZPh9FSbxn9Tvpyha9IBQdKOXBNPg0vAVK3g+DB/w==}
-    engines: {node: '>=22.13'}
+  '@agentback/client@0.13.0':
+    resolution: {integrity: sha512-ecXTjcjntqmvzRDAoPe9mlyLrJmMuG7llfWEC8zAEDJ6KFOaRp7NVIjeAYlMKOGDSCnFwsxERMhXYRtwHz3TJg==}
+    engines: {node: '>=22.18'}
     peerDependencies:
       zod: ^4
 
-  '@agentback/common@0.7.1':
-    resolution: {integrity: sha512-82oF9tQltJANwBAyebzmzTsODdymVIHhdJOMUcWOf7WXgGZTYbJ3AKRy5Bk5Dw5WTZvwRdMG8sVJdPcdfSGe4g==}
-    engines: {node: '>=22.13'}
+  '@agentback/common@0.13.0':
+    resolution: {integrity: sha512-mclwFhe3NO6/uZOdL/wCg0ACzi9/7TdxueoYCvPKNNjGjHpWiQReeLZ6f3yIW+8oZc1Jh9Q700NS+sp/LE2ARA==}
+    engines: {node: '>=22.18'}
 
-  '@agentback/context@0.7.1':
-    resolution: {integrity: sha512-Mnk3WFjFRcTQSGx/mDtHz34coXTfmyCYK3ADuUHOKTQou1nmz/16t09HDSblOSyoDijAvNXgzMkNYgMiSFzr9w==}
-    engines: {node: '>=22.13'}
+  '@agentback/context@0.13.0':
+    resolution: {integrity: sha512-86Qf7Pq526Ak2ubLsnw34MmZHCuDKFe+KM3T6fL80zEDswFhWj+0qdLwyNIM2gCwoeneREXISvv+UI/YQiqVhQ==}
+    engines: {node: '>=22.18'}
 
-  '@agentback/core@0.7.1':
-    resolution: {integrity: sha512-CF32yigK9kktIF4waO4SPCoaqHfdptrJR5c9AzYyWFR8DYtZr62RddxHT5QRucIr/hnfBk9Zxn789qXlRk7V8w==}
-    engines: {node: '>=22.13'}
+  '@agentback/core@0.13.0':
+    resolution: {integrity: sha512-C/YIBsMgX3Ku99Cm8ijfkbf9OhRKD5jcQR2mkBUMt51ZNKsljdLeMUAX+ztiI+JzEnBmU5oXpVxBe3awg3M7Ew==}
+    engines: {node: '>=22.18'}
 
-  '@agentback/files@0.7.1':
-    resolution: {integrity: sha512-36ihKwthxD8hNfngXPVniPpiCnszLrfk7mFtIBYISFNkHcSDvWm/cGvUkrtNWTMyvOYU6ZfUU4pCw35HDhQfAQ==}
-    engines: {node: '>=22.13'}
+  '@agentback/files@0.13.0':
+    resolution: {integrity: sha512-ahhPLL+95YkkNfCuYt0ANehLdCJpQyJ6u5nfjo3CqXyc2gctbQAnuV8Oqqe/qvO09CPNqt1yM6k0jrgxoy7g+w==}
+    engines: {node: '>=22.18'}
 
-  '@agentback/http-server@0.7.1':
-    resolution: {integrity: sha512-ZJQuHPsj4OM38IWmi8Iu1Z1+MafiTTsGFXN1TLMzgQlh2TMz7gGnjwsDHn4vtEsMU/SwoSIm8RKAwXNSlGZmKg==}
-    engines: {node: '>=22.13'}
+  '@agentback/http-server@0.13.0':
+    resolution: {integrity: sha512-ablU/ErAbaP97bInWoCMBp2TKH3oPmQiqTrABLfvPjwg6z/4dc2zbzEuyK/EYQZANaZWkdx4eQaWt83Ngy+7sA==}
+    engines: {node: '>=22.18'}
 
-  '@agentback/mcp@0.7.1':
-    resolution: {integrity: sha512-tS5bQILlaC6XMPR5yE5wCGpFtB44rXfoWa9lI5a3/ErQ4ZJsMmhLgWGQk8dD6hj6ilp2Qy9okfTMU0SA/Dv8vA==}
-    engines: {node: '>=22.13'}
+  '@agentback/mcp@0.13.0':
+    resolution: {integrity: sha512-nYVqXcvXE2gFKDQNAkHUgOLZnGuWTj09TooM2tmVf9lCgKP9pkkTyiDGWjxjnW/a7+iUp7IjEo9U1P4scyq1eQ==}
+    engines: {node: '>=22.18'}
 
-  '@agentback/metadata@0.7.1':
-    resolution: {integrity: sha512-6EZ/zqhXQzkYD57OGSZ4pz41hQodesDWfMJpLUkQIt7ArfuDIn3lCViM6/jLwHS+C8yteJsZZJD0oCFrikuIoQ==}
-    engines: {node: '>=22.13'}
+  '@agentback/metadata@0.13.0':
+    resolution: {integrity: sha512-9m5oCtZWmEaEo5gNKoBidPI+vAYoNf7NgzZgFV19d+yM21LHcom+VDuglFoWk8xWQ6db/roR+icfJ4DBpgzvfg==}
+    engines: {node: '>=22.18'}
 
-  '@agentback/middleware@0.7.1':
-    resolution: {integrity: sha512-TpQmTBgQSmS07haCS4iyDxA3EBDWvk3QJiuvRiOEHVvtemMH0kGh4g7Iv1ykFu/J02bK/kVCFY/C47iujWDAtw==}
-    engines: {node: '>=22.13'}
+  '@agentback/middleware@0.13.0':
+    resolution: {integrity: sha512-Oo+icU1T5cR8Evhx/kcEUMVdD+0CpZu1v9quRq3ym978eqW+HNZXxGcZYRCTwPyM4TwZBQRYi0/HCdcgSyynHA==}
+    engines: {node: '>=22.18'}
 
-  '@agentback/openapi@0.7.1':
-    resolution: {integrity: sha512-absPZVHG8ks2TlIPJYUWec5cVUWq6ZQaFELlvq2JfCdq1vRbfIeXRreSZbtxKfp7Y6WM/VKh+4sZ0t41q/KJhQ==}
-    engines: {node: '>=22.13'}
+  '@agentback/openapi@0.13.0':
+    resolution: {integrity: sha512-lC5hHSXzR3o9XEkCau9sHDP3kZYGrvni/5YawnhIQonaOG9H+cPCzSbskHn12Ze/pH0VuO2fbDZW6Yj5EEz4hA==}
+    engines: {node: '>=22.18'}
 
-  '@agentback/rest@0.7.1':
-    resolution: {integrity: sha512-xvw4lWxCk9TD/4ZP79s4DkWcE/zc/Pc6xVTcTV51TJCrI1NTQVw2E2jyqm90hpUncDbTfbsWrKUdC9+0cGJyug==}
-    engines: {node: '>=22.13'}
+  '@agentback/rest@0.13.0':
+    resolution: {integrity: sha512-PxBW9QYQmLlzvkbaovlHvsVRvHQyhh0irD4+PpdDchumRLr43YShUDkORe5dnMSPNEQiE+7Jlnh1w9wpRD4D6w==}
+    engines: {node: '>=22.18'}
     peerDependencies:
       cors: ~2.8.6
       express: ^5.2.1
@@ -792,25 +792,25 @@ packages:
       multer:
         optional: true
 
-  '@agentback/security@0.7.1':
-    resolution: {integrity: sha512-q4HyplMMSyvZfHgFNqRmzkNqj6DLwITBi65tVOd/RmV3bh0k3O2cwnFsAU/taj1dUzTgrsXFki+wNRY3Rh3hKA==}
-    engines: {node: '>=22.13'}
+  '@agentback/security@0.13.0':
+    resolution: {integrity: sha512-jK5sqaN8ae+R41JkwK3EK6wiHYcXg+tznsChI1jEqtADsDg6cwsyZNSfeYQM7Spixr3TpUoTnARgyHuRnmNS4A==}
+    engines: {node: '>=22.18'}
 
-  '@agentback/testing@0.7.1':
-    resolution: {integrity: sha512-96HqkoHZmIhk8kvGOT6oKv7Qa9TE/CRJsf8Qzx0AMmE7sNeZhN711XAD44XvkPR6u+TOPGNW80N0Atfjqt4Pbw==}
-    engines: {node: '>=22.13'}
+  '@agentback/testing@0.13.0':
+    resolution: {integrity: sha512-wqgFZG745UmL0miajHkoXcxhr5OnXNEelEclspuHaa0JkfsRoUhmcrcnpDiYHZ4YuUT4Ay1maOXRKgHnj4JmUQ==}
+    engines: {node: '>=22.18'}
     peerDependencies:
-      '@agentback/mcp': ~0.7.1
-      '@modelcontextprotocol/sdk': ^1.29.0
+      '@agentback/mcp': ~0.13.0
+      '@modelcontextprotocol/client': ^2.0.0
     peerDependenciesMeta:
       '@agentback/mcp':
         optional: true
-      '@modelcontextprotocol/sdk':
+      '@modelcontextprotocol/client':
         optional: true
 
-  '@agentback/testlab@0.7.1':
-    resolution: {integrity: sha512-dPP+tgW8uEt3mbIARWWDb2mJRJWwp2CLpd6btlA+hJX9rdv9KFviVmLLaRdLvMG96phvEjaI86Go3Gj7w+WTLg==}
-    engines: {node: '>=22.13'}
+  '@agentback/testlab@0.13.0':
+    resolution: {integrity: sha512-/dHj/QG34arjCt2nzTaAswX8R6tuMudmDTnme5vTG21Nv9+VGJ/mr12hJnpJBhBLXw9Oi/LEcXgB5IYdvCyvsg==}
+    engines: {node: '>=22.18'}
 
   '@babel/code-frame@7.29.7':
     resolution: {integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==}
@@ -1140,11 +1140,11 @@ packages:
     peerDependencies:
       hono: ^4
 
-  '@hono/node-server@2.0.8':
-    resolution: {integrity: sha512-GuCWzLxwg218fy1JaHculFsdcuY12hxit83V+algozTPnwhNjLrRL/Alg9OYjLZLoUZ1rw/S4CdTMsnkSKCmFA==}
+  '@hono/node-server@2.1.5':
+    resolution: {integrity: sha512-MgP/I06GdvsilDspMk/qmRzpk8LOUStP6jFAbSRi40W09DhoyUn+Mj7eyKICPqeYKybOjVFLVIAQzvu1bfIa7Q==}
     engines: {node: '>=20'}
     peerDependencies:
-      hono: ^4
+      hono: ^4 || ^5.0.0-0
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -1368,6 +1368,10 @@ packages:
     peerDependencies:
       '@loopback/core': ^7.0.0
 
+  '@modelcontextprotocol/core@2.3.1':
+    resolution: {integrity: sha512-laVmIhPGpWi7rG9q+0UigblRN0Hws/Yjlb6qLFtVqryXVLkc4h+yN8z731POD2LnAGQlFe7/tXhUm7Bi0YB91g==}
+    engines: {node: '>=20'}
+
   '@modelcontextprotocol/sdk@1.29.0':
     resolution: {integrity: sha512-zo37mZA9hJWpULgkRpowewez1y6ML5GsXJPY8FI0tBBCd77HEvza4jDqRKOXgHNn867PVGCyTdzqpz0izu5ZjQ==}
     engines: {node: '>=18'}
@@ -1377,6 +1381,10 @@ packages:
     peerDependenciesMeta:
       '@cfworker/json-schema':
         optional: true
+
+  '@modelcontextprotocol/server@2.3.1':
+    resolution: {integrity: sha512-e59MfWuSssj6DoQ96JCTqdW1AXT5/XtnTl0WWd6MU1Ka434fFUGGosCLJbGNySDhHGvxQWoRWK137FXYFkYNWw==}
+    engines: {node: '>=20'}
 
   '@napi-rs/wasm-runtime@1.1.6':
     resolution: {integrity: sha512-ZLv/JdUfkvOy9eCnnBaGfiO+XimbjebAeO+MRQqD/B+FR1tnRN0tpKSJHRbE8sFfS6aqsXZ67TQjfwfsxULVbg==}
@@ -1793,8 +1801,8 @@ packages:
   '@types/express-serve-static-core@4.19.9':
     resolution: {integrity: sha512-QP2ESEe/ImWY0HDwNAnK9PvEffUyhLTnWkk7KXzHfyeWAnlrDe1fN77bXl6ia8KT3wPlmA7t9/VPRpnf4Ex9sg==}
 
-  '@types/express-serve-static-core@5.1.2':
-    resolution: {integrity: sha512-d3KvEXBSo/lOAMc2u6fkyDHBvetBHeqD7wm/AcXfLpSOQwlmG9D/aQ0SFswVjv05p7ullQS7Mjohj6/VdbZuTg==}
+  '@types/express-serve-static-core@5.1.3':
+    resolution: {integrity: sha512-dPfW8NFiOF4wOHc7+N/QSxlY9cfSsenewGbAz8C8U/MULPd/YZ27LvJUIlzaXie7e6Ove9YunJGgC9tbHD2cKw==}
 
   '@types/express@4.17.25':
     resolution: {integrity: sha512-dVd04UKsfpINUnK0yBoYHDF3xu7xVH4BuDotC/xGuycx4CgbP48X/KF/586bcObxT0HENHXEU8Nqtu6NR+eKhw==}
@@ -1819,9 +1827,6 @@ packages:
 
   '@types/lodash-es@4.17.12':
     resolution: {integrity: sha512-0NgftHUcV4v34VhXm8QBSftKVXtbkBG3ViCjs6+eJ5a6y6Mi/jiFGPc1sC7QK+9BFhWrURE3EOggmWaSxL9OzQ==}
-
-  '@types/lodash@4.17.24':
-    resolution: {integrity: sha512-gIW7lQLZbue7lRSWEFql49QJJWThrTFFeIMJdp3eH4tKoxm1OvEPg02rm4wCCSHS0cL3/Fizimb35b7k8atwsQ==}
 
   '@types/lodash@4.17.27':
     resolution: {integrity: sha512-VenMRv/eKNrspX9v3H4dbmjsrnCOYdYBG3kxXKk3dG6X+urBGcj2Prww3xw1U5K4FV/mE4h5GbWd0szEKf+9ew==}
@@ -1877,17 +1882,14 @@ packages:
   '@types/shot@4.0.5':
     resolution: {integrity: sha512-4wiGdy1sXfpcFgF1VAouUaSl6zjWn0v2NarNgviAJYm3BeiODywERnRtIC5YtNIbfh3UfShfCRD9yyeWAD7R0w==}
 
-  '@types/sinon@22.0.0':
-    resolution: {integrity: sha512-TDbVpbccc2HfiqHR09Argj3mHV1KMW7sCCKj52fsl8lbRLkEn7fB1966EWhOKWUBcqfBueZuPoA7/OK1CKiy3g==}
+  '@types/sinon@22.0.1':
+    resolution: {integrity: sha512-MThluJXPmpBY+Z5S3565F2z+hjkCXnBrr36j2mitVQ7JUtxA+A+YQhs+0Q6J8jxb0SVJvydO+6NWfj9EBzpiBQ==}
 
-  '@types/sinonjs__fake-timers@15.0.1':
-    resolution: {integrity: sha512-Ko2tjWJq8oozHzHV+reuvS5KYIRAokHnGbDwGh/J64LntgpbuylF74ipEL24HCyRjf9FOlBiBHWBR1RlVKsI1w==}
+  '@types/superagent@8.1.11':
+    resolution: {integrity: sha512-KA7srSW/HENDtOw9DOqaFLgWuMqN9WgjEw62lh9dpvRaZDkhdOkazASd7X7i2eMUYLHa1U37ZttnePsH5zTDHw==}
 
-  '@types/superagent@8.1.10':
-    resolution: {integrity: sha512-nbt4IWXABhW0jGmmpRzCFNlbmwCTzZ2gTUsNIr+X+ItdqPms+PAJZbWsNzpS2USqXjcoNLQcO6nXo60zcPQiIg==}
-
-  '@types/supertest@7.2.0':
-    resolution: {integrity: sha512-uh2Lv57xvggst6lCqNdFAmDSvoMG7M/HDtX4iUCquxQ5EGPtaPM5PL5Hmi7LCvOG8db7YaCPNJEeoI8s/WzIQw==}
+  '@types/supertest@7.2.1':
+    resolution: {integrity: sha512-4CbBvoYVLHL7+yhbYrZET0vsvuyXTC05aRe7dNQkwMzm56auceoy6Yu3K50uZmwfHna1os3CMSgM/3QVkUtPTw==}
 
   '@types/type-is@1.6.7':
     resolution: {integrity: sha512-gEsh7n8824nusZ2Sidh6POxNsIdTSvIAl5gXbeFj+TUaD1CO2r4i7MQYNMfEQkChU42s2bVWAda6x6BzIhtFbQ==}
@@ -2256,6 +2258,10 @@ packages:
     resolution: {integrity: sha512-5jRCH9Z/+DRP7rkvY83B+yGIGX96OYdJmzngqnw2SBSxqCFPd0w2km3s5iawpGX8krnwSGmF0FW5Nhr0Hfai3g==}
     engines: {node: '>=18'}
 
+  content-disposition@2.0.1:
+    resolution: {integrity: sha512-e+H0ZXHSWYrENhQzw1LPuP4oF5MzVKmDU6d3hxlvaPEYLLg62MxtQNPRx4SYSuYJSBUgnQIG4HIN2tEtNv7Dog==}
+    engines: {node: '>=18'}
+
   content-type@1.0.5:
     resolution: {integrity: sha512-nTjqfcBFEipKdXCv4YDQWCfmcLZKm81ldF0pAopTvyrFGVbcR6P/VAAd5G7N+0tTr8QqiU0tFadD6FK4NtJwOA==}
     engines: {node: '>= 0.6'}
@@ -2361,9 +2367,10 @@ packages:
   dot-case@3.0.4:
     resolution: {integrity: sha512-Kv5nKlh6yRrdrGvxeJ2e5y2eRUpkUosIW4A2AS38zwSz27zu7ufDwQPi5Jhs3XAlGNetl3bmnGhQsMtkKJnj3w==}
 
-  dotenv@17.4.2:
-    resolution: {integrity: sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==}
+  dotenv@18.0.8:
+    resolution: {integrity: sha512-2KDeoFoK/zRtcnbunCDlLG5VWVMcyqeQc6iK65o231nfNAcuGrKoqUQfJFUtBI+QlShk5HKIHxwebBtUl3rEfA==}
     engines: {node: '>=12'}
+    hasBin: true
 
   drizzle-orm@0.45.2:
     resolution: {integrity: sha512-kY0BSaTNYWnoDMVoyY8uxmyHjpJW1geOmBMdSSicKo9CIIWkSxMIj2rkeSR51b8KAPB7m+qysjuHme5nKP+E5Q==}
@@ -2628,6 +2635,10 @@ packages:
     resolution: {integrity: sha512-hIS4idWWai69NezIdRt2xFVofaF4j+6INOpJlVOLDO8zXGpUVEVzIYk12UUi2JzjEzWL3IOAxcTubgz9Po0yXw==}
     engines: {node: '>= 18'}
 
+  express@5.3.0:
+    resolution: {integrity: sha512-qCqy1xSoaugxOD4IVHb1ZWdkvCF2W3aE2okKouWj8VwJ+ztskSiXoBnCSJqfKT+cVPJhuJqe9YLbY425+Zh00g==}
+    engines: {node: '>= 18'}
+
   fast-deep-equal@3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
 
@@ -2700,8 +2711,8 @@ packages:
     resolution: {integrity: sha512-Rx/WycZ60HOaqLKAi6cHRKKI7zxWbJ31MhntmtwMoaTeF7XFH9hhBp8vITaMidfljRQ6eYWCKkaTK+ykVJHP2A==}
     engines: {node: '>= 0.8'}
 
-  fs-extra@11.3.6:
-    resolution: {integrity: sha512-w8ZNZr2mKIc7qeNaQ9AVPT1+iFaI+Avd4xudVOvdDJ8VytREi1Ft5Ih7hd9jjehod8vAM5GMsfQ/TpPf4EyoEA==}
+  fs-extra@11.4.1:
+    resolution: {integrity: sha512-KYAb4c9BJQI6QqGKthV68OHe0badztdXJWKo0WtBA9IuCFPTKvE5ZdUBglP833aMjhaSPNO4A5j/EkzZtGlKjA==}
     engines: {node: '>=14.14'}
 
   fs-monkey@1.1.0:
@@ -3322,9 +3333,9 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  nanoid@5.1.16:
-    resolution: {integrity: sha512-kVrnsrJqMR8+oLJnGEmSWw9BivK5mt7H3FZatVRjrc5wGqFYuBxX1yG7+A7Gi5AefkX6t/oCkizcQgpu0cY1dQ==}
-    engines: {node: ^18 || >=20}
+  nanoid@6.0.2:
+    resolution: {integrity: sha512-hIvVOb9Qr1p/9CNNLOe0OlWvgx/ziTsVwKN/GDSsuArN2K0wDiafP3s0SWmsm7o2BdnyS8Z9Z64NFBUbn6ziBg==}
+    engines: {node: ^22 || ^24 || >=26}
     hasBin: true
 
   natural-compare@1.4.0:
@@ -3437,8 +3448,8 @@ packages:
   openapi3-ts@2.0.2:
     resolution: {integrity: sha512-TxhYBMoqx9frXyOgnRHufjQfPXomTIHYKhSKJ6jHfj13kS8OEIhvmE8CTuQyKtjjWttAjX5DPxM1vmalEpo8Qw==}
 
-  openapi3-ts@4.6.0:
-    resolution: {integrity: sha512-a4sfn6L2sIShhtzJqmjGrARvxAW/3F2BJDdyRVvNF9VhAsZSh5hSyI3a9TNvmzBxXmq66nY5LNT5bQcBxYAZZg==}
+  openapi3-ts@4.6.2:
+    resolution: {integrity: sha512-gyyil3DweqhXiEhTqtAs9wwRLfWHmetwhI4kmM5Rn0d6gtmK863Ki7qqbQnp9+Wwlqoe3B1LFWj7kMp5ctE4rQ==}
 
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
@@ -3456,8 +3467,8 @@ packages:
     resolution: {integrity: sha512-KXatOjCRXXkSePPb1Nbi0p0m+gQAwdlbhi4wQKJPI1HsMQS9g+Sqp2o+QHziPr7eYJyOZet836KoHEVM1mwOrQ==}
     engines: {node: '>=8'}
 
-  p-event@7.1.0:
-    resolution: {integrity: sha512-/lkPs5W1aC3cp6vqZefpdosOn65J571sWodyfOQiF0+tmDCpU+H8Atwpu0vQROCVUlZuToDN5eyTLsMLLc54mg==}
+  p-event@7.1.1:
+    resolution: {integrity: sha512-T629EpxCTho6yxIZz2dFZwMkyWUM5jh/0h1+u/Xo4+Fllu0DuKQF6ghqIgSWVTluIvHSXL+XBRScH+E+y9TQ0g==}
     engines: {node: '>=20'}
 
   p-finally@1.0.0:
@@ -3476,16 +3487,16 @@ packages:
     resolution: {integrity: sha512-LaNjtRWUBY++zB5nE/NwcaoMylSPk+S+ZHNB1TzdbMJMny6dynpAGt7X/tl/QYq3TIeE6nxHppbo2LGymrG5Pw==}
     engines: {node: '>=10'}
 
-  p-map@7.0.5:
-    resolution: {integrity: sha512-e8vJF4XdVkzqqSHguEMz41mQO1wKwxKm5ENrUJQUu9kLDCtn83cxbyHZcszr4QC5zEA7WffRRC4gsTecC7J9oA==}
+  p-map@7.1.1:
+    resolution: {integrity: sha512-6Lh3jQPLthYujSrlw6ccWXBGZTkoTCz27Hd92g79LH/kjAbgoEu0t442cCCNbegPSJsA0lwDX8z0bcKtkpA32g==}
     engines: {node: '>=18'}
 
   p-timeout@3.2.0:
     resolution: {integrity: sha512-rhIwUycgwwKcP9yTOOFK/AKsAopjjCakVqLHePO3CC6Mir1Z99xT+R63jZxAT5lFZLa2inS5h+ZS2GvR99/FBg==}
     engines: {node: '>=8'}
 
-  p-timeout@7.0.1:
-    resolution: {integrity: sha512-AxTM2wDGORHGEkPCt8yqxOTMgpfbEHqF51f/5fJCmwFC3C/zNcGT63SymH2ttOAaiIws2zVg4+izQCjrakcwHg==}
+  p-timeout@7.0.2:
+    resolution: {integrity: sha512-prbX4Z3YszrFNgH+MW5Zoeq3baXrMtP/MQnFeET90UB/GtGcGDQ5Usg9OCy6ETjTTntOw1SL2z9fMPUppN3Guw==}
     engines: {node: '>=20'}
 
   param-case@3.0.4:
@@ -3790,8 +3801,8 @@ packages:
   signal-exit@3.0.7:
     resolution: {integrity: sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ==}
 
-  sinon@22.0.0:
-    resolution: {integrity: sha512-sq/6DpdXOrLyfbKlXLg/Usc7xu8YXPeLkOFZRvA3bNUSA2lhbrZ06yuXbH1fkzBPCbz9O10+7hznzUsjaYNm0Q==}
+  sinon@22.1.0:
+    resolution: {integrity: sha512-n1ajF2rBWMTtEwbKcw4UdFg4nCnDdq/U6RDoxtOd7oapOlRoJ5ynwFx60owROyhDpA9QhMZi0pCO/xtmwFjG7w==}
 
   snake-case@3.0.4:
     resolution: {integrity: sha512-LAOh4z89bGQvl9pFfNF8V146i7o7/CqFPbqzYgP+yYzDIDeS9HaNFtXABamRW+AQzEVODcvE79ljJ+8a9YSdMg==}
@@ -3873,12 +3884,12 @@ packages:
     resolution: {integrity: sha512-+mN0wTXBg9rLiKBk7jsyfXFWsg08q160XQcmJ3gNxSQ8wrC668dzR8JUp/wcK3NZ2eQ5h5tvc8O6Y+FC0D61lw==}
     engines: {node: '>=10'}
 
-  superagent@10.3.0:
-    resolution: {integrity: sha512-B+4Ik7ROgVKrQsXTV0Jwp2u+PXYLSlqtDAhYnkkD+zn3yg8s/zjA2MeGayPoY/KICrbitwneDHrjSotxKL+0XQ==}
+  superagent@10.4.1:
+    resolution: {integrity: sha512-PVMkMrhKrSTtFhUU8jiWuGh/gyRMKiyCTCmm0+qVzRNxlfntmRKJkDhlEXN62x3HIb33sQ4kmL8lcSdccWAchQ==}
     engines: {node: '>=14.18.0'}
 
-  supertest@7.2.2:
-    resolution: {integrity: sha512-oK8WG9diS3DlhdUkcFn4tkNIiIbBx9lI2ClF8K+b2/m8Eyv47LSawxUzZQSNKUrVb2KsqeTDCcjAAVPYaSLVTA==}
+  supertest@7.3.1:
+    resolution: {integrity: sha512-vNaNCFoCR/edDbErQZp5KLNT8R4dSPHX7rlDLoE8hWLAm/878j6ShMbe8HK/E6RwwuhlSXVelXAIg9AxR5WWPw==}
     engines: {node: '>=14.18.0'}
 
   supports-color@8.1.1:
@@ -4217,8 +4228,8 @@ packages:
     resolution: {integrity: sha512-vIYeF1u3CjlhAFekPPAk2h/Kv4T3mAkMox5OymRiJQB0spDP10LHvt+K7G9Ny6NuuMAb25/6n1qyUjAcGNf/AA==}
     engines: {node: '>= 6'}
 
-  yaml@2.9.0:
-    resolution: {integrity: sha512-2AvhNX3mb8zd6Zy7INTtSpl1F15HW6Wnqj0srWlkKLcpYl/gMIMJiyuGq2KeI2YFxUPjdlB+3Lc10seMLtL4cA==}
+  yaml@2.9.1:
+    resolution: {integrity: sha512-3NxN8+78OdzbT7C/WjGsyfPAtJaN3FNDsWxv7Y7mcDsT/oOmgW8BpyQQFFBnvZE3j9Y2Sdz1ULFLezL7Eb2yFw==}
     engines: {node: '>= 14.6'}
     hasBin: true
 
@@ -4254,76 +4265,84 @@ packages:
   zod@4.4.3:
     resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
+  zod@4.6.7:
+    resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
+
 snapshots:
 
-  '@agentback/authentication@0.7.1':
+  '@agentback/authentication@0.13.0':
     dependencies:
-      '@agentback/context': 0.7.1
-      '@agentback/core': 0.7.1
-      '@agentback/metadata': 0.7.1
-      '@agentback/security': 0.7.1
+      '@agentback/context': 0.13.0
+      '@agentback/core': 0.13.0
+      '@agentback/metadata': 0.13.0
+      '@agentback/security': 0.13.0
       '@types/express': 5.0.6
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
 
-  '@agentback/authorization@0.7.1':
+  '@agentback/authorization@0.13.0':
     dependencies:
-      '@agentback/context': 0.7.1
-      '@agentback/core': 0.7.1
-      '@agentback/metadata': 0.7.1
-      '@agentback/security': 0.7.1
+      '@agentback/context': 0.13.0
+      '@agentback/core': 0.13.0
+      '@agentback/metadata': 0.13.0
+      '@agentback/security': 0.13.0
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
 
-  '@agentback/client@0.7.1(zod@4.4.3)':
+  '@agentback/client@0.13.0(zod@4.4.3)':
     dependencies:
       tslib: 2.8.1
       zod: 4.4.3
 
-  '@agentback/common@0.7.1':
+  '@agentback/client@0.13.0(zod@4.6.7)':
+    dependencies:
+      tslib: 2.8.1
+      zod: 4.6.7
+
+  '@agentback/common@0.13.0':
     dependencies:
       debug: 4.4.3
-      dotenv: 17.4.2
-      nanoid: 5.1.16
-      p-map: 7.0.5
+      dotenv: 18.0.8
+      nanoid: 6.0.2
+      p-map: 7.1.1
       toposort: 2.0.2
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
 
-  '@agentback/context@0.7.1':
+  '@agentback/context@0.13.0':
     dependencies:
-      '@agentback/common': 0.7.1
-      '@agentback/metadata': 0.7.1
+      '@agentback/common': 0.13.0
+      '@agentback/metadata': 0.13.0
       '@types/debug': 4.1.13
       debug: 4.4.3
-      p-event: 7.1.0
+      p-event: 7.1.1
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
 
-  '@agentback/core@0.7.1':
+  '@agentback/core@0.13.0':
     dependencies:
-      '@agentback/common': 0.7.1
-      '@agentback/context': 0.7.1
+      '@agentback/common': 0.13.0
+      '@agentback/context': 0.13.0
       '@types/debug': 4.1.13
       debug: 4.4.3
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
 
-  '@agentback/files@0.7.1':
+  '@agentback/files@0.13.0':
     dependencies:
-      '@agentback/core': 0.7.1
+      '@agentback/core': 0.13.0
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
 
-  '@agentback/http-server@0.7.1':
+  '@agentback/http-server@0.13.0':
     dependencies:
-      '@agentback/common': 0.7.1
+      '@agentback/common': 0.13.0
       '@types/debug': 4.1.13
       debug: 4.4.3
       stoppable: 1.1.0
@@ -4331,27 +4350,26 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@agentback/mcp@0.7.1':
+  '@agentback/mcp@0.13.0':
     dependencies:
-      '@agentback/authorization': 0.7.1
-      '@agentback/common': 0.7.1
-      '@agentback/context': 0.7.1
-      '@agentback/core': 0.7.1
-      '@agentback/metadata': 0.7.1
-      '@agentback/openapi': 0.7.1
-      '@agentback/security': 0.7.1
-      '@modelcontextprotocol/sdk': 1.29.0(zod@4.4.3)
+      '@agentback/authorization': 0.13.0
+      '@agentback/common': 0.13.0
+      '@agentback/context': 0.13.0
+      '@agentback/core': 0.13.0
+      '@agentback/metadata': 0.13.0
+      '@agentback/openapi': 0.13.0
+      '@agentback/security': 0.13.0
+      '@modelcontextprotocol/server': 2.3.1
       '@types/debug': 4.1.13
       debug: 4.4.3
       tslib: 2.8.1
-      zod: 4.4.3
+      zod: 4.6.7
     transitivePeerDependencies:
-      - '@cfworker/json-schema'
       - supports-color
 
-  '@agentback/metadata@0.7.1':
+  '@agentback/metadata@0.13.0':
     dependencies:
-      '@agentback/common': 0.7.1
+      '@agentback/common': 0.13.0
       debug: 4.4.3
       lodash-es: 4.18.1
       reflect-metadata: 0.2.2
@@ -4359,11 +4377,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@agentback/middleware@0.7.1':
+  '@agentback/middleware@0.13.0':
     dependencies:
-      '@agentback/common': 0.7.1
-      '@agentback/context': 0.7.1
-      '@agentback/core': 0.7.1
+      '@agentback/common': 0.13.0
+      '@agentback/context': 0.13.0
+      '@agentback/core': 0.13.0
       '@types/cors': 2.8.19
       '@types/express': 5.0.6
       '@types/on-finished': 2.3.5
@@ -4373,45 +4391,45 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@agentback/openapi@0.7.1':
+  '@agentback/openapi@0.13.0':
     dependencies:
-      '@agentback/common': 0.7.1
-      '@agentback/context': 0.7.1
-      '@agentback/core': 0.7.1
-      '@agentback/metadata': 0.7.1
+      '@agentback/common': 0.13.0
+      '@agentback/context': 0.13.0
+      '@agentback/core': 0.13.0
+      '@agentback/metadata': 0.13.0
       '@types/debug': 4.1.13
       '@types/json-merge-patch': 1.0.0
       '@types/lodash-es': 4.17.12
       debug: 4.4.3
       http-status: 2.1.0
       lodash-es: 4.18.1
-      openapi3-ts: 4.6.0
+      openapi3-ts: 4.6.2
       tslib: 2.8.1
-      zod: 4.4.3
+      zod: 4.6.7
     transitivePeerDependencies:
       - supports-color
 
-  '@agentback/rest@0.7.1(cors@2.8.6)(express@5.2.1)(hono@4.12.28)':
+  '@agentback/rest@0.13.0(cors@2.8.6)(express@5.2.1)(hono@4.12.28)':
     dependencies:
-      '@agentback/authentication': 0.7.1
-      '@agentback/authorization': 0.7.1
-      '@agentback/common': 0.7.1
-      '@agentback/context': 0.7.1
-      '@agentback/core': 0.7.1
-      '@agentback/files': 0.7.1
-      '@agentback/http-server': 0.7.1
-      '@agentback/metadata': 0.7.1
-      '@agentback/middleware': 0.7.1
-      '@agentback/openapi': 0.7.1
-      '@agentback/security': 0.7.1
-      '@hono/node-server': 2.0.8(hono@4.12.28)
+      '@agentback/authentication': 0.13.0
+      '@agentback/authorization': 0.13.0
+      '@agentback/common': 0.13.0
+      '@agentback/context': 0.13.0
+      '@agentback/core': 0.13.0
+      '@agentback/files': 0.13.0
+      '@agentback/http-server': 0.13.0
+      '@agentback/metadata': 0.13.0
+      '@agentback/middleware': 0.13.0
+      '@agentback/openapi': 0.13.0
+      '@agentback/security': 0.13.0
+      '@hono/node-server': 2.1.5(hono@4.12.28)
       '@types/cors': 2.8.19
       '@types/debug': 4.1.13
       '@types/express': 5.0.6
       debug: 4.4.3
       http-errors: 2.0.1
       tslib: 2.8.1
-      zod: 4.4.3
+      zod: 4.6.7
     optionalDependencies:
       cors: 2.8.6
       express: 5.2.1
@@ -4419,24 +4437,51 @@ snapshots:
       - hono
       - supports-color
 
-  '@agentback/security@0.7.1':
+  '@agentback/rest@0.13.0(cors@2.8.6)(express@5.3.0)(hono@4.12.28)':
     dependencies:
-      '@agentback/core': 0.7.1
+      '@agentback/authentication': 0.13.0
+      '@agentback/authorization': 0.13.0
+      '@agentback/common': 0.13.0
+      '@agentback/context': 0.13.0
+      '@agentback/core': 0.13.0
+      '@agentback/files': 0.13.0
+      '@agentback/http-server': 0.13.0
+      '@agentback/metadata': 0.13.0
+      '@agentback/middleware': 0.13.0
+      '@agentback/openapi': 0.13.0
+      '@agentback/security': 0.13.0
+      '@hono/node-server': 2.1.5(hono@4.12.28)
+      '@types/cors': 2.8.19
+      '@types/debug': 4.1.13
+      '@types/express': 5.0.6
+      debug: 4.4.3
+      http-errors: 2.0.1
+      tslib: 2.8.1
+      zod: 4.6.7
+    optionalDependencies:
+      cors: 2.8.6
+      express: 5.3.0
+    transitivePeerDependencies:
+      - hono
+      - supports-color
+
+  '@agentback/security@0.13.0':
+    dependencies:
+      '@agentback/core': 0.13.0
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
 
-  '@agentback/testing@0.7.1(@agentback/mcp@0.7.1)(@modelcontextprotocol/sdk@1.29.0(zod@4.4.3))(cors@2.8.6)(express@5.2.1)(hono@4.12.28)(zod@4.4.3)':
+  '@agentback/testing@0.13.0(@agentback/mcp@0.13.0)(cors@2.8.6)(express@5.2.1)(hono@4.12.28)(zod@4.4.3)':
     dependencies:
-      '@agentback/client': 0.7.1(zod@4.4.3)
-      '@agentback/context': 0.7.1
-      '@agentback/core': 0.7.1
-      '@agentback/rest': 0.7.1(cors@2.8.6)(express@5.2.1)(hono@4.12.28)
-      '@agentback/testlab': 0.7.1
+      '@agentback/client': 0.13.0(zod@4.4.3)
+      '@agentback/context': 0.13.0
+      '@agentback/core': 0.13.0
+      '@agentback/rest': 0.13.0(cors@2.8.6)(express@5.2.1)(hono@4.12.28)
+      '@agentback/testlab': 0.13.0
       tslib: 2.8.1
     optionalDependencies:
-      '@agentback/mcp': 0.7.1
-      '@modelcontextprotocol/sdk': 1.29.0(zod@4.4.3)
+      '@agentback/mcp': 0.13.0
     transitivePeerDependencies:
       - cors
       - express
@@ -4445,19 +4490,55 @@ snapshots:
       - supports-color
       - zod
 
-  '@agentback/testlab@0.7.1':
+  '@agentback/testing@0.13.0(@agentback/mcp@0.13.0)(cors@2.8.6)(express@5.3.0)(hono@4.12.28)(zod@4.4.3)':
+    dependencies:
+      '@agentback/client': 0.13.0(zod@4.4.3)
+      '@agentback/context': 0.13.0
+      '@agentback/core': 0.13.0
+      '@agentback/rest': 0.13.0(cors@2.8.6)(express@5.3.0)(hono@4.12.28)
+      '@agentback/testlab': 0.13.0
+      tslib: 2.8.1
+    optionalDependencies:
+      '@agentback/mcp': 0.13.0
+    transitivePeerDependencies:
+      - cors
+      - express
+      - hono
+      - multer
+      - supports-color
+      - zod
+
+  '@agentback/testing@0.13.0(@agentback/mcp@0.13.0)(cors@2.8.6)(express@5.3.0)(hono@4.12.28)(zod@4.6.7)':
+    dependencies:
+      '@agentback/client': 0.13.0(zod@4.6.7)
+      '@agentback/context': 0.13.0
+      '@agentback/core': 0.13.0
+      '@agentback/rest': 0.13.0(cors@2.8.6)(express@5.3.0)(hono@4.12.28)
+      '@agentback/testlab': 0.13.0
+      tslib: 2.8.1
+    optionalDependencies:
+      '@agentback/mcp': 0.13.0
+    transitivePeerDependencies:
+      - cors
+      - express
+      - hono
+      - multer
+      - supports-color
+      - zod
+
+  '@agentback/testlab@0.13.0':
     dependencies:
       '@hapi/shot': 6.0.3
       '@types/express': 5.0.6
       '@types/fs-extra': 11.0.4
       '@types/shot': 4.0.5
-      '@types/sinon': 22.0.0
-      '@types/supertest': 7.2.0
-      express: 5.2.1
-      fs-extra: 11.3.6
+      '@types/sinon': 22.0.1
+      '@types/supertest': 7.2.1
+      express: 5.3.0
+      fs-extra: 11.4.1
       oas-validator: 5.0.8
-      sinon: 22.0.0
-      supertest: 7.2.2
+      sinon: 22.1.0
+      supertest: 7.3.1
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
@@ -4759,7 +4840,7 @@ snapshots:
     dependencies:
       hono: 4.12.28
 
-  '@hono/node-server@2.0.8(hono@4.12.28)':
+  '@hono/node-server@2.1.5(hono@4.12.28)':
     dependencies:
       hono: 4.12.28
 
@@ -5071,6 +5152,10 @@ snapshots:
       - '@loopback/repository'
       - supports-color
 
+  '@modelcontextprotocol/core@2.3.1':
+    dependencies:
+      zod: 4.6.7
+
   '@modelcontextprotocol/sdk@1.29.0(zod@4.4.3)':
     dependencies:
       '@hono/node-server': 1.19.14(hono@4.12.28)
@@ -5092,6 +5177,11 @@ snapshots:
       zod-to-json-schema: 3.25.2(zod@4.4.3)
     transitivePeerDependencies:
       - supports-color
+
+  '@modelcontextprotocol/server@2.3.1':
+    dependencies:
+      '@modelcontextprotocol/core': 2.3.1
+      zod: 4.6.7
 
   '@napi-rs/wasm-runtime@1.1.6(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)':
     dependencies:
@@ -5492,7 +5582,7 @@ snapshots:
       '@types/range-parser': 1.2.7
       '@types/send': 1.2.1
 
-  '@types/express-serve-static-core@5.1.2':
+  '@types/express-serve-static-core@5.1.3':
     dependencies:
       '@types/node': 24.19.2
       '@types/qs': 6.15.1
@@ -5509,13 +5599,13 @@ snapshots:
   '@types/express@5.0.6':
     dependencies:
       '@types/body-parser': 1.19.6
-      '@types/express-serve-static-core': 5.1.2
+      '@types/express-serve-static-core': 5.1.3
       '@types/serve-static': 2.2.0
 
   '@types/fs-extra@11.0.4':
     dependencies:
       '@types/jsonfile': 6.1.4
-      '@types/node': 24.13.3
+      '@types/node': 24.19.2
 
   '@types/http-errors@2.0.5': {}
 
@@ -5529,9 +5619,7 @@ snapshots:
 
   '@types/lodash-es@4.17.12':
     dependencies:
-      '@types/lodash': 4.17.24
-
-  '@types/lodash@4.17.24': {}
+      '@types/lodash': 4.17.27
 
   '@types/lodash@4.17.27': {}
 
@@ -5598,25 +5686,23 @@ snapshots:
 
   '@types/shot@4.0.5':
     dependencies:
-      '@types/node': 24.13.3
+      '@types/node': 24.19.2
 
-  '@types/sinon@22.0.0':
+  '@types/sinon@22.0.1':
     dependencies:
-      '@types/sinonjs__fake-timers': 15.0.1
+      '@sinonjs/fake-timers': 15.4.0
 
-  '@types/sinonjs__fake-timers@15.0.1': {}
-
-  '@types/superagent@8.1.10':
+  '@types/superagent@8.1.11':
     dependencies:
       '@types/cookiejar': 2.1.5
       '@types/methods': 1.1.4
       '@types/node': 24.19.2
       form-data: 4.0.6
 
-  '@types/supertest@7.2.0':
+  '@types/supertest@7.2.1':
     dependencies:
       '@types/methods': 1.1.4
-      '@types/superagent': 8.1.10
+      '@types/superagent': 8.1.11
 
   '@types/type-is@1.6.7':
     dependencies:
@@ -5713,14 +5799,14 @@ snapshots:
       '@typescript-eslint/types': 8.72.0
       eslint-visitor-keys: 5.0.1
 
-  '@vitest/mocker@5.0.5(vite@8.1.4(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))':
+  '@vitest/mocker@5.0.5(vite@8.1.4(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       '@vitest/spy': 5.0.5
       estree-walker: 3.0.3
       magic-string: 1.4.3
     optionalDependencies:
-      vite: 8.1.4(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0)
+      vite: 8.1.4(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)
 
   '@vitest/spy@5.0.5': {}
 
@@ -6067,6 +6153,8 @@ snapshots:
 
   content-disposition@1.1.0: {}
 
+  content-disposition@2.0.1: {}
+
   content-type@1.0.5: {}
 
   content-type@2.1.0: {}
@@ -6146,7 +6234,7 @@ snapshots:
       no-case: 3.0.4
       tslib: 2.8.1
 
-  dotenv@17.4.2: {}
+  dotenv@18.0.8: {}
 
   drizzle-orm@0.45.2(@opentelemetry/api@1.10.0)(@types/pg@8.23.1)(pg@8.23.1)(postgres@3.4.9):
     optionalDependencies:
@@ -6419,6 +6507,39 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  express@5.3.0:
+    dependencies:
+      accepts: 2.0.0
+      body-parser: 2.3.0
+      content-disposition: 2.0.1
+      content-type: 2.1.0
+      cookie: 0.7.2
+      cookie-signature: 1.2.2
+      debug: 4.4.3
+      depd: 2.0.0
+      encodeurl: 2.0.0
+      escape-html: 1.0.3
+      etag: 1.8.1
+      finalhandler: 2.1.1
+      fresh: 2.0.0
+      http-errors: 2.0.1
+      merge-descriptors: 2.0.0
+      mime-types: 3.0.2
+      on-finished: 2.4.1
+      once: 1.4.0
+      parseurl: 1.3.3
+      proxy-addr: 2.0.8
+      qs: 6.16.1
+      range-parser: 1.3.0
+      router: 2.2.0
+      send: 1.2.1
+      serve-static: 2.2.1
+      statuses: 2.0.2
+      type-is: 2.1.0
+      vary: 1.1.2
+    transitivePeerDependencies:
+      - supports-color
+
   fast-deep-equal@3.1.3: {}
 
   fast-json-stable-stringify@2.1.0: {}
@@ -6500,7 +6621,7 @@ snapshots:
 
   fresh@2.0.0: {}
 
-  fs-extra@11.3.6:
+  fs-extra@11.4.1:
     dependencies:
       graceful-fs: 4.2.11
       jsonfile: 6.2.1
@@ -7023,7 +7144,7 @@ snapshots:
 
   nanoid@3.3.15: {}
 
-  nanoid@5.1.16: {}
+  nanoid@6.0.2: {}
 
   natural-compare@1.4.0: {}
 
@@ -7132,9 +7253,9 @@ snapshots:
     dependencies:
       yaml: 1.10.3
 
-  openapi3-ts@4.6.0:
+  openapi3-ts@4.6.2:
     dependencies:
-      yaml: 2.9.0
+      yaml: 2.9.1
 
   optionator@0.9.4:
     dependencies:
@@ -7157,9 +7278,9 @@ snapshots:
     dependencies:
       p-timeout: 3.2.0
 
-  p-event@7.1.0:
+  p-event@7.1.1:
     dependencies:
-      p-timeout: 7.0.1
+      p-timeout: 7.0.2
 
   p-finally@1.0.0: {}
 
@@ -7173,13 +7294,13 @@ snapshots:
     dependencies:
       p-limit: 3.1.0
 
-  p-map@7.0.5: {}
+  p-map@7.1.1: {}
 
   p-timeout@3.2.0:
     dependencies:
       p-finally: 1.0.0
 
-  p-timeout@7.0.1: {}
+  p-timeout@7.0.2: {}
 
   param-case@3.0.4:
     dependencies:
@@ -7540,7 +7661,7 @@ snapshots:
 
   signal-exit@3.0.7: {}
 
-  sinon@22.0.0:
+  sinon@22.1.0:
     dependencies:
       '@sinonjs/commons': 3.0.1
       '@sinonjs/fake-timers': 15.4.0
@@ -7637,7 +7758,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  superagent@10.3.0:
+  superagent@10.4.1:
     dependencies:
       component-emitter: 1.3.1
       cookiejar: 2.1.4
@@ -7651,11 +7772,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  supertest@7.2.2:
+  supertest@7.3.1:
     dependencies:
       cookie-signature: 1.2.2
       methods: 1.1.2
-      superagent: 10.3.0
+      superagent: 10.4.1
     transitivePeerDependencies:
       - supports-color
 
@@ -7800,7 +7921,7 @@ snapshots:
 
   verkit@0.5.0: {}
 
-  vite@8.1.4(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0):
+  vite@8.1.4(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1):
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.7
@@ -7814,12 +7935,12 @@ snapshots:
       jiti: 2.7.0
       terser: 5.51.2
       tsx: 4.23.15
-      yaml: 2.9.0
+      yaml: 2.9.1
 
-  vitest@5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.13.3)(vite@8.1.4(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0)):
+  vitest@5.0.5(@opentelemetry/api@1.10.0)(@types/node@24.13.3)(vite@8.1.4(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)):
     dependencies:
       '@types/chai': 5.2.3
-      '@vitest/mocker': 5.0.5(vite@8.1.4(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0))
+      '@vitest/mocker': 5.0.5(vite@8.1.4(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))
       chai: 6.3.0
       es-module-lexer: 2.3.2
       expect-type: 1.4.0
@@ -7830,7 +7951,7 @@ snapshots:
       tinybench: 6.2.2
       tinyexec: 1.3.1
       tinyglobby: 0.2.17
-      vite: 8.1.4(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.0)
+      vite: 8.1.4(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)
       why-is-node-running: 3.2.1
     optionalDependencies:
       '@opentelemetry/api': 1.10.0
@@ -7922,7 +8043,7 @@ snapshots:
 
   yaml@1.10.3: {}
 
-  yaml@2.9.0: {}
+  yaml@2.9.1: {}
 
   yamljs@0.3.0:
     dependencies:
@@ -7959,3 +8080,5 @@ snapshots:
       zod: 4.4.3
 
   zod@4.4.3: {}
+
+  zod@4.6.7: {}

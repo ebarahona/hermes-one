@@ -62,6 +62,9 @@ describe('electrician-triage rule (pack data)', () => {
     ['can someone come out next week to look at a light switch?', 'schedule'],
     // Matches no term — the caller still reaches the dispatcher, which triages in prose.
     ['my outlet stopped working', 'schedule'],
+    // The rule lowercases the message, so real-world casing still matches.
+    ['SMOKE coming from the panel', 'emergency'],
+    ['Can I Book a visit?', 'schedule'],
   ];
 
   it.each(cases)('routes %j → %s', async (intent, expected) => {
@@ -96,5 +99,18 @@ describe('electrician-triage rule (pack data)', () => {
 
   it('declares the fact it reads, so a caller-less invocation is a contract error not a silent default', () => {
     expect(triagePlan().requiredFacts ?? []).toContain('intent');
+  });
+
+  // Live ingest supplies the message as `text`; the workflow binds the rule's `intent` fact from it.
+  // Binding `$input: 'intent'` (a key ingest never sends) silently routed every message to default.
+  it('binds the intent fact from the inbound message text', () => {
+    const pack = JSON.parse(
+      readFileSync(
+        join(process.cwd(), 'verticals/electrician/pack.json'),
+        'utf8',
+      ),
+    );
+    const wf = pack.definitions.workflow;
+    expect(wf.body.nodes.triage.facts).toEqual({intent: {$input: 'text'}});
   });
 });

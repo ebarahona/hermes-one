@@ -25,7 +25,7 @@
             },
             "facts": {
               "intent": {
-                "$input": "intent"
+                "$input": "text"
               }
             },
             "routes": {
@@ -130,8 +130,14 @@
                     "op": "contains",
                     "args": [
                       {
-                        "type": "fact",
-                        "path": "intent"
+                        "type": "op",
+                        "op": "lower",
+                        "args": [
+                          {
+                            "type": "fact",
+                            "path": "intent"
+                          }
+                        ]
                       },
                       {
                         "type": "literal",
@@ -144,8 +150,14 @@
                     "op": "contains",
                     "args": [
                       {
-                        "type": "fact",
-                        "path": "intent"
+                        "type": "op",
+                        "op": "lower",
+                        "args": [
+                          {
+                            "type": "fact",
+                            "path": "intent"
+                          }
+                        ]
                       },
                       {
                         "type": "literal",
@@ -158,8 +170,14 @@
                     "op": "contains",
                     "args": [
                       {
-                        "type": "fact",
-                        "path": "intent"
+                        "type": "op",
+                        "op": "lower",
+                        "args": [
+                          {
+                            "type": "fact",
+                            "path": "intent"
+                          }
+                        ]
                       },
                       {
                         "type": "literal",
@@ -172,8 +190,14 @@
                     "op": "contains",
                     "args": [
                       {
-                        "type": "fact",
-                        "path": "intent"
+                        "type": "op",
+                        "op": "lower",
+                        "args": [
+                          {
+                            "type": "fact",
+                            "path": "intent"
+                          }
+                        ]
                       },
                       {
                         "type": "literal",
@@ -186,8 +210,14 @@
                     "op": "contains",
                     "args": [
                       {
-                        "type": "fact",
-                        "path": "intent"
+                        "type": "op",
+                        "op": "lower",
+                        "args": [
+                          {
+                            "type": "fact",
+                            "path": "intent"
+                          }
+                        ]
                       },
                       {
                         "type": "literal",
@@ -200,8 +230,14 @@
                     "op": "contains",
                     "args": [
                       {
-                        "type": "fact",
-                        "path": "intent"
+                        "type": "op",
+                        "op": "lower",
+                        "args": [
+                          {
+                            "type": "fact",
+                            "path": "intent"
+                          }
+                        ]
                       },
                       {
                         "type": "literal",
@@ -214,8 +250,14 @@
                     "op": "contains",
                     "args": [
                       {
-                        "type": "fact",
-                        "path": "intent"
+                        "type": "op",
+                        "op": "lower",
+                        "args": [
+                          {
+                            "type": "fact",
+                            "path": "intent"
+                          }
+                        ]
                       },
                       {
                         "type": "literal",
@@ -228,8 +270,14 @@
                     "op": "contains",
                     "args": [
                       {
-                        "type": "fact",
-                        "path": "intent"
+                        "type": "op",
+                        "op": "lower",
+                        "args": [
+                          {
+                            "type": "fact",
+                            "path": "intent"
+                          }
+                        ]
                       },
                       {
                         "type": "literal",
@@ -250,8 +298,14 @@
                     "op": "contains",
                     "args": [
                       {
-                        "type": "fact",
-                        "path": "intent"
+                        "type": "op",
+                        "op": "lower",
+                        "args": [
+                          {
+                            "type": "fact",
+                            "path": "intent"
+                          }
+                        ]
                       },
                       {
                         "type": "literal",
@@ -264,8 +318,14 @@
                     "op": "contains",
                     "args": [
                       {
-                        "type": "fact",
-                        "path": "intent"
+                        "type": "op",
+                        "op": "lower",
+                        "args": [
+                          {
+                            "type": "fact",
+                            "path": "intent"
+                          }
+                        ]
                       },
                       {
                         "type": "literal",
@@ -278,8 +338,14 @@
                     "op": "contains",
                     "args": [
                       {
-                        "type": "fact",
-                        "path": "intent"
+                        "type": "op",
+                        "op": "lower",
+                        "args": [
+                          {
+                            "type": "fact",
+                            "path": "intent"
+                          }
+                        ]
                       },
                       {
                         "type": "literal",
@@ -292,8 +358,14 @@
                     "op": "contains",
                     "args": [
                       {
-                        "type": "fact",
-                        "path": "intent"
+                        "type": "op",
+                        "op": "lower",
+                        "args": [
+                          {
+                            "type": "fact",
+                            "path": "intent"
+                          }
+                        ]
                       },
                       {
                         "type": "literal",
@@ -306,8 +378,14 @@
                     "op": "contains",
                     "args": [
                       {
-                        "type": "fact",
-                        "path": "intent"
+                        "type": "op",
+                        "op": "lower",
+                        "args": [
+                          {
+                            "type": "fact",
+                            "path": "intent"
+                          }
+                        ]
                       },
                       {
                         "type": "literal",
@@ -320,8 +398,14 @@
                     "op": "contains",
                     "args": [
                       {
-                        "type": "fact",
-                        "path": "intent"
+                        "type": "op",
+                        "op": "lower",
+                        "args": [
+                          {
+                            "type": "fact",
+                            "path": "intent"
+                          }
+                        ]
                       },
                       {
                         "type": "literal",
@@ -334,8 +418,14 @@
                     "op": "contains",
                     "args": [
                       {
-                        "type": "fact",
-                        "path": "intent"
+                        "type": "op",
+                        "op": "lower",
+                        "args": [
+                          {
+                            "type": "fact",
+                            "path": "intent"
+                          }
+                        ]
                       },
                       {
                         "type": "literal",

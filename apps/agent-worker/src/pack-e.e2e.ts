@@ -187,7 +187,8 @@ async function main(): Promise<void> {
             conversationId: 'cnv_15125550000',
             parameters: install.parameters,
             // The sender handle the agent node's reply delivery binds (`{$input: 'from'}`).
-            input: {intent: c.intent, from: FROM},
+            // The message text, as the ingest edge supplies it; the triage rule classifies from it.
+            input: {text: c.intent, from: FROM},
           },
         ],
       });

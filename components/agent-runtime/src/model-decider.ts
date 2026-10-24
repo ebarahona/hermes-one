@@ -20,6 +20,9 @@ export interface DeciderTool {
 
 export function createModelDecider(opts: {
   model: SingleStepModel;
+  /** The agent engine's model id + temperature, sent on every step; the adapter defaults what is absent. */
+  modelId?: string;
+  temperature?: number;
   objective: string;
   tools: DeciderTool[];
   /**
@@ -66,6 +69,8 @@ export function createModelDecider(opts: {
           {role: 'user', content: user},
         ],
         tools: specs,
+        model: opts.modelId,
+        temperature: opts.temperature,
       });
 
       const proposed = result.toolCalls[0];

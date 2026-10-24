@@ -31,11 +31,16 @@ export function createOpenAICompatibleModel(
   const client = new OpenAI({baseURL: cfg.baseUrl, apiKey: cfg.apiKey});
 
   return {
-    async complete({messages, tools}): Promise<ModelResult> {
+    async complete({
+      messages,
+      tools,
+      model,
+      temperature,
+    }): Promise<ModelResult> {
       const params: Record<string, unknown> = {
-        model: cfg.model,
+        model: model || cfg.model, // the engine's model when set, else the configured default
         messages,
-        temperature: 0, // deterministic-leaning single step
+        temperature: temperature ?? 0, // deterministic-leaning single step by default
       };
       if (tools?.length) {
         params.tools = tools.map(t => ({

@@ -30,7 +30,7 @@ export const AgentEngineBody = z.object({
   referencedRules: z.array(z.string()).default([]),
   model: z.object({
     provider: z.string(), // e.g. "anthropic" — substrate is single-step (ADR-021)
-    model: z.string(),
+    model: z.string(), // used for this engine's turns; empty → the deployment's configured default
     temperature: z.number().min(0).max(2).default(0),
   }),
   /** Prompt template ids resolved from the template store (data, not files — ADR-013). */

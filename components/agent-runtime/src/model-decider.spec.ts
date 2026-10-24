@@ -2,6 +2,7 @@
 // a platform ToolCall (provider name → capability); no tool call finishes the turn.
 import {describe, it, expect} from 'vitest';
 import type {CapabilityName, TurnId} from '@hermes-one/contracts';
+import type {ModelCompleteRequest} from '@hermes-one/model-client';
 import {createModelDecider, type DeciderTool} from './model-decider.js';
 import {fakeModel, noUsage} from './_test-fixtures.js';
 
@@ -103,5 +104,28 @@ describe('model-backed decider', () => {
     });
     const decision = await decider.propose(0, []);
     expect(decision.kind).toBe('done');
+  });
+
+  it("sends the engine's model id and temperature on each model call", async () => {
+    const requests: ModelCompleteRequest[] = [];
+    const decider = createModelDecider({
+      model: {
+        complete: async req => {
+          requests.push(req);
+          return {text: 'done', toolCalls: [], usage: noUsage};
+        },
+      },
+      modelId: 'engine-model',
+      temperature: 0.4,
+      objective: 'help',
+      tools: TOOLS,
+      turnId: TURN,
+    });
+    await decider.propose(0, []);
+    await decider.propose(1, []);
+    expect(requests.map(r => [r.model, r.temperature])).toEqual([
+      ['engine-model', 0.4],
+      ['engine-model', 0.4],
+    ]);
   });
 });

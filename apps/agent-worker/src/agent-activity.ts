@@ -500,6 +500,9 @@ async function runAgentTurn(
 
   const decider = createModelDecider({
     model,
+    // The PINNED engine's model drives this turn; an empty engine model falls back to cfg.llm.model.
+    modelId: engine.body.model.model,
+    temperature: engine.body.model.temperature,
     objective: `${request.objective} (inbound: ${request.inbound.text ?? ''})`,
     tools,
     // toolCallIds derive from (turnId, step) — replay-stable within a turn, disjoint across turns.

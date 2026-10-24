@@ -31,6 +31,10 @@ export interface ModelResult {
 export interface ModelCompleteRequest {
   messages: ModelMessage[];
   tools?: ModelToolSpec[];
+  /** Model id for this call (the agent engine's model); absent or empty → the adapter's configured default. */
+  model?: string;
+  /** Sampling temperature for this call; absent → the adapter's default (0). */
+  temperature?: number;
 }
 
 /** The platform-owned loop calls this once per step (propose). Never an autonomous agent loop. */

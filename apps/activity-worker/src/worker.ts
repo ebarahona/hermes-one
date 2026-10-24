@@ -73,7 +73,7 @@ export async function createActivityWorker(): Promise<Worker> {
   const cfg = loadConfig();
   const app = createActivityWorkerApp(cfg);
 
-  // Lifecycle observers: pool wiring + the fail-closed RLS boot gate (ADR-022) — a bypass-capable
+  // Lifecycle observers: pool wiring + the fail-closed RLS boot gate — a bypass-capable
   // login or a broken tenant GUC fails startup here, before any activity polls.
   await app.start();
 

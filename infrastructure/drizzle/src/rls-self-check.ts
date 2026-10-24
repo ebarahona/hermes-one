@@ -1,6 +1,6 @@
 // Boot-time / CI self-check that RLS's non-bypassable precondition actually holds: the role the
 // application connects as must be NOSUPERUSER and NOBYPASSRLS, or every CREATE POLICY is a no-op.
-// Run once at persistence boot (fails startup) and as a standalone CI assertion per environment (ADR-022).
+// Run once at persistence boot (fails startup) and as a standalone CI assertion per environment.
 import {sql} from 'drizzle-orm';
 import type {PlatformDb} from './tenant-aware.repository.js';
 
@@ -34,7 +34,7 @@ export async function assertNonBypassingRole(
 }
 
 /**
- * ADR-022 fail-closed boot preflight (`PostgresLifecycleObserver`): prove the
+ * Fail-closed boot preflight (`PostgresLifecycleObserver`): prove the
  * transaction-local tenant GUC actually works — `set_config('app.tenant_id', …, true)` inside a
  * transaction round-trips — else reject boot. Complements `assertNonBypassingRole` (role posture).
  */

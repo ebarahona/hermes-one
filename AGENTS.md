@@ -12,7 +12,7 @@ workspace (TypeScript, ESM, Node ≥ 22.13, pnpm 11):
 - `apps/` — deployable services and workers (composition roots).
 - `components/` — platform components that depend on ports.
 - `infrastructure/` — adapters; the only place I/O lives.
-- `packages/` — contracts, DSLs, SDK, CLI, and test kit.
+- `packages/` — contracts, DSLs, and the definition substrate.
 - `verticals/` — vertical packs (data bundles, not workspace packages).
 - `tools/` — repository tooling (`plane-lint`).
 - `docs/` — architecture rationale, ADRs, build plan, and the deferral ledger.
@@ -59,8 +59,8 @@ Read these before proposing a change:
   activity I/O, PostgreSQL, and HTTP. `pnpm plane-lint` enforces this.
 - **Ports and adapters (ADR-024).** Components depend on interfaces, never on implementations. I/O
   lives only in `infrastructure/`; adapters are wired at composition roots in `apps/`.
-- **Contracts are Zod-first (ADR-020).** Zod is the single source of truth; JSON Schema and OpenAPI
-  are generated from it.
+- **Contracts are Zod-first (ADR-020).** Zod is the single source of truth. Generating JSON Schema
+  and OpenAPI from it is planned; never hand-maintain a parallel schema for a Zod contract.
 - **Every read and write is tenant-scoped.** New tenant tables ship with row-level security
   policies.
 - **Verticals are data, not code (ADR-013).** A new vertical is a pack under `verticals/`. Code is

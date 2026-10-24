@@ -11,13 +11,13 @@ deterministic rules, and the model is called only for a message that needs judgm
 
 ## The bundle (`pack.json`)
 
-| Family       | Name                   | What it does                                                                               |
-| ------------ | ---------------------- | ------------------------------------------------------------------------------------------ |
-| workflow     | `support-intake`       | Triage an inbound message, then reply by template, escalate, or hand to the support agent. |
-| rule         | `support-triage`       | Classifies the message `text` into a routing outcome (case-insensitive keyword match).     |
-| policy       | `support-reply-safety` | Post-gate on the agent's draft reply: a reply that asks for a password is repaired.        |
-| capability   | `messaging.reply.send` | Send a reply to the customer on their channel: templated replies and the agent's reply.    |
-| agent-engine | `support-assistant`    | Courteous, concise support persona; no tools; runs on the deployment's configured model.   |
+| Family       | Name                   | What it does                                                                                               |
+| ------------ | ---------------------- | ---------------------------------------------------------------------------------------------------------- |
+| workflow     | `support-intake`       | Triage an inbound message, then reply by template, escalate, or hand to the support agent.                 |
+| rule         | `support-triage`       | Classifies the message `text` into a routing outcome (case-insensitive keyword match).                     |
+| policy       | `support-reply-safety` | Post-gate on the agent's draft reply: a reply that asks for a password is flagged for repair.              |
+| capability   | `messaging.reply.send` | Send a reply to the customer on their channel: templated replies and the agent's reply.                    |
+| agent-engine | `support-assistant`    | Courteous, concise support persona; no tools; leaves `model` empty, so the worker's configured model runs. |
 
 ## Workflow graph
 
@@ -72,14 +72,17 @@ The `assist` node declares `deliverReply`: when the turn ends with the `replied`
 workflow sends the turn's final, post-gated reply through `messaging.reply.send` (template
 `support_agent_reply`, body bound with `{"$agent": "reply"}`, recipient bound with
 `{"$input": "from"}`) — the same capability path the templated replies use. A reply the post-gate
-repaired is delivered in its repaired form. A turn that hands off sends nothing.
+flags for repair is never delivered unrepaired: the turn re-composes once and re-gates, and the
+default evidence-only composer the agent worker uses cannot reshape the draft, so such a turn hands
+off. A turn that hands off sends nothing.
 
 ## Verification
 
 - `apps/workflow-worker/src/support-pack-rule.spec.ts` — unit: the triage rule routes each intent
   class as designed (mixed case included), escalation outranks a simple intent, and the compiled
-  workflow walks each route with the expected path and no agent turn on the deterministic routes;
-  the agent route delivers the turn's reply and a handoff delivers nothing.
+  workflow walks the templated (password reset), escalation, and agent routes with the expected path
+  and no agent turn on the deterministic routes; the agent route delivers the turn's reply and a
+  handoff delivers nothing.
 - `apps/admin-api/src/support-pack.itest.ts` — integration: installs the pack through the admin API
   and asserts the active deployment reconstructs with the support pack's members.
 - `apps/agent-worker/src/support-pack.e2e.ts` — manual gate (needs a model endpoint): one live run

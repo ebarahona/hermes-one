@@ -1,7 +1,7 @@
 // The single tenant-scoped execution primitive every Drizzle adapter uses. Opens a transaction,
 // pins the tenant GUC via a parameterized set_config(..., is_local=true) (== SET LOCAL, safe under
 // pgbouncer transaction pooling), and runs the callback inside it. Fail-closed on a blank tenant:
-// no SQL is issued. RLS on a NOSUPERUSER/NOBYPASSRLS role is the real boundary (ADR-022).
+// no SQL is issued. RLS on a NOSUPERUSER/NOBYPASSRLS role is the real boundary.
 import {sql} from 'drizzle-orm';
 import type {NodePgDatabase} from 'drizzle-orm/node-postgres';
 import {PlatformErrorException} from '@hermes-one/contracts';

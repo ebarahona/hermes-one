@@ -12,7 +12,7 @@ export interface CompositionRoot<TApp> {
   /** component()/createBindingFromClass; register lifecycle observers. */
   registerComponents(app: TApp): void;
   /** Start pools/servers via lifecycle observers. MUST reject (fail-closed) if tenant
-   *  scoping cannot be enforced (ADR-022) or a required pool preflight fails. */
+   *  scoping cannot be enforced or a required pool preflight fails. */
   start(app: TApp): Promise<void>;
   /** Begin serving: HTTP listen (api-gateway/admin-api) OR Temporal worker.runUntil(signal). */
   serve(app: TApp, stop: AbortSignal): Promise<void>;

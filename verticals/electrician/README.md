@@ -35,8 +35,8 @@ code is ever compiled into the platform.
   and lowercased, with hazard terms ordered before scheduling terms so a caller reporting both is
   triaged as the emergency (`pack-e-rule.spec.ts`).
 - **PE6 (done, 2026-07-17):** a capability whose `onNoProvider` is `handoff` now routes the turn to a
-  real handoff — the failed dispatch ends the turn in `handoff` with `error-escalation` on the durable
-  ledger (`single-step-turn.spec.ts`).
+  real handoff — the failed dispatch ends the turn in `handoff` with `error-escalation` in the turn
+  ledger handed to persistence (`single-step-turn.spec.ts`).
 - **Reply delivery (done, 2026-10-24):** the `assist` agent node declares `deliverReply`, so a
   `replied` turn's final, post-gated reply is sent to the caller through the platform's
   `messaging.reply.send` capability (template `electrician_agent_reply`, recipient

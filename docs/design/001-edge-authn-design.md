@@ -1,7 +1,14 @@
 # Edge Authentication Design
 
 **Status:** implemented through AUTH-3 bearer (2026-07-15). The "Current reality" table below is the
-pre-build snapshot of 2026-07-14 this design was written against.
+pre-build snapshot of 2026-07-14 this design was written against. As built: AUTH-1's webhook
+hardening (timestamp in the signed material, skew window, Redis `NonceStore` replay guard,
+`SecretRef` signing secret) lives inline in `SmsChannelTransport` (`components/channels/src/sms-transport.ts`),
+not as a `signed-webhook` strategy in the registry; AUTH-2's `RoleRegistry` and edge principal minting
+are built; AUTH-3 ships the `api-key` and `oidc` strategies, with `oidc` as the bearer-token branch
+only. Not yet built: the `WebhookSignatureVerifier` and `SessionStore` implementations, the
+`toUserProfile` adapter, the cookie/session login branch, the `strategyOrder`/`session`/`stepUp`
+config fields, and AUTH-4.
 
 **Original status:** DESIGN — reviewed before build (user-decided 2026-07-14: paper first).
 **Grounds:** the edge-authn substrate (authentication strategies), role→scope resolution (role matrix),
@@ -30,7 +37,8 @@ substrate (designed now, built with the LB4 REST surface — ledger L3); princip
 ingest edge (replacing the demo literals); role→scope resolution over `tenant.roles`; the `SecretRef`
 seam replacing env-only secrets (S1 path); the confirm-token lifecycle under multi-instance workers.
 
-**Out of scope:** the authorization decision itself (policy voters/gates — built, Tier 1.2); PII
+**Out of scope:** the authorization decision itself (policy gates — built, Tier 1.2; compiled voters
+are not yet enforced at dispatch); PII
 field encryption (encrypted-field registry); SAML; the ABAC attribute catalog beyond what
 `Principal.attributes` already carries.
 
@@ -75,11 +83,12 @@ flowchart TB
   OIDC --> JWT & SS
   APIK --> AKS
   WSV --> SP
-  WS ==>|serializable TurnRequest| AGENT["Temporal → agent plane\nprincipalFromWorkspace (ADR-017)\nNO credential handling"]
+  WS ==>|serializable TurnRequest| AGENT["Temporal → agent plane\nprincipal read from WorkspaceContext (ADR-017)\nNO credential handling"]
 ```
 
-The `agent` principal kind is never produced by a strategy — it is value-mapped inside the turn from
-the already-authenticated principal (ADR-017). Auth strength (`single|mfa|step-up|api-key|workload`)
+The `agent` principal kind is never produced by a strategy. As built, the turn acts as the
+already-authenticated principal it receives in the `WorkspaceContext` (ADR-017); no `agent`
+principal is minted. Auth strength (`single|mfa|step-up|api-key|workload`)
 rides on the identity as a carried fact; policy pre-gates consume it for step-up (this layer signals,
 never enforces).
 

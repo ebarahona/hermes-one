@@ -4,10 +4,8 @@
 // LB4 HTTP listen. Driven by the shared bootstrap() (main.ts) or, in the e2e, by calling the phases
 // directly against an ephemeral port.
 //
-// Initial scope: no datasource is bound, so start() has no pool to open and the app is exempt from
-// the ADR-022 fail-closed tenant gate ("workflow-worker (no repositories) …
-// are exempt"). The RLS boot gate + tenant-tx interceptor land with the first repository-backed
-// controller. AUTH-3: the AuthComponent binds the strategy registry + principal
+// Persistence (on by default) registers the shared PG pool and the fail-closed RLS boot gate, which
+// runs at start() before the REST server listens. AUTH-3: the AuthComponent binds the strategy registry + principal
 // mapper + api-key strategy; the root supplies the request-shaped bits (the AuthConfig + the
 // config/seed-backed ApiKeyStore) — the same split as the ChannelComponent + credential store.
 import type {HermesConfig} from '@hermes-one/config';

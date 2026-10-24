@@ -15,14 +15,17 @@ hermes-one is pre-1.0. Security fixes land on `main`; there are no maintained re
 ## Security model
 
 - **Tenant isolation** is enforced in PostgreSQL by row-level security on every tenant-scoped
-  table. Every composition root runs an RLS posture check at boot and refuses to start under a
+  table. Every composition root that opens a PostgreSQL pool runs an RLS posture check (the
+  LoopBack roots at boot, the agent worker before its first turn) and refuses to proceed under a
   role that can bypass RLS.
 - **Edge authentication** fails closed: signed webhooks (timestamp in the signed material, replay
   nonces), API keys, and OIDC bearer tokens. See `docs/design/001-edge-authn-design.md`.
-- **Tool calls** pass a policy gate before execution; side effects carry idempotency keys.
+- **Agent tool calls** are limited to the capabilities the principal's scopes allow and pass a
+  policy pre-gate before execution; capabilities a workflow invokes directly are not scope-checked
+  (see E7 below). Side effects carry idempotency keys.
 - **Tenant provider credentials** are envelope-encrypted per tenant (ADR-026) and support rotation
   and revocation.
-- **Audit events** are append-only and tamper-evident.
+- **Audit events** are append-only and tamper-evident: each carries an integrity hash, and re-writing an existing event is refused.
 
 ## Deployment considerations
 

@@ -11,7 +11,7 @@ original architect. The platform pairs that pedigree with its own engineering di
 foundational dependency is adopted on reputation alone.** Before the agent plane was built, every
 load-bearing integration point was implemented as real platform code (`components/agentback-runtime`,
 `components/tool-executor`, `components/agent-runtime`) and proven against the actual library. All
-checks pass under `pnpm verify`.
+checks pass under `pnpm verify` (after `pnpm -r build`).
 
 ## Verified integration contracts
 
@@ -46,28 +46,28 @@ binding})`, which returns the **bare, output-validated method result** (not an M
    bound to a `stableStringify` fingerprint of the input; the identical retry executes, and a
    different input is refused (`confirmation_invalid`).
 
-4. **`confirm:` tools are structurally unreachable by autonomous agents.** `selectTools` (and
-   therefore `toHostTools`) excludes `confirm:` tools and throws if one is named in an `include`
-   list. This turns ADR-021 from a design preference into a **guarantee the library itself
-   enforces**: side-effecting tools are dispatched only by the platform's own loop, after the
-   policy gate.
+4. **`confirm:` tools are structurally unreachable by autonomous agents.** `selectTools` excludes
+   `confirm:` tools and throws if one is named in an `include` list. This turns ADR-021 from a
+   design preference into a **guarantee the library itself enforces**: an agent reaches a
+   `confirm:` tool only through the platform's own loop, after the policy pre-gate.
 
 5. **agentback ships no autonomous loop — a feature, not a gap.** The autonomous `ToolLoopAgent`
    belongs to the Vercel `ai` SDK; agentback provides the un-looped `callTool` seam plus wiring.
    The platform's single-step, policy-gated loop (ADR-021) is the substrate's natural idiom.
 
-6. **No decorator-metadata machinery at the tool/dispatch surface.** agentback's `@tool` /
-   `@mcpServer` carry their schemas explicitly, so the test suite runs under Vitest-on-`src` with
-   no build step, no compiler plugin, and no `reflect-metadata` — the fast dev loop this monorepo
-   runs on.
+6. **No emitted type metadata at the tool/dispatch surface.** agentback's `@tool` /
+   `@mcpServer` carry their schemas explicitly rather than relying on emitted design-type
+   metadata, so the agent-plane tool and dispatch specs run under Vitest with no compiler plugin.
 
 ## Toolchain findings (monorepo)
 
 - **pnpm strictness earns its keep.** It caught a phantom dependency (`agent-runtime`
   type-importing `@agentback/context` without declaring it) that a flat `node_modules` would have
   hidden — the same discipline `plane-lint` enforces at the plane level.
-- **Dev-on-`src` cross-package resolution** works via one source of truth: `tsconfig.base`
-  `paths` → source, consumed by `tsc` and by Vitest's native `resolve.tsconfigPaths`.
+- **Dev-on-`src` cross-package resolution** for the whole-repo typecheck comes from
+  `tsconfig.base` `paths` → source. Vitest resolves each spec through its package's own
+  `tsconfig.json`, which clears `paths`, so cross-package imports load the built `dist/`; build
+  before testing.
 - **One whole-repo typecheck** (`tsc -p tsconfig.json --noEmit`, no `rootDir`) avoids the
   per-package `rootDir` conflict that path-mapping to source otherwise triggers. Per-package
   `rootDir` is reserved for emit/build.
@@ -83,13 +83,15 @@ binding})`, which returns the **bare, output-validated method result** (not an M
   stateless HMAC token was evaluated and rejected on the platform's own standard — it would trade
   away single-use semantics. The round-trip maps to the platform **approval** outcome
   (policy-contracts / ADR-019) either way.
-- **Metering aggregation (T7).** agentback emits a metering stream the platform aggregates once
-  (never double-counts); the aggregation path is tracked in the ledger (AU1/OB2).
+- **Metering aggregation (T7).** agentback emits a metering stream; the platform currently
+  meters usage from turn totals instead, and wiring that stream as the single source of truth is
+  tracked in the ledger (AU1/OB2).
 
 ## How to reproduce
 
 ```bash
 cd hermes-one
 pnpm install
-pnpm verify        # typecheck + plane-lint + unit tests (dev, on src)
+pnpm -r build      # unit tests resolve cross-package imports to dist/
+pnpm verify        # typecheck + plane-lint + unit tests
 ```

@@ -1,5 +1,5 @@
 // Runtime read/write tables. Every row is tenant-owned (tenant_id NOT NULL) and RLS-protected
-// under the strict tenant-isolation policy (ADR-022).
+// under the strict tenant-isolation policy.
 import {
   pgSchema,
   text,

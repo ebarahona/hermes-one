@@ -34,7 +34,8 @@ pnpm exec lefthook install --force
 git config --local core.hooksPath .githooks
 ```
 
-The install is skipped on CI; CI runs the same checks on every pull request.
+The install is skipped on CI; CI runs eslint and prettier on every pull request (it does not run
+commitlint).
 
 ## Before you open a pull request
 
@@ -49,7 +50,7 @@ pnpm test:itest                                          # integration suite (ne
 pnpm -F @hermes-one/workflow-worker replay-gate   # if you touched workflow code
 ```
 
-CI runs the same checks on every push and pull request.
+CI runs the same checks on pull requests and on pushes to `main`.
 
 ## Conventions
 
@@ -84,7 +85,7 @@ wrote the change or otherwise have the right to submit it under the project's li
 `git commit -s`, which appends a trailer using your configured name and email:
 
 ```
-feat(rule-runtime): support range conditions
+feat(rule-dsl): support range conditions
 
 Signed-off-by: Your Name <you@example.com>
 ```

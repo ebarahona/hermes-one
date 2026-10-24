@@ -11,7 +11,7 @@ TOOL-BACKED turn from pure data. Ledger at authoring: 4 🔴 / 51 🟡 / 13 ⚪ 
 tail. **State after the first execution pass (same day): zero unconditional 🔴 (S0a is 🔴 only under a multi-instance posture not yet deployed).** Closed/narrowed: S1 S2ⁿ S5 S6 S7
 PE4 PE7 A6 AU2 AU4 CT3 CT2ⁿ T6ⁿ (ⁿ = narrowed, remainder flagged). Phases 0–2 ✅ · Phase 3 core ✅
 (E2/E3 re-scoped on the ledger) · Phase 4 safety net ✅ (replay gate in CI; versioned dispatch
-config-gated). What remains is different in character: ONE user posture decision (the pre-tenant
+declared as an options type, not yet wired into the worker). What remains is different in character: ONE user posture decision (the pre-tenant
 read — unblocks E3 + S3 + CT4-relay together), enablement tails needing external things (KMS pick,
 server upgrade), the messaging-convergence bundle (AU3 + S7-residual + P3), and the Phase 5 tail.
 
@@ -66,8 +66,9 @@ Two coupled fixes, both about durable truth:
 2. ✅ **Atomic substrate writer (DONE 2026-07-17)**: a port + drizzle impl so
    `DeploymentService.publish` / `DefinitionRegistry.put` commit rows AND outbox events in one
    transaction. `definition-substrate` stays pure (depends only on contracts; the composition root
-   injects the writer). AU3/AU4's missing audit/domain events become one-line emissions on the seam;
-   the Idempotency-Key interceptor (L1c) lands on the same path.
+   injects the writer). AU4's missing audit/domain events become one-line emissions on the seam (AU3
+   moved to the messaging convergence); the Idempotency-Key interceptor (L1c) is to land on the same
+   path and is not yet enforced (see ledger).
 
 ## Phase 3 — The tenant spine 🔄 (CT3 ✅ · CT2 narrowed 2026-07-17; E2/E3 re-scoped — see ledger)
 

@@ -43,7 +43,7 @@ export class PostgresLifecycleObserver implements LifeCycleObserver {
   ) {}
 
   async start(): Promise<void> {
-    // ADR-022 fail-closed boot gate: role posture (NOSUPERUSER/NOBYPASSRLS) + SET LOCAL GUC probe.
+    // Fail-closed boot gate: role posture (NOSUPERUSER/NOBYPASSRLS) + SET LOCAL GUC probe.
     await assertNonBypassingRole(this.handle.db);
     await tenantGucPreflight(this.handle.db);
   }

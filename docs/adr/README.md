@@ -49,10 +49,12 @@ Each entry is a one-paragraph distillation.
 - **ADR-007 — Retrieve relevant slices; do not replay whole conversations.** Only
   relevant knowledge and memory slices are retrieved, because full transcript
   replay raises cost and noise. Summarization, embeddings, and retrieval quality
-  are first-class concerns.
+  are first-class concerns. (Knowledge and memory retrieval is not yet implemented —
+  see README Roadmap.)
 
 - **ADR-008 — Graph storage is optional.** No graph database is required for the
-  MVP; PostgreSQL, Redis, and vector retrieval serve the early use cases. Graph
+  MVP; PostgreSQL, Redis, and vector retrieval (not yet implemented — see README
+  Roadmap) serve the early use cases. Graph
   interfaces stay abstracted so one can be added later.
 
 - **ADR-009 — Decision is separated from composition.** The model proposes tool
@@ -74,17 +76,24 @@ Each entry is a one-paragraph distillation.
 
 - **ADR-012 — Human handoff is an explicit workflow outcome.** Handoff, pause,
   resume, and takeover are durable workflow states, because human intervention is
-  expected and must be auditable. The admin console and workflow runtime support
-  the ownership transitions.
+  expected and must be auditable. The admin console and workflow runtime are to
+  support the ownership transitions. (Partly implemented: `handoff` is a terminal workflow
+  outcome and an agent-turn handoff persists a durable `runtime.handoff_tasks` row;
+  pause/resume/takeover states, the wait/signal nodes they need, the admin console,
+  and the ownership transitions are not yet built — see README Roadmap.)
 
 - **ADR-013 — Verticals are data, not code.** Industry packs (workflows, rules,
   policies, prompts, templates, knowledge, evals) are authored, versioned, signed
   data bundles that reference platform capabilities by name. Code is added only
-  for a genuinely new platform capability.
+  for a genuinely new platform capability. (Definitions are content-hashed today;
+  pack signing is not yet implemented.)
 
 - **ADR-014 — One workflow interpreter; workflows are compiled data.** A single
   Temporal workflow (`executeCompiledWorkflow`) walks a compiled, content-hashed
-  plan. Never a Temporal file per business process.
+  plan. Never a Temporal file per business process. As built, the interpreter is
+  `executeCompiledWorkflow` in `packages/workflow-dsl/src/interpreter.ts`; the
+  registered Temporal workflow types (`runCompiledWorkflow`, `runAgentWorkflow` in
+  `apps/workflow-worker/src/workflows.ts`) are thin hosts that call it.
 
 - **ADR-015 — Rulesets are first-class, bounded, data-driven decisions.** Rules
   _decide_ (pure over provided facts: no I/O, no waits, no side effects);
@@ -101,7 +110,10 @@ Each entry is a one-paragraph distillation.
   serializable boundaries.** The edge/data plane (`@loopback/*`) and the agent
   plane (`@agentback/*`) never share a live `Context`. They meet only across
   Temporal activity I/O, PostgreSQL, and HTTP. The bridge between them is a thin
-  value-mapper (identity in → agentback principal out), not a DI marshaller.
+  value-mapping, not a DI marshaller. As built there is no separate bridge package:
+  the principal crosses as plain data in the `TurnRequest` workspace, and the agent
+  activity (`apps/agent-worker/src/agent-activity.ts`) reads its id and scopes to
+  narrow the turn's tool set and feed the policy gates.
 
 - **ADR-018 — The agent executor wraps agentback dispatch; the ToolResult is
   synthesized around it.** The platform executor calls agentback's tool dispatch
@@ -112,16 +124,23 @@ Each entry is a one-paragraph distillation.
 
 - **ADR-019 — One authorization pipeline.** The Policy DSL compiles to agentback
   voters plus pre/post gates; order is pre-gate → voters → post-gate. Policy
-  answers "may I?" and can block; rules answer "which way?" and route.
+  answers "may I?" and can block; rules answer "which way?" and route. As built,
+  the pre- and post-gates run in `components/agent-runtime/src/turn.ts`; compiled
+  voters are carried in the plan but not yet registered with agentback, so the voter
+  stage is not enforced.
 
 - **ADR-020 — Contracts are Zod-first.** Zod is the single source of truth;
-  JSON Schema / OpenAPI are generated from it. No separate contract package.
+  JSON Schema / OpenAPI are generated from it. No separate contract package. (The
+  generator is not yet implemented: capability contracts carry hand-authored JSON
+  Schema, which the agent plane rebuilds into Zod, and admin-API request bodies are
+  Zod-validated in the controllers.)
 
 - **ADR-021 — The agent runtime drives single-step model calls.** The platform
   owns a bounded loop (propose → gate → execute → refresh → compose → post-gate),
   making one single-step model call per step — not an autonomous tool loop. This
   keeps `confirm:` side-effecting tools reachable and preserves the decide/compose
-  split.
+  split. (The refresh step is a documented no-op in this build: no read-back
+  capability is wired.)
 
 - **ADR-022 — ESM and Node ≥22.13; Drizzle over juggler.** The whole workspace is
   ESM on Node ≥22.13. Persistence is Drizzle (drizzle-zod + drizzle-kit) behind
@@ -138,7 +157,10 @@ Each entry is a one-paragraph distillation.
 - **ADR-025 — One SecretProvider; references never name vendors.** This port is canonical: `SecretRef` is
   `secret://<store>/<path>` where the first segment is a logical STORE, never a
   backend vendor; `resolve()` returns `ResolvedSecret`; caching is TTL-bounded
-  with `invalidate()` (rotation is a cache-drop, never a process restart).
+  with `invalidate()` (rotation is a cache-drop, never a process restart). As
+  built, the only adapter is the dev-only `EnvSecretProvider`
+  (`infrastructure/config`), which has no cache, and no `SecretManagerConfig`
+  exists yet.
   An earlier registry-style design is SUPERSEDED for the port/grammar. `SecretManagerConfig.backend` stays unpinned
   config chosen at the composition root — embedding a vendor in every stored
   reference would make swapping backends a platform-wide rewrite and forecloses
@@ -155,8 +177,9 @@ Each entry is a one-paragraph distillation.
   PLATFORM secrets (datastore URLs, signing keys — O(1) in tenants) stay on the
   SecretProvider chain. `ProviderCredentialStore.resolve(tenantId, providerId,
 capability)` returns the credential RECORD (decrypt happens behind the port;
-  only one component touches key material); the orphaned `configKey` is DELETED
-  from contracts — the tuple is the identifier. Resolves ledger S6; adds the `capability.provider_credentials` table and assigns
+  only one component touches key material); the orphaned `configKey` plays no part
+  in credential lookup — the tuple is the identifier. (An unread optional
+  `ProviderRef.configKey` field still remains in the contracts.) Resolves ledger S6; adds the `capability.provider_credentials` table and assigns
   tenant vendor credentials to the second chain, platform secrets to the first.
 
 - **ADR-027 — The role matrix governs role scopes; seeded defaults never carry
@@ -197,7 +220,10 @@ capability)` returns the credential RECORD (decrypt happens behind the port;
   generation-independent (`Worker.runReplayHistories`) and ships immediately;
   versioned dispatch itself is config-gated off in dev until the compose
   server's support is verified live (never enable an unverified primitive).
-  Resolves ledger T6's design half.
+  Resolves ledger T6's design half. As built, the replay gate runs in CI; the
+  versioning options type (`WorkflowWorkerVersioning`,
+  `infrastructure/temporal-client/src/versioning.ts`) is declared but not yet
+  wired into the worker, so versioned dispatch is not implemented.
 
 - **ADR-030 — `ChangedDomain` is an open, pack-declared identifier.** Refines
   ADR-018. A capability's `changedDomains` names the business-state domains it

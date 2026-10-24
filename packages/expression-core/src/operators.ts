@@ -88,6 +88,13 @@ export const BUILTIN_OPERATORS: RuleOperator[] = [
     if (typeof hay === 'string') return hay.includes(String(needle));
     throw new Error('in: second arg must be an array or string');
   }),
+  // lower: `lower(value)` — the string lowercased (locale-independent), for case-insensitive
+  // matching (`contains(lower(fact), 'term')`). An absent value reads as the empty string.
+  op({op: 'lower', arity: 1, version: V1, returns: 'string'}, ([v]) => {
+    if (v == null) return '';
+    if (typeof v === 'string') return v.toLowerCase();
+    throw new Error('lower: arg must be a string');
+  }),
   op({op: 'isEmpty', arity: 1, version: V1, returns: 'boolean'}, ([v]) => {
     if (v == null) return true;
     if (Array.isArray(v) || typeof v === 'string') return v.length === 0;

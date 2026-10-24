@@ -19,6 +19,24 @@ cp .env.example .env    # dev defaults already match the compose stack
 pnpm -r build
 ```
 
+### Git hooks
+
+`pnpm install` runs `scripts/install-hooks.sh`, which installs [lefthook](https://lefthook.dev) hooks
+into this clone: eslint and prettier on staged files before each commit, and commitlint on each commit
+message. The script never changes your git config. If `core.hooksPath` is already set (for example by
+a global configuration), it skips the install and prints how to opt in for this clone only:
+
+```bash
+# lefthook (parallel, staged files only)
+git config --local core.hooksPath .git/hooks
+pnpm exec lefthook install --force
+
+# or the zero-dependency fallback in .githooks/ (sequential, whole tree)
+git config --local core.hooksPath .githooks
+```
+
+The install is skipped on CI; CI runs the same checks on every pull request.
+
 ## Before you open a pull request
 
 **Build first.** Tests resolve cross-package imports to each package's `dist/`, so a stale build
@@ -53,8 +71,30 @@ CI runs the same checks on every push and pull request.
 
 ## Commits
 
-Use [Conventional Commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `docs:`, `style:`,
-`refactor:`, `test:`, `chore:`, with an optional scope, e.g. `fix(channels): ...`.
+Use [Conventional Commits](https://www.conventionalcommits.org/) with an optional scope, e.g.
+`fix(channels): ...`. Allowed types: `build`, `chore`, `ci`, `deps`, `docs`, `feat`, `fix`, `perf`,
+`refactor`, `revert`, `style`, `test`. commitlint checks every message (`commitlint.config.js`); to
+check a branch before pushing, run `pnpm exec commitlint --from origin/main`.
+
+### Developer Certificate of Origin
+
+Every commit must carry a [DCO](https://developercertificate.org/) sign-off, which certifies that you
+wrote the change or otherwise have the right to submit it under the project's license. Sign off with
+`git commit -s`, which appends a trailer using your configured name and email:
+
+```
+feat(rule-runtime): support range conditions
+
+Signed-off-by: Your Name <you@example.com>
+```
+
+A pull request check verifies the sign-off on every commit. To add a missing sign-off to the commits
+on your branch, run `git rebase --signoff origin/main` and force-push the branch.
+
+## Coding agents
+
+Conventions for coding agents are in [AGENTS.md](AGENTS.md). Agents follow the same expectations as
+human contributors: the checks above, Conventional Commits, and DCO sign-off.
 
 ## Reporting security issues
 

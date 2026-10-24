@@ -68,8 +68,8 @@
         "allowedCapabilities": ["appointment.slot.read"],
         "referencedRules": [],
         "model": {
-          "provider": "local",
-          "model": "qwen3-coder-next-80b",
+          "provider": "openai-compatible",
+          "model": "",
           "temperature": 0.2
         },
         "promptTemplateIds": []

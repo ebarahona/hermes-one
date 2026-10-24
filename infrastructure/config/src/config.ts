@@ -29,7 +29,7 @@ export const HermesConfig = z.object({
     vector: StoreConn, // embeddings
   }),
   llm: z.object({
-    baseUrl: z.string().url(), // OpenAI-compatible base, e.g. llama-server /v1
+    baseUrl: z.string().url(), // OpenAI-compatible base URL, e.g. https://api.openai.com/v1
     model: z.string().min(1),
     apiKey: z.string().min(1), // dummy for local servers; a real secret in prod
   }),
@@ -88,7 +88,7 @@ const DEFAULTS = {
   HERMES_EPHEMERAL_URL: 'redis://127.0.0.1:6380',
   HERMES_VECTOR_URL: 'http://127.0.0.1:6333',
   LLM_BASE_URL: 'http://127.0.0.1:8080/v1',
-  LLM_MODEL: 'qwen3-coder-next-80b', // local llama-server model; override via LLM_MODEL
+  LLM_MODEL: 'local-model', // single-model local servers ignore the name; set LLM_MODEL for others
   LLM_API_KEY: 'local',
   HERMES_OUTBOX_POLL_MS: '1000', // EventEnvelopeConfig.outboxPollIntervalMs default
   HERMES_OUTBOX_MAX_ATTEMPTS: '10', // EventEnvelopeConfig.outboxMaxAttempts default

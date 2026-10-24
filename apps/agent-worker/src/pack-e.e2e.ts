@@ -1,5 +1,5 @@
-// Pack E — LIVE electrician turn on real Temporal + the local LLM (MANUAL GATE, not CI: needs
-// llama-server at :8080). Installs the electrician vertical FROM DATA (verticals/electrician/pack.json)
+// Pack E — LIVE electrician turn on real Temporal + a live LLM (MANUAL GATE, not CI: needs
+// an OpenAI-compatible endpoint, see README "LLM configuration"). Installs the electrician vertical FROM DATA (verticals/electrician/pack.json)
 // for a demo tenant, then drives real inbound turns: the generic workflow interpreter host (runTriage)
 // interprets the electrician-intake workflow → the electrician-triage rule routes to the dispatcher
 // agent node → a REAL bounded agent turn runs against the electrician engine (persona + policy) and the
@@ -16,7 +16,7 @@
 // ToolResult's metrics.providerId must be `internal-scheduler` — evidence the turn actually reached a
 // provider rather than a fixture.
 //
-//   docker compose -f infra/docker-compose.yml up -d   (+ llama-server at :8080)
+//   docker compose -f infra/docker-compose.yml up -d   (+ an LLM at LLM_BASE_URL)
 //   HERMES_CREDENTIALS_MASTER_KEY=<64 hex> pnpm -r build && node apps/agent-worker/dist/pack-e.e2e.js
 import {Client, Connection} from '@temporalio/client';
 import {loadConfig} from '@hermes-one/config';

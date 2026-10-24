@@ -227,7 +227,7 @@ Verbatim transcriptions when built (no new invention):
 | Test                          | Asserts                                                                                                                      |
 | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | forged webhook (itest)        | wrong signature → 401, no workflow started, nothing persisted                                                                |
-| stale timestamp (unit)        | `                                                                                                                            | now-ts | > skew` → 401 before any HMAC work |
+| stale timestamp (unit)        | `\|now-ts\| > skew` → 401 before any HMAC work                                                                               |
 | replay (itest)                | identical valid request twice → first 200, second 401 (NonceStore), no duplicate workflow                                    |
 | secret rotation (itest)       | old ref → 401 after rotation; new ref verifies                                                                               |
 | role shadowing (itest)        | tenant `customer` row shadows platform default; `resolveScopes` returns the tenant's set                                     |

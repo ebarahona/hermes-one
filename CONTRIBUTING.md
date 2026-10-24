@@ -91,6 +91,13 @@ Signed-off-by: Your Name <you@example.com>
 A pull request check verifies the sign-off on every commit. To add a missing sign-off to the commits
 on your branch, run `git rebase --signoff origin/main` and force-push the branch.
 
+## Releases
+
+Releases are cut by [release-please](https://github.com/googleapis/release-please) from the commit
+history on `main`. The repository carries a single version, recorded in the root `package.json`. When a
+release pull request is merged, release-please tags the release and updates `CHANGELOG.md`. Do not tag
+releases or edit `CHANGELOG.md` by hand.
+
 ## Coding agents
 
 Conventions for coding agents are in [AGENTS.md](AGENTS.md). Agents follow the same expectations as

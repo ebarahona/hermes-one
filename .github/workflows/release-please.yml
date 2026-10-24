@@ -1,0 +1,26 @@
+name: release-please
+
+# Auto-runs on every push to main. release-please opens / updates a
+# rolling release PR collecting Conventional Commit entries; merging
+# that PR tags the release and updates CHANGELOG.md and the root
+# package.json version. The whole repository shares one version;
+# workspace packages are not versioned or published individually.
+# workflow_dispatch retained for manual re-runs.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run release-please
+        uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

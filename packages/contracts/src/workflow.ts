@@ -37,18 +37,34 @@ const NodeBase = z.object({
   label: z.string().max(120).optional(),
 });
 
+const CapabilityRef = z.string().regex(/^[a-z][a-z0-9-]*(\.[a-z0-9-]+){2}$/);
+
+/**
+ * Delivery of an agent turn's reply through a capability (e.g. `messaging.reply.send`). Invoked only
+ * when the turn's outcome is `replied` with a reply; a `handoff` (or any other outcome) sends nothing.
+ * `input` bindings resolve as on a capability node (`{$input:'key'}` → run input; else literal), plus
+ * `{$agent:'reply'}` → the turn's final, post-gated reply text.
+ */
+export const AgentReplyDelivery = z.object({
+  capability: CapabilityRef,
+  input: z.record(z.string(), z.unknown()),
+});
+export type AgentReplyDelivery = z.infer<typeof AgentReplyDelivery>;
+
 /** Runs a bounded agent turn (agent plane) as an activity. */
 export const AgentNode = NodeBase.extend({
   kind: z.literal('agent'),
   agentEngine: PinnedRef,
   objective: z.string().min(1),
+  /** Optional: deliver the turn's reply on the customer's channel before routing on. */
+  deliverReply: AgentReplyDelivery.optional(),
   next: NodeId,
 });
 
 /** Invokes a provider-neutral capability as an activity (idempotent side effect). */
 export const CapabilityNode = NodeBase.extend({
   kind: z.literal('capability'),
-  capability: z.string().regex(/^[a-z][a-z0-9-]*(\.[a-z0-9-]+){2}$/),
+  capability: CapabilityRef,
   input: z.record(z.string(), z.unknown()),
   next: NodeId,
 });

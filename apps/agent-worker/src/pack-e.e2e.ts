@@ -15,10 +15,13 @@
 // Case 2 is asserted against the DURABLE audit timeline (runtime.tool_executions), not the log: the
 // ToolResult's metrics.providerId must be `internal-scheduler` — evidence the turn actually reached a
 // provider rather than a fixture.
+// Both cases also deliver the dispatcher's post-gated reply on the caller's channel through
+// messaging.reply.send — asserted as exactly one durable outbound runtime.messages row per run.
 //
 //   docker compose -f infra/docker-compose.yml up -d   (+ an LLM at LLM_BASE_URL)
 //   HERMES_CREDENTIALS_MASTER_KEY=<64 hex> pnpm -r build && node apps/agent-worker/dist/pack-e.e2e.js
 import {Client, Connection} from '@temporalio/client';
+import {Pool} from 'pg';
 import {loadConfig} from '@hermes-one/config';
 import {
   createAuditQueryService,
@@ -42,6 +45,26 @@ import {createAgentWorker} from './worker.js';
 
 const TENANT = 'tnt_elec_demo';
 const SLOT_READ = 'appointment.slot.read';
+const FROM = '+15125550000';
+
+/** Outbound runtime.messages bodies for the tenant since `since` (tenant-scoped read under RLS). */
+async function outboundSince(pool: Pool, since: Date): Promise<string[]> {
+  const c = await pool.connect();
+  try {
+    await c.query('BEGIN');
+    await c.query(`SELECT set_config('app.tenant_id', $1, true)`, [TENANT]);
+    const {rows} = await c.query<{body: string | null}>(
+      `SELECT body FROM runtime.messages
+        WHERE tenant_id = $1 AND direction = 'outbound' AND occurred_at >= $2
+        ORDER BY occurred_at`,
+      [TENANT, since],
+    );
+    await c.query('COMMIT');
+    return rows.map(r => r.body ?? '');
+  } finally {
+    c.release();
+  }
+}
 
 interface Case {
   name: string;
@@ -130,7 +153,7 @@ async function main(): Promise<void> {
     scopes: await roleRegistry.resolveScopes(TENANT as Principal['tenantId'], [
       'customer',
     ]),
-    attributes: {externalHandle: '+15125550000', channel: 'sms'},
+    attributes: {externalHandle: FROM, channel: 'sms'},
   };
   await closeRoles();
   if (!principal.scopes.includes(SLOT_READ as Principal['scopes'][number])) {
@@ -142,11 +165,13 @@ async function main(): Promise<void> {
   const {repo: audit, close: closeAudit} = createAuditQueryService(
     cfg.stores.authoritative.url,
   );
+  const pg = new Pool({connectionString: cfg.stores.authoritative.url, max: 1});
   const results: {name: string; pass: boolean; detail: string}[] = [];
 
   const clientWork = (async () => {
     for (const c of CASES) {
       const correlationId = `pack-e-elec-${Date.now()}`;
+      const startedAt = new Date();
       const handle = await client.workflow.start('runAgentWorkflow', {
         taskQueue: WORKFLOW_QUEUE,
         workflowId: correlationId,
@@ -161,7 +186,8 @@ async function main(): Promise<void> {
             // durable handoff_tasks row exactly as the live path does.
             conversationId: 'cnv_15125550000',
             parameters: install.parameters,
-            input: {intent: c.intent},
+            // The sender handle the agent node's reply delivery binds (`{$input: 'from'}`).
+            input: {intent: c.intent, from: FROM},
           },
         ],
       });
@@ -196,10 +222,13 @@ async function main(): Promise<void> {
       const toolOk = c.expectToolCall
         ? viaProvider.length > 0 && viaProvider.every(r => r.ok) && tenantSlots
         : true;
+      // The reply on the caller's channel: one durable outbound row with a non-empty body.
+      const outbound = await outboundSince(pg, startedAt);
+      const deliveredOk = outbound.length === 1 && outbound[0]!.length > 0;
       results.push({
         name: c.name,
-        pass: pathOk && toolOk,
-        detail: `path=${JSON.stringify(out.path)} toolCalls=${toolCalls.length} viaInternalScheduler=${viaProvider.length}${
+        pass: pathOk && toolOk && deliveredOk,
+        detail: `path=${JSON.stringify(out.path)} outbound=${outbound.length} toolCalls=${toolCalls.length} viaInternalScheduler=${viaProvider.length}${
           viaProvider[0]?.output
             ? ` slots=${JSON.stringify((viaProvider[0].output as {slots?: unknown}).slots)}`
             : ''
@@ -217,6 +246,7 @@ async function main(): Promise<void> {
 
   await connection.close();
   await closeAudit();
+  await pg.end();
 
   for (const r of results)
     console.log(`${r.pass ? '✅ PASS' : '❌ FAIL'} ${r.name}: ${r.detail}`);

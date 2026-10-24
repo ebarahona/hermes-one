@@ -87,6 +87,14 @@
               "version": "1.0.0"
             },
             "objective": "Answer the customer's support question plainly and accurately, asking one clarifying question when the request is ambiguous.",
+            "deliverReply": {
+              "capability": "messaging.reply.send",
+              "input": {
+                "to": {"$input": "from"},
+                "template": "support_agent_reply",
+                "body": {"$agent": "reply"}
+              }
+            },
             "next": "end"
           },
           "end": {"id": "end", "kind": "terminal", "outcome": "completed"}

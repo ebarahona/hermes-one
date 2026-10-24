@@ -42,6 +42,18 @@
               "version": "1.0.0"
             },
             "objective": "Help the caller with their electrical issue \u2014 triage urgency, answer basic safety questions, and offer to schedule a service visit.",
+            "deliverReply": {
+              "capability": "messaging.reply.send",
+              "input": {
+                "to": {
+                  "$input": "from"
+                },
+                "template": "electrician_agent_reply",
+                "body": {
+                  "$agent": "reply"
+                }
+              }
+            },
             "next": "end"
           },
           "end": {

@@ -13,11 +13,14 @@
 //                       real LLM turn runs against the support engine (persona + reply policy).
 // Each case is asserted on the workflow path and outcome AND on the durable audit timeline: the
 // `decision.rule` event records the rule's outcome, and the deterministic cases carry no turn-scoped
-// rows (an agent turn always writes its ledger under a turnId).
+// rows (an agent turn always writes its ledger under a turnId). Every case also delivers exactly one
+// reply on the customer's channel — the templated reply, the escalation notice, or the agent's
+// post-gated reply — asserted as one durable outbound runtime.messages row.
 //
 //   docker compose -f infra/docker-compose.yml up -d   (+ an LLM at LLM_BASE_URL)
 //   pnpm -r build && node apps/agent-worker/dist/support-pack.e2e.js
 import {Client, Connection} from '@temporalio/client';
+import {Pool} from 'pg';
 import {loadConfig} from '@hermes-one/config';
 import {createAuditQueryService, createRoleRegistry} from '@hermes-one/drizzle';
 import {
@@ -37,6 +40,25 @@ import {createAgentWorker} from './worker.js';
 const TENANT = 'tnt_support_demo';
 const SUPPORT_PACK = 'verticals/support/pack.json';
 const FROM = '+15125550100';
+
+/** Outbound runtime.messages bodies for the tenant since `since` (tenant-scoped read under RLS). */
+async function outboundSince(pool: Pool, since: Date): Promise<string[]> {
+  const c = await pool.connect();
+  try {
+    await c.query('BEGIN');
+    await c.query(`SELECT set_config('app.tenant_id', $1, true)`, [TENANT]);
+    const {rows} = await c.query<{body: string | null}>(
+      `SELECT body FROM runtime.messages
+        WHERE tenant_id = $1 AND direction = 'outbound' AND occurred_at >= $2
+        ORDER BY occurred_at`,
+      [TENANT, since],
+    );
+    await c.query('COMMIT');
+    return rows.map(r => r.body ?? '');
+  } finally {
+    c.release();
+  }
+}
 
 interface Case {
   name: string;
@@ -115,11 +137,13 @@ async function main(): Promise<void> {
   const {repo: audit, close: closeAudit} = createAuditQueryService(
     cfg.stores.authoritative.url,
   );
+  const pg = new Pool({connectionString: cfg.stores.authoritative.url, max: 1});
   const results: {name: string; pass: boolean; detail: string}[] = [];
 
   const clientWork = (async () => {
     for (const [i, c] of CASES.entries()) {
       const correlationId = `support-pack-${Date.now()}-${i}`;
+      const startedAt = new Date();
       const input: InboundWorkflowInput = {
         channel: 'sms',
         from: FROM,
@@ -155,16 +179,19 @@ async function main(): Promise<void> {
         .filter(a => a.action === 'decision.rule')
         .map(a => (a.detail as {outcome?: string}).outcome);
       const turnRows = timeline.filter(e => e.turnId !== null).length;
+      // The reply on the customer's channel: one durable outbound row with a non-empty body.
+      const outbound = await outboundSince(pg, startedAt);
 
       const pathOk = JSON.stringify(out.path) === JSON.stringify(c.path);
       const outcomeOk = out.outcome === c.outcome;
       const decisionOk =
         decisions.length === 1 && decisions[0] === c.ruleOutcome;
       const noModelOk = c.agentTurn || turnRows === 0;
+      const deliveredOk = outbound.length === 1 && outbound[0]!.length > 0;
       results.push({
         name: c.name,
-        pass: pathOk && outcomeOk && decisionOk && noModelOk,
-        detail: `path=${JSON.stringify(out.path)} outcome=${out.outcome} decision=${JSON.stringify(decisions)} turnRows=${turnRows}`,
+        pass: pathOk && outcomeOk && decisionOk && noModelOk && deliveredOk,
+        detail: `path=${JSON.stringify(out.path)} outcome=${out.outcome} decision=${JSON.stringify(decisions)} turnRows=${turnRows} outbound=${outbound.length}`,
       });
     }
   })();
@@ -178,6 +205,7 @@ async function main(): Promise<void> {
 
   await connection.close();
   await closeAudit();
+  await pg.end();
 
   for (const r of results)
     console.log(`${r.pass ? 'PASS' : 'FAIL'} ${r.name}: ${r.detail}`);
@@ -186,7 +214,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
   console.log(
-    '\nSupport pack live E2E OK — the support vertical (authored as DATA) answered and escalated by rule with no model call, and handed the judgment case to a bounded agent turn on the live LLM.',
+    "\nSupport pack live E2E OK — the support vertical (authored as DATA) answered and escalated by rule with no model call, handed the judgment case to a bounded agent turn on the live LLM, and delivered every reply on the customer's channel.",
   );
   process.exit(0);
 }

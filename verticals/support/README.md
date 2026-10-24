@@ -16,7 +16,7 @@ deterministic rules, and the model is called only for a message that needs judgm
 | workflow     | `support-intake`       | Triage an inbound message, then reply by template, escalate, or hand to the support agent. |
 | rule         | `support-triage`       | Classifies the message `text` into a routing outcome (case-insensitive keyword match).     |
 | policy       | `support-reply-safety` | Post-gate on the agent's draft reply: a reply that asks for a password is repaired.        |
-| capability   | `messaging.reply.send` | Send a templated reply to the customer on their channel (platform capability).             |
+| capability   | `messaging.reply.send` | Send a reply to the customer on their channel: templated replies and the agent's reply.    |
 | agent-engine | `support-assistant`    | Courteous, concise support persona; no tools; runs on the deployment's configured model.   |
 
 ## Workflow graph
@@ -29,7 +29,7 @@ flowchart LR
   triage -- password-reset --> password_reset["password_reset<br/>(messaging.reply.send)"]
   triage -- billing --> billing["billing<br/>(messaging.reply.send)"]
   triage -- account-faq --> account_faq["account_faq<br/>(messaging.reply.send)"]
-  triage -- default --> assist["assist<br/>(agent: support-assistant)"]
+  triage -- default --> assist["assist<br/>(agent: support-assistant,<br/>reply via messaging.reply.send)"]
   password_reset --> end_(["end<br/>terminal: completed"])
   billing --> end_
   account_faq --> end_
@@ -66,19 +66,29 @@ as a `decision.rule` audit event.
 The agent engine is configured with no tools (`allowedCapabilities: []`): it answers in its composed
 reply, which passes through the `support-reply-safety` post-gate.
 
+## How the agent's reply is delivered
+
+The `assist` node declares `deliverReply`: when the turn ends with the `replied` outcome, the
+workflow sends the turn's final, post-gated reply through `messaging.reply.send` (template
+`support_agent_reply`, body bound with `{"$agent": "reply"}`, recipient bound with
+`{"$input": "from"}`) — the same capability path the templated replies use. A reply the post-gate
+repaired is delivered in its repaired form. A turn that hands off sends nothing.
+
 ## Verification
 
 - `apps/workflow-worker/src/support-pack-rule.spec.ts` — unit: the triage rule routes each intent
   class as designed (mixed case included), escalation outranks a simple intent, and the compiled
-  workflow walks each route with the expected path and no agent turn on the deterministic routes.
+  workflow walks each route with the expected path and no agent turn on the deterministic routes;
+  the agent route delivers the turn's reply and a handoff delivers nothing.
 - `apps/admin-api/src/support-pack.itest.ts` — integration: installs the pack through the admin API
   and asserts the active deployment reconstructs with the support pack's members.
 - `apps/agent-worker/src/support-pack.e2e.ts` — manual gate (needs a model endpoint): one live run
-  per routing class on real Temporal, asserted against the durable audit timeline.
+  per routing class on real Temporal, asserted against the durable audit timeline and one outbound
+  `runtime.messages` row per run.
 
 ## What is still open for this vertical
 
-Tracked in [`../../docs/DEFERRED-AND-FLAGGED.md`](../../docs/DEFERRED-AND-FLAGGED.md) (SP1–SP4):
+Tracked in [`../../docs/DEFERRED-AND-FLAGGED.md`](../../docs/DEFERRED-AND-FLAGGED.md) (SP1–SP3):
 
 - **SP1** — a workflow `handoff` terminal ends the run with the `handoff` outcome but does not write a
   `runtime.handoff_tasks` row; only an agent turn's handoff outcome persists one today.
@@ -87,5 +97,3 @@ Tracked in [`../../docs/DEFERRED-AND-FLAGGED.md`](../../docs/DEFERRED-AND-FLAGGE
   exists, so the pack does not open or update tickets.
 - **SP3** — the support agent cannot itself request a human; escalation is decided by the triage
   rule before the agent node.
-- **SP4** — the agent turn's composed reply is returned to the workflow but not yet sent on the
-  customer's channel (platform-wide; the deterministic replies are sent).

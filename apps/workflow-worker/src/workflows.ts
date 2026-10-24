@@ -220,6 +220,8 @@ export async function runAgentWorkflow(ref: WorkflowRunRef) {
         ),
         childTrace,
       );
+      // `reply` is the turn's final, post-gated text. An agent node that declares `deliverReply` sends
+      // it through `invokeCapability` above (same retry class, next invokeSeq → per-delivery key).
       return {outcome: result.outcome, reply: result.reply};
     },
   };

@@ -64,4 +64,21 @@ describe('invokeCapability derived turn identity', () => {
       invocations[0].call.toolCallId,
     );
   });
+
+  it("an agent node's reply delivery keys per turn: stable on retry, distinct for the next turn", async () => {
+    // The body is not a key field, so two agent replies to one recipient with the same template differ
+    // only by the invocation ordinal the workflow assigned to each delivery.
+    const {invocations, activities} = capture();
+    const delivery = (invokeSeq: number) => ({
+      ...BASE,
+      input: {to: '+15550001111', template: 'support_agent_reply', body: 'ok'},
+      invokeSeq,
+    });
+    await activities.invokeCapability(delivery(1));
+    await activities.invokeCapability(delivery(1)); // Temporal retry
+    await activities.invokeCapability(delivery(2)); // the next turn's delivery
+    const keys = invocations.map(i => i.call.idempotencyKey);
+    expect(keys[1]).toBe(keys[0]);
+    expect(keys[2]).not.toBe(keys[0]);
+  });
 });

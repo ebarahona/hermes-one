@@ -68,15 +68,26 @@ export interface WorkflowRunResult {
   path: NodeId[];
 }
 
-/** Resolve a capability node's input bindings: `{$input:'key'}` → run input; else literal. */
+/**
+ * Resolve capability input bindings: `{$input:'key'}` → run input; `{$agent:'key'}` → the agent
+ * turn's output (only on an agent node's reply delivery); else literal.
+ */
 function resolveBindings(
   spec: Record<string, unknown>,
   input: Record<string, unknown>,
+  agentOutput: Record<string, unknown> = {},
 ): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(spec)) {
     if (v && typeof v === 'object' && !Array.isArray(v) && '$input' in v) {
       out[k] = input[(v as {$input: string}).$input];
+    } else if (
+      v &&
+      typeof v === 'object' &&
+      !Array.isArray(v) &&
+      '$agent' in v
+    ) {
+      out[k] = agentOutput[(v as {$agent: string}).$agent];
     } else {
       out[k] = v;
     }
@@ -127,7 +138,22 @@ export async function executeCompiledWorkflow(
         }
         // Bounded agent turn across the plane boundary; the model proposes,
         // the runtime disposes — the workflow only routes the outcome.
-        await effects.runAgentTurn(node.agentEngine, node.objective, run.input);
+        const turn = await effects.runAgentTurn(
+          node.agentEngine,
+          node.objective,
+          run.input,
+        );
+        // Reply delivery is declared by the plan (`deliverReply`), never implied: only a `replied`
+        // turn with a final, post-gated reply is sent, through the same capability effect a
+        // capability node uses. A handoff or any other outcome sends nothing.
+        if (node.deliverReply && turn.outcome === 'replied' && turn.reply) {
+          await effects.invokeCapability(
+            node.deliverReply.capability,
+            resolveBindings(node.deliverReply.input, run.input, {
+              reply: turn.reply,
+            }),
+          );
+        }
         nodeId = node.next;
         break;
       }

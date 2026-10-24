@@ -11,7 +11,7 @@ code is ever compiled into the platform.
 
 | Family       | Name                     | What it does                                                                               |
 | ------------ | ------------------------ | ------------------------------------------------------------------------------------------ |
-| workflow     | `electrician-intake`     | Entry workflow: triage an inbound message via the rule, then hand to the dispatcher agent. |
+| workflow     | `electrician-intake`     | Entry workflow: triage an inbound message via the rule, hand to the agent, send its reply. |
 | rule         | `electrician-triage`     | Routes the intent (emergency vs schedule).                                                 |
 | policy       | `electrician-safety`     | The turn's pre/post gates (permissive baseline).                                           |
 | capability   | `appointment.slot.read`  | Read open service-visit slots (provider-neutral, platform capability).                     |
@@ -36,6 +36,11 @@ code is ever compiled into the platform.
 - **PE6 (done, 2026-07-17):** a capability whose `onNoProvider` is `handoff` now routes the turn to a
   real handoff — the failed dispatch ends the turn in `handoff` with `error-escalation` on the durable
   ledger (`single-step-turn.spec.ts`).
+- **Reply delivery (done, 2026-10-24):** the `assist` agent node declares `deliverReply`, so a
+  `replied` turn's final, post-gated reply is sent to the caller through the platform's
+  `messaging.reply.send` capability (template `electrician_agent_reply`, recipient
+  `{"$input": "from"}`) — one durable outbound `runtime.messages` row per reply. A handoff sends
+  nothing.
 
 ## What is still open for this vertical
 

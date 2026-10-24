@@ -126,7 +126,10 @@ describe('support-intake workflow (pack data)', () => {
     compiledAt: NOW,
   });
 
-  async function walk(text: string) {
+  async function walk(
+    text: string,
+    turn: {outcome: string; reply?: string} = {outcome: 'replied', reply: 'ok'},
+  ) {
     const rulePlan = triagePlan();
     const rt = createRuleRuntime(builtinRegistry(V1));
     const sent: Array<Record<string, unknown>> = [];
@@ -155,7 +158,7 @@ describe('support-intake workflow (pack data)', () => {
         },
         runAgentTurn: () => {
           agentTurns++;
-          return {outcome: 'replied', reply: 'ok'};
+          return turn;
         },
         now: () => NOW,
       },
@@ -188,9 +191,27 @@ describe('support-intake workflow (pack data)', () => {
     expect(sent.map(s => s.template)).toEqual(['support_escalation_notice']);
   });
 
-  it('hands a message that needs judgment to exactly one bounded agent turn', async () => {
+  it('hands a message that needs judgment to exactly one bounded agent turn and delivers its reply', async () => {
     const {run, sent, agentTurns} = await walk(
       'Which plan fits a team of twelve?',
+      {outcome: 'replied', reply: 'The Team plan fits twelve people.'},
+    );
+    expect(run.path).toEqual(['triage', 'assist', 'end']);
+    expect(agentTurns).toBe(1);
+    expect(sent).toEqual([
+      {
+        capability: 'messaging.reply.send',
+        to: '+15125550100',
+        template: 'support_agent_reply',
+        body: 'The Team plan fits twelve people.',
+      },
+    ]);
+  });
+
+  it('sends nothing when the agent turn hands off', async () => {
+    const {run, sent, agentTurns} = await walk(
+      'Which plan fits a team of twelve?',
+      {outcome: 'handoff', reply: 'draft'},
     );
     expect(run.path).toEqual(['triage', 'assist', 'end']);
     expect(agentTurns).toBe(1);

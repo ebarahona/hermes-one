@@ -40,6 +40,28 @@ const NodeBase = z.object({
 const CapabilityRef = z.string().regex(/^[a-z][a-z0-9-]*(\.[a-z0-9-]+){2}$/);
 
 /**
+ * Capability input bindings. A `{$agent:'key'}` binding must name an agent output listed in `agentKeys`
+ * (none on a capability node), so a typo fails at compile time instead of resolving to undefined.
+ */
+const bindingInput = (agentKeys: readonly string[]) =>
+  z.record(z.string(), z.unknown()).superRefine((input, ctx) => {
+    for (const [key, v] of Object.entries(input)) {
+      if (v && typeof v === 'object' && !Array.isArray(v) && '$agent' in v) {
+        const ref = (v as {$agent: unknown}).$agent;
+        if (typeof ref !== 'string' || !agentKeys.includes(ref)) {
+          ctx.addIssue({
+            code: 'custom',
+            path: [key],
+            message: agentKeys.length
+              ? `unknown $agent binding ${JSON.stringify(ref)} (expected one of: ${agentKeys.join(', ')})`
+              : "$agent bindings are only valid on an agent node's deliverReply",
+          });
+        }
+      }
+    }
+  });
+
+/**
  * Delivery of an agent turn's reply through a capability (e.g. `messaging.reply.send`). Invoked only
  * when the turn's outcome is `replied` with a reply; a `handoff` (or any other outcome) sends nothing.
  * `input` bindings resolve as on a capability node (`{$input:'key'}` → run input; else literal), plus
@@ -47,7 +69,7 @@ const CapabilityRef = z.string().regex(/^[a-z][a-z0-9-]*(\.[a-z0-9-]+){2}$/);
  */
 export const AgentReplyDelivery = z.object({
   capability: CapabilityRef,
-  input: z.record(z.string(), z.unknown()),
+  input: bindingInput(['reply']),
 });
 export type AgentReplyDelivery = z.infer<typeof AgentReplyDelivery>;
 
@@ -65,7 +87,7 @@ export const AgentNode = NodeBase.extend({
 export const CapabilityNode = NodeBase.extend({
   kind: z.literal('capability'),
   capability: CapabilityRef,
-  input: z.record(z.string(), z.unknown()),
+  input: bindingInput([]),
   next: NodeId,
 });
 

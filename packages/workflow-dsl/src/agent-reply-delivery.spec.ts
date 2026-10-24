@@ -197,4 +197,33 @@ describe('agent node reply delivery (deliverReply)', () => {
       }),
     ).toThrow();
   });
+
+  it('rejects an unknown $agent binding at compile time', () => {
+    expect(() =>
+      plan({
+        assist: agentNode('assist', 'end', {
+          deliverReply: {...DELIVER, input: {body: {$agent: 'replyText'}}},
+        }),
+        end: END,
+      }),
+    ).toThrow(/unknown \$agent binding .*replyText/);
+  });
+
+  it('rejects a $agent binding on a capability node at compile time', () => {
+    expect(() =>
+      plan(
+        {
+          send: {
+            id: 'send',
+            kind: 'capability',
+            capability: 'messaging.reply.send',
+            input: {body: {$agent: 'reply'}},
+            next: 'end',
+          },
+          end: END,
+        },
+        'send',
+      ),
+    ).toThrow(/only valid on an agent node/);
+  });
 });

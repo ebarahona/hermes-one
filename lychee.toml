@@ -1,0 +1,34 @@
+# Configuration for lycheeverse/lychee-action
+# https://lychee.cli.rs/usage/config/
+
+max_redirects = 5
+max_retries = 2
+timeout = 20
+include_verbatim = false
+
+exclude = [
+  # GitHub link patterns that 200/302 but rate-limit aggressively
+  '^https://github\.com/.+/(issues|pull|security|releases)/.*$',
+  # release-please-generated cross-tag compare URLs that 404 before the
+  # tag exists or when the tag naming format changes between versions.
+  '^https://github\.com/.+/compare/.+\.\.\..+$',
+  # Local development endpoints (compose stack, local LLM servers)
+  '^https?://localhost(:\d+)?(/.*)?$',
+  '^https?://127\.0\.0\.1(:\d+)?(/.*)?$',
+  # API base URLs used as configuration examples, not browsable pages
+  '^https://api\.openai\.com/v1$',
+  # Placeholder issuers and claim namespaces in configuration examples
+  '^https://login\.example/.*$',
+  '^https://platform/.*$',
+  # Local file references inside fenced code blocks that aren't actual URLs
+  '^file://',
+]
+
+exclude_path = [
+  "node_modules",
+  "dist",
+  "apps/workflow-worker/test/replay-fixtures",
+]
+
+cache = true
+max_cache_age = "1d"

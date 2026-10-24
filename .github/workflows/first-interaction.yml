@@ -1,0 +1,40 @@
+name: First interaction
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Greet first-time contributor
+        uses: actions/first-interaction@3c71ce730280171fd1cfb57c00c774f8998586f7 # v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: |
+            Thanks for opening your first issue here.
+
+            A few pointers so reviewers can act on it quickly:
+
+            - Please follow [`.github/ISSUE_TEMPLATE/bug_report.yml`](../blob/main/.github/ISSUE_TEMPLATE/bug_report.yml) or [`feature_request.yml`](../blob/main/.github/ISSUE_TEMPLATE/feature_request.yml) and fill in every required section.
+            - For bugs, include the hermes-one commit, Node and pnpm versions, OS, and the steps to reproduce. Never paste API keys or other credentials.
+            - Security-sensitive issues should go through GitHub private vulnerability reporting per [`SECURITY.md`](../blob/main/SECURITY.md), not as a public issue.
+
+            See [`CONTRIBUTING.md`](../blob/main/CONTRIBUTING.md) for project conventions.
+          pr-message: |
+            Thanks for opening your first PR here.
+
+            Before reviewers can dig in:
+
+            - Every commit needs a [DCO sign-off](https://developercertificate.org/) (`git commit -s`).
+            - Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/). The changelog generator only picks up `feat`, `fix`, `perf`, `revert`, `deps`, and `docs` types.
+            - `pnpm -r build && pnpm verify && pnpm lint` should pass locally, plus `pnpm test:itest` and the replay gate where the change calls for them.
+
+            See [`CONTRIBUTING.md`](../blob/main/CONTRIBUTING.md) and [`AGENTS.md`](../blob/main/AGENTS.md) for the architecture rules.

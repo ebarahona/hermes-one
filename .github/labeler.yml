@@ -1,0 +1,76 @@
+area:apps:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'apps/**'
+
+area:components:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'components/**'
+
+area:infrastructure:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'infrastructure/**'
+          - 'infra/**'
+
+area:packages:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'packages/**'
+
+area:verticals:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'verticals/**'
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/test/**'
+          - '**/*.test.ts'
+          - '**/*.spec.ts'
+          - '**/*.itest.ts'
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'docs/**'
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/workflows/**'
+          - '.github/**/*.yml'
+          - '.github/**/*.yaml'
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'package.json'
+          - 'pnpm-lock.yaml'
+          - 'pnpm-workspace.yaml'
+          - '*/*/package.json'
+
+hooks:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.githooks/**'
+          - 'lefthook.yml'
+          - 'scripts/install-hooks.sh'
+
+config:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'eslint.config.js'
+          - 'commitlint.config.js'
+          - 'tsconfig.json'
+          - 'tsconfig.base.json'
+          - 'vitest*.config.ts'
+          - '.prettierrc.json'
+          - '.prettierignore'
+          - '.typos.toml'
+          - 'lychee.toml'
+          - 'release-please-config.json'
+          - '.release-please-manifest.json'

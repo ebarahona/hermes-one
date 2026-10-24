@@ -1,0 +1,60 @@
+version: 2
+updates:
+  # One entry covers the whole pnpm workspace (root pnpm-lock.yaml).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: 'Etc/UTC'
+    open-pull-requests-limit: 10
+    versioning-strategy: increase-if-necessary
+    labels:
+      - dependencies
+    commit-message:
+      prefix: deps
+      include: scope
+    groups:
+      eslint:
+        patterns:
+          - 'eslint'
+          - '@typescript-eslint/*'
+          - 'eslint-*'
+      vitest:
+        patterns:
+          - 'vitest'
+          - '@vitest/*'
+      commitlint:
+        patterns:
+          - '@commitlint/*'
+      loopback:
+        patterns:
+          - '@loopback/*'
+      agentback:
+        patterns:
+          - '@agentback/*'
+      temporal:
+        patterns:
+          - '@temporalio/*'
+      opentelemetry:
+        patterns:
+          - '@opentelemetry/*'
+      types:
+        patterns:
+          - '@types/*'
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: friday
+      time: '06:00'
+      timezone: 'Etc/UTC'
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: ci
+      include: scope

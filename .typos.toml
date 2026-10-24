@@ -1,0 +1,31 @@
+# Configuration for crate-ci/typos
+# https://github.com/crate-ci/typos
+[files]
+extend-exclude = [
+  "pnpm-lock.yaml",
+  "dist/",
+  "node_modules/",
+  "*.tsbuildinfo",
+  # Golden Temporal histories are captured verbatim and kept byte-exact (ADR-029).
+  "apps/workflow-worker/test/replay-fixtures/",
+  # Applied migrations are immutable.
+  "infrastructure/drizzle/migrations/",
+]
+
+[default]
+extend-ignore-re = [
+  # GitHub commit and compare URLs (release-please CHANGELOG entries): commit
+  # SHAs contain short substrings that match dictionary entries.
+  "https://github\\.com/[^\\s)]+/commit/[0-9a-f]+",
+  "https://github\\.com/[^\\s)]+/compare/[^\\s)]+",
+  # Hex strings (hashes, content hashes, ids)
+  "[0-9a-fA-F]{24,}",
+  # GUIDs
+  "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
+]
+
+[default.extend-words]
+# Substrings inside commit SHAs that typos may tokenize before the
+# patterns above mask the full URL.
+ba = "ba"
+ede = "ede"

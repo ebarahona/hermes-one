@@ -24,8 +24,20 @@ for CASE in eligible out-of-area answered; do
   docker exec hermes-one-temporal temporal workflow show --address temporal:7233 --namespace default \
     --workflow-id "$WF_ID" -o json \
     | python3 -c "
-import json, sys
+import json, re, socket, sys
 history = json.load(sys.stdin)
+# Worker identities (and sticky task-queue names) embed <pid>@<hostname>; scrub them so fixtures
+# carry no machine details.
+HOST = re.compile(r'\d+@' + re.escape(socket.gethostname().split('.')[0]) + r'(\.[A-Za-z0-9]+)*')
+def scrub(node, key=None):
+  if isinstance(node, dict):
+    return {k: scrub(v, k) for k, v in node.items()}
+  if isinstance(node, list):
+    return [scrub(v) for v in node]
+  if isinstance(node, str):
+    return '1@hermes-replay-capture' if key == 'identity' else HOST.sub('1@hermes-replay-capture', node)
+  return node
+history = scrub(history)
 json.dump({
   'fixtureId': 'missed-call-${CASE}',
   'workflowType': 'runCompiledWorkflow',

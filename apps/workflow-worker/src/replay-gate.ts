@@ -24,7 +24,7 @@ export const FIXTURE_DIR = fileURLToPath(
   new URL('../test/replay-fixtures/golden', import.meta.url),
 );
 
-/** Load committed golden fixtures (`<fixtureId>.history.json`, written by the capture flag on the e2e). */
+/** Load committed golden fixtures (`<fixtureId>.history.json`, written by `scripts/capture-replay-fixtures.sh`). */
 export function loadFixtures(
   dir: string = FIXTURE_DIR,
 ): ReplayHistoryFixture[] {

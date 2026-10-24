@@ -34,7 +34,7 @@
      },
      "workflowTaskTimeout": "10s",
      "originalExecutionRunId": "019f6eb9-66a8-7b16-a376-eb4e583b513f",
-     "identity": "48379@Eds-MacBook-Pro-2.local",
+     "identity": "1@hermes-replay-capture",
      "firstExecutionRunId": "019f6eb9-66a8-7b16-a376-eb4e583b513f",
      "attempt": 1,
      "firstWorkflowTaskBackoff": "0s",
@@ -63,7 +63,7 @@
     "taskId": "2099888",
     "workflowTaskStartedEventAttributes": {
      "scheduledEventId": "2",
-     "identity": "48379@Eds-MacBook-Pro-2.local",
+     "identity": "1@hermes-replay-capture",
      "requestId": "bf748c25-c264-4ecd-881e-0bc2ebab8ad7",
      "historySizeBytes": "693",
      "workerVersion": {
@@ -79,7 +79,7 @@
     "workflowTaskCompletedEventAttributes": {
      "scheduledEventId": "2",
      "startedEventId": "3",
-     "identity": "48379@Eds-MacBook-Pro-2.local",
+     "identity": "1@hermes-replay-capture",
      "workerVersion": {
       "buildId": "@temporalio/worker@1.20.2+04415c83707dcded5c078b787f1262c90396b7c053fee850c4c36721883a54cc"
      },
@@ -156,7 +156,7 @@
     "taskId": "2099900",
     "activityTaskStartedEventAttributes": {
      "scheduledEventId": "5",
-     "identity": "48379@Eds-MacBook-Pro-2.local",
+     "identity": "1@hermes-replay-capture",
      "requestId": "4e7de79a-e1e2-4057-8d46-ec8dc63d8ad7",
      "attempt": 1,
      "workerVersion": {
@@ -182,7 +182,7 @@
      },
      "scheduledEventId": "5",
      "startedEventId": "6",
-     "identity": "48379@Eds-MacBook-Pro-2.local"
+     "identity": "1@hermes-replay-capture"
     }
    },
    {
@@ -192,7 +192,7 @@
     "taskId": "2099902",
     "workflowTaskScheduledEventAttributes": {
      "taskQueue": {
-      "name": "48379@Eds-MacBook-Pro-2.local-4515f1b6f15243e9b8e7d9bfceab2a20",
+      "name": "1@hermes-replay-capture-4515f1b6f15243e9b8e7d9bfceab2a20",
       "kind": "TASK_QUEUE_KIND_STICKY",
       "normalName": "hermes-workflow"
      },
@@ -207,7 +207,7 @@
     "taskId": "2099906",
     "workflowTaskStartedEventAttributes": {
      "scheduledEventId": "8",
-     "identity": "48379@Eds-MacBook-Pro-2.local",
+     "identity": "1@hermes-replay-capture",
      "requestId": "a54dc346-008a-48f5-a034-8ef85eeb7d09",
      "historySizeBytes": "3011",
      "workerVersion": {
@@ -223,7 +223,7 @@
     "workflowTaskCompletedEventAttributes": {
      "scheduledEventId": "8",
      "startedEventId": "9",
-     "identity": "48379@Eds-MacBook-Pro-2.local",
+     "identity": "1@hermes-replay-capture",
      "workerVersion": {
       "buildId": "@temporalio/worker@1.20.2+04415c83707dcded5c078b787f1262c90396b7c053fee850c4c36721883a54cc"
      },
@@ -292,7 +292,7 @@
     "taskId": "2099917",
     "activityTaskStartedEventAttributes": {
      "scheduledEventId": "11",
-     "identity": "48379@Eds-MacBook-Pro-2.local",
+     "identity": "1@hermes-replay-capture",
      "requestId": "fcc3ff73-b733-4e28-a9d2-ef49544dc059",
      "attempt": 1,
      "workerVersion": {
@@ -318,7 +318,7 @@
      },
      "scheduledEventId": "11",
      "startedEventId": "12",
-     "identity": "48379@Eds-MacBook-Pro-2.local"
+     "identity": "1@hermes-replay-capture"
     }
    },
    {
@@ -328,7 +328,7 @@
     "taskId": "2099919",
     "workflowTaskScheduledEventAttributes": {
      "taskQueue": {
-      "name": "48379@Eds-MacBook-Pro-2.local-4515f1b6f15243e9b8e7d9bfceab2a20",
+      "name": "1@hermes-replay-capture-4515f1b6f15243e9b8e7d9bfceab2a20",
       "kind": "TASK_QUEUE_KIND_STICKY",
       "normalName": "hermes-workflow"
      },
@@ -343,7 +343,7 @@
     "taskId": "2099923",
     "workflowTaskStartedEventAttributes": {
      "scheduledEventId": "14",
-     "identity": "48379@Eds-MacBook-Pro-2.local",
+     "identity": "1@hermes-replay-capture",
      "requestId": "a40c0308-60ed-48c9-a87a-dbd28dd2cb37",
      "historySizeBytes": "5251",
      "workerVersion": {
@@ -359,7 +359,7 @@
     "workflowTaskCompletedEventAttributes": {
      "scheduledEventId": "14",
      "startedEventId": "15",
-     "identity": "48379@Eds-MacBook-Pro-2.local",
+     "identity": "1@hermes-replay-capture",
      "workerVersion": {
       "buildId": "@temporalio/worker@1.20.2+04415c83707dcded5c078b787f1262c90396b7c053fee850c4c36721883a54cc"
      },
@@ -428,7 +428,7 @@
     "taskId": "2099934",
     "activityTaskStartedEventAttributes": {
      "scheduledEventId": "17",
-     "identity": "48379@Eds-MacBook-Pro-2.local",
+     "identity": "1@hermes-replay-capture",
      "requestId": "0bcd4071-35a7-417a-a2c7-67d7aa9ae3a7",
      "attempt": 1,
      "workerVersion": {
@@ -454,7 +454,7 @@
      },
      "scheduledEventId": "17",
      "startedEventId": "18",
-     "identity": "48379@Eds-MacBook-Pro-2.local"
+     "identity": "1@hermes-replay-capture"
     }
    },
    {
@@ -464,7 +464,7 @@
     "taskId": "2099936",
     "workflowTaskScheduledEventAttributes": {
      "taskQueue": {
-      "name": "48379@Eds-MacBook-Pro-2.local-4515f1b6f15243e9b8e7d9bfceab2a20",
+      "name": "1@hermes-replay-capture-4515f1b6f15243e9b8e7d9bfceab2a20",
       "kind": "TASK_QUEUE_KIND_STICKY",
       "normalName": "hermes-workflow"
      },
@@ -479,7 +479,7 @@
     "taskId": "2099940",
     "workflowTaskStartedEventAttributes": {
      "scheduledEventId": "20",
-     "identity": "48379@Eds-MacBook-Pro-2.local",
+     "identity": "1@hermes-replay-capture",
      "requestId": "6ee42b4d-7458-4193-98f6-6e712437782a",
      "historySizeBytes": "7530",
      "workerVersion": {
@@ -495,7 +495,7 @@
     "workflowTaskCompletedEventAttributes": {
      "scheduledEventId": "20",
      "startedEventId": "21",
-     "identity": "48379@Eds-MacBook-Pro-2.local",
+     "identity": "1@hermes-replay-capture",
      "workerVersion": {
       "buildId": "@temporalio/worker@1.20.2+04415c83707dcded5c078b787f1262c90396b7c053fee850c4c36721883a54cc"
      },
@@ -564,7 +564,7 @@
     "taskId": "2099951",
     "activityTaskStartedEventAttributes": {
      "scheduledEventId": "23",
-     "identity": "48379@Eds-MacBook-Pro-2.local",
+     "identity": "1@hermes-replay-capture",
      "requestId": "46bedfef-88b5-4619-a7e6-e9841fed18ac",
      "attempt": 1,
      "workerVersion": {
@@ -589,7 +589,7 @@
      },
      "scheduledEventId": "23",
      "startedEventId": "24",
-     "identity": "48379@Eds-MacBook-Pro-2.local"
+     "identity": "1@hermes-replay-capture"
     }
    },
    {
@@ -599,7 +599,7 @@
     "taskId": "2099953",
     "workflowTaskScheduledEventAttributes": {
      "taskQueue": {
-      "name": "48379@Eds-MacBook-Pro-2.local-4515f1b6f15243e9b8e7d9bfceab2a20",
+      "name": "1@hermes-replay-capture-4515f1b6f15243e9b8e7d9bfceab2a20",
       "kind": "TASK_QUEUE_KIND_STICKY",
       "normalName": "hermes-workflow"
      },
@@ -614,7 +614,7 @@
     "taskId": "2099957",
     "workflowTaskStartedEventAttributes": {
      "scheduledEventId": "26",
-     "identity": "48379@Eds-MacBook-Pro-2.local",
+     "identity": "1@hermes-replay-capture",
      "requestId": "6b931352-856f-4abe-aad6-f1140b412daf",
      "historySizeBytes": "8845",
      "workerVersion": {
@@ -630,7 +630,7 @@
     "workflowTaskCompletedEventAttributes": {
      "scheduledEventId": "26",
      "startedEventId": "27",
-     "identity": "48379@Eds-MacBook-Pro-2.local",
+     "identity": "1@hermes-replay-capture",
      "workerVersion": {
       "buildId": "@temporalio/worker@1.20.2+04415c83707dcded5c078b787f1262c90396b7c053fee850c4c36721883a54cc"
      },
@@ -699,7 +699,7 @@
     "taskId": "2099968",
     "activityTaskStartedEventAttributes": {
      "scheduledEventId": "29",
-     "identity": "48379@Eds-MacBook-Pro-2.local",
+     "identity": "1@hermes-replay-capture",
      "requestId": "409325f8-fb0b-4a13-9910-76355369bb60",
      "attempt": 1,
      "workerVersion": {
@@ -725,7 +725,7 @@
      },
      "scheduledEventId": "29",
      "startedEventId": "30",
-     "identity": "48379@Eds-MacBook-Pro-2.local"
+     "identity": "1@hermes-replay-capture"
     }
    },
    {
@@ -735,7 +735,7 @@
     "taskId": "2099970",
     "workflowTaskScheduledEventAttributes": {
      "taskQueue": {
-      "name": "48379@Eds-MacBook-Pro-2.local-4515f1b6f15243e9b8e7d9bfceab2a20",
+      "name": "1@hermes-replay-capture-4515f1b6f15243e9b8e7d9bfceab2a20",
       "kind": "TASK_QUEUE_KIND_STICKY",
       "normalName": "hermes-workflow"
      },
@@ -750,7 +750,7 @@
     "taskId": "2099974",
     "workflowTaskStartedEventAttributes": {
      "scheduledEventId": "32",
-     "identity": "48379@Eds-MacBook-Pro-2.local",
+     "identity": "1@hermes-replay-capture",
      "requestId": "54f57862-7bce-46ad-ab03-47dc15f5e747",
      "historySizeBytes": "10279",
      "workerVersion": {
@@ -766,7 +766,7 @@
     "workflowTaskCompletedEventAttributes": {
      "scheduledEventId": "32",
      "startedEventId": "33",
-     "identity": "48379@Eds-MacBook-Pro-2.local",
+     "identity": "1@hermes-replay-capture",
      "workerVersion": {
       "buildId": "@temporalio/worker@1.20.2+04415c83707dcded5c078b787f1262c90396b7c053fee850c4c36721883a54cc"
      },

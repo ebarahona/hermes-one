@@ -1,6 +1,6 @@
-// Hermetic proof of the Slice 1+2 REST surface — boots the real LB4 RestApplication on an ephemeral
+// Hermetic proof of the REST surface — boots the real LB4 RestApplication on an ephemeral
 // port with Persistence OFF (no backing stack) and drives the sequence + AUTH-3 api-key path over
-// HTTP. Runs in `pnpm test` and the CI `verify` job. The datasource-backed roles route (Slice 3) is
+// HTTP. Runs in `pnpm test` and the CI `verify` job. The datasource-backed roles route is
 // covered by roles-route.itest.ts (live PG); the `node dist/e2e.js` smoke asserts both.
 import 'reflect-metadata';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
@@ -46,7 +46,7 @@ afterAll(async () => {
   await app?.stop();
 });
 
-describe('admin-api REST surface (Slice 1+2)', () => {
+describe('admin-api REST surface', () => {
   it('serves the public health route with a minted correlation id', async () => {
     const res = await fetch(`${base}/v1/healthz`);
     expect(res.status).toBe(200);

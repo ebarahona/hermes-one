@@ -293,7 +293,7 @@ export async function installVerticalPack(
 }
 
 /**
- * The electrician vertical (Pack E) — the seed vertical, kept as a named entry point for the e2es.
+ * The electrician vertical — the seed vertical, kept as a named entry point for the e2es.
  * A new vertical needs NO new installer: call installVerticalPack with its pack path.
  */
 export function installElectricianPack(

@@ -11,12 +11,12 @@
 // here would double-envelope.
 //
 // TWO LIBRARY DELTAS (flagged, not improvised — see DEFERRED-AND-FLAGGED):
-//  1. The projection design calls `registerTool(name, opts)` on the agentback app. agentback 0.7.1 has
+//  1. The original plan was to call `registerTool(name, opts)` on the agentback app. agentback 0.7.1 has
 //     no such API: `@tool` is a plain legacy decorator that writes ToolMetadata into reflect-metadata
 //     under 'mcp:tool', and `MCPServer.callTool` resolves by exact `===` on `meta.name`. The faithful
 //     realization is to apply the shipped decorator programmatically and hand the resulting
 //     ToolBinding to `callTool` via `CallToolOptions.binding`.
-//  2. The projection design projects the whole manifest once "at deployment activation". This worker is a
+//  2. The original plan projected the whole manifest once "at deployment activation". This worker is a
 //     multi-tenant singleton, so an app-level registry keyed by tool NAME cannot hold two tenants'
 //     different contracts for the same capability (ToolProjectionReport.conflicts
 //     anticipates the collision but not the multi-tenant case). We project PER TURN into bindings

@@ -1,4 +1,4 @@
-// Integration test against the live backing stack (Postgres :5433). Proves the remaining 21-table catalog
+// Integration test against the live backing stack (Postgres :5433). Proves the remaining 21-table schema
 // (migrations 0019–0027) is real and correctly isolated: the tenant/capability/event tables enforce RLS
 // (strict + nullable-tenant), the substrate reconciliation views apply base-table RLS via
 // security_invoker (no cross-tenant leak through a view), and a representative partial-unique holds.

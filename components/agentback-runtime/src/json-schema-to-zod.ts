@@ -4,8 +4,8 @@
 // Schema object is NOT accepted), so the projector reconstitutes Zod here.
 //
 // TWO RULES, both load-bearing:
-//  1. NEVER produce a validator weaker than the authored contract. The projection design
-//     flags the round-trip as lossy for constructs that don't serialize; a silent degrade would hand
+//  1. NEVER produce a validator weaker than the authored contract. The JSON Schema
+//     round-trip is lossy for constructs that don't serialize; a silent degrade would hand
 //     the model a validator weaker than the contract, so anything we cannot faithfully rebuild THROWS
 //     and the projector skips + reports that capability rather than shipping a hole.
 //  2. Handle what the platform ACTUALLY emits. Contracts are Zod-first with JSON Schema generated

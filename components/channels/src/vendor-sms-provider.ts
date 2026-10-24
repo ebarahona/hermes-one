@@ -7,7 +7,7 @@
 // synthesized by the CapabilityInvoker upstream). A per-provider circuit breaker surfaces through
 // status() so the resolver skips the vendor after repeated failures and fails over to the log provider.
 //
-// FLAGGED (JIT): the breaker state is in-process (one worker instance). A multi-instance deployment
+// FLAGGED: the breaker state is in-process (one worker instance). A multi-instance deployment
 // needs a shared breaker (Redis) — the follow-up owned by the Redis idempotency/locks/rate-limit pack.
 // This is authored to the provider and capability contracts.
 import {createHash} from 'node:crypto';

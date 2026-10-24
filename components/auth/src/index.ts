@@ -1,7 +1,7 @@
 // @hermes-one/auth — edge component (AUTH-3).
 // The edge authentication plane: strategy registry (extension point), principal mapper, and the
 // api-key strategy + its config/seed-backed store. Wired into the LB4 REST sequence's authentication
-// slot (loopback-core). oidc/bearer + Redis session/JWKS verifiers layer in next (Slice 4).
+// slot (loopback-core). oidc/bearer + Redis session/JWKS verifiers layer in next.
 export const descriptor = {
   name: '@hermes-one/auth',
   role: 'component',

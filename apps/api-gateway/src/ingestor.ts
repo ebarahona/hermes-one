@@ -6,7 +6,7 @@
 // provider metadata the channel transport already normalized). The workflowId is derived from the
 // provider message id, so a replayed webhook dedupes at the Temporal level.
 //
-// Flagged (JIT): rule parameters (serviceZips) come from a demo config here — in production they are
+// Flagged: rule parameters (serviceZips) come from a demo config here — in production they are
 // tenant configuration.
 import type {Client} from '@temporalio/client';
 import type {CompiledPlanStore} from '@hermes-one/drizzle';
@@ -32,7 +32,7 @@ export interface IngestDeps {
   /** Role→scope resolution (AUTH-2): the acting principal's scopes come from roles PER REQUEST. */
   roles: RoleRegistry;
   client: Client;
-  /** Rule parameters per tenant (demo stand-in for tenant configuration). */
+  /** Rule parameters per tenant (demo default for tenant configuration). */
   parametersFor: (tenantId: TenantId) => Record<string, unknown>;
   clock?: () => Date;
 }

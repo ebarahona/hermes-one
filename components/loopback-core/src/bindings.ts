@@ -1,9 +1,9 @@
-// PlatformBindings — every edge/data-plane (`@loopback/context`) binding key, transcribed from
-// the binding-key registry design. All keys are strings of the form `platform.<area>.<name>`.
+// PlatformBindings — every edge/data-plane (`@loopback/context`) binding key.
+// All keys are strings of the form `platform.<area>.<name>`.
 //
 // Design notes (flagged, not improvised):
-// - The design places this file in `packages/agent-platform-internal/bindings`; this repo hosts it in
-//   `components/loopback-core` (edge) so `@hermes-one/contracts` stays free of any container dependency
+// - This file lives in `components/loopback-core` (edge), not in contracts, so `@hermes-one/contracts`
+//   stays free of any container dependency
 //   (BindingKey.create is an @loopback/context API; contracts is plane-neutral).
 // - Keys whose PORT TYPE does not exist yet are NOT declared (declaring them typed `unknown` would
 //   invite untyped resolution). Pending, with their type owner:
@@ -11,8 +11,8 @@
 //   TRACER (OTel SDK pending, OB5), TENANT_RESOLVER / TENANT_RUNTIME_* (tenant registry, CT1/CT2),
 //   MEMORY_PROVIDER (memory pack unbuilt), AGENTBACK_BRIDGE (`AgentBackBridge` type pack-owned),
 //   WORKFLOW_VERSION_ANALYZER + admin/config-subtree keys (their packs are unbuilt).
-// - `platform.data.*` repository keys: the binding-key registry design defers these to the database pack's
-//   own registry; the canonical ones documented there (`event-outbox-repository`,
+// - `platform.data.*` repository keys: these belong to the database pack's
+//   own registry; the canonical ones (`event-outbox-repository`,
 //   `event-outbox-publisher`, `handoff-repository`) are used verbatim; the rest follow the same
 //   `platform.data.<name>` grammar (flagged).
 import {BindingKey} from '@loopback/context';
@@ -107,7 +107,7 @@ export namespace PlatformBindings {
   );
 
   // ── datasources (singletons) ────────────────────────────────────────────
-  /** Spec type `PostgresDatabase` (@hermes-one/data, unbuilt) — the repo's PlatformDbHandle carries
+  /** Originally typed `PostgresDatabase` (@hermes-one/data, unbuilt) — the repo's PlatformDbHandle carries
    *  the drizzle db + pool the lifecycle observer needs (flagged). */
   export const POSTGRES = BindingKey.create<PlatformDbHandle>(
     'platform.data.postgres',

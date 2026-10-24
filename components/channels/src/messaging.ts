@@ -1,7 +1,7 @@
 // The messaging.reply.send capability + an internal message-log provider (edge plane). The provider is
 // the real outbound side effect: it persists an OutboundMessage row to runtime.messages (tenant-scoped,
 // idempotent), replacing the invokeCapability console.log. A vendor SMS/WhatsApp adapter is a later swap
-// behind the same ProviderAdapter port. NOTE: this contract is authored JIT against the capability and provider contracts.
+// behind the same ProviderAdapter port. NOTE: this contract is authored on demand against the capability and provider contracts.
 import {createHash} from 'node:crypto';
 import {
   CapabilityContract,

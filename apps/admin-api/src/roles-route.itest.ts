@@ -1,4 +1,4 @@
-// Live-PG integration for the first datasource-backed admin route (Slice 3): boots the real
+// Live-PG integration for the first datasource-backed admin route: boots the real
 // admin-api WITH Persistence (shared pool + RLS boot gate) on an ephemeral port and drives
 // GET /v1/tenants/{tenantId}/roles over HTTP with real api-key principals. Proves: scope gate
 // (tenant.role.read → 200 / missing → 403), tenant boundary (another tenant's path → 403), and that

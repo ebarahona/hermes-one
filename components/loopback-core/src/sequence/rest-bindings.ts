@@ -1,5 +1,5 @@
 // REST-surface-local binding keys (grammar `platform.<area>.<name>`).
-// Kept out of the global PlatformBindings until they graduate past the admin-api slice.
+// Kept out of the global PlatformBindings until they graduate past the admin-api.
 import {BindingKey} from '@loopback/core';
 
 /** Path prefixes that bypass the fail-closed authentication slot (default: health only). App-scoped. */

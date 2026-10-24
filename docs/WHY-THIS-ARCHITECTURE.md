@@ -37,7 +37,7 @@ This is what separates a multi-step business process from a request that happene
 Retries are classed rather than uniform — guarded writes and model calls are `maxAttempts: 1`, so a
 retry can never double-charge or double-send, while transient infrastructure faults retry freely.
 
-_Enforced:_ `temporal/retry-policy-registry` transcribed verbatim — six retry classes, generated
+_Enforced:_ the retry-policy registry in `infrastructure/temporal-client` — six retry classes, generated
 non-retryable error types, applied at both workers. _Proven:_ three end-to-end flows on a real
 Temporal server, each re-run to confirm idempotency.
 
@@ -115,8 +115,8 @@ Every claim above is exercised by the suite that runs on each push, plus manual 
 
 | Gate                                       | Result                                                                 |
 | ------------------------------------------ | ---------------------------------------------------------------------- |
-| Unit suite                                 | 268 passing                                                            |
-| Integration suite (live PostgreSQL, Redis) | 136 passing, run twice, zero drift                                     |
+| Unit suite                                 | 331 passing                                                            |
+| Integration suite (live PostgreSQL, Redis) | 137 passing, run twice, zero drift                                     |
 | Interpreter replay gate                    | 3/3 golden histories, no nondeterminism                                |
 | End-to-end on real Temporal                | missed-call · signed webhook (live replay attack rejected) · admin API |
 | End-to-end with a live model               | 3-plane triage · the electrician vertical, tool-backed                 |

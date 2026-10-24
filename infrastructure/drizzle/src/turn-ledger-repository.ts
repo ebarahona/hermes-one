@@ -109,7 +109,7 @@ export async function insertTurnLedger(
       )
       // No target: collapse on EITHER unique constraint — the tool_call_id PK OR the
       // (tenant_id, idempotency_key) unique index (a retried tool call = same logical op, per the
-      // catalog's per-tenant idempotency dedup). Targeting only the PK would let an idempotency-key
+      // schema's per-tenant idempotency dedup). Targeting only the PK would let an idempotency-key
       // conflict throw (23505) and fail the activity.
       .onConflictDoNothing();
   }

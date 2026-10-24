@@ -7,7 +7,7 @@
 // dedupeKey (replay-safe).
 //
 // FLAGGED (DEFERRED-AND-FLAGGED AU1): the single source of truth for tokens/cost is agentback's metering
-// stream (T7). This build meters the turn's self-reported usage totals as an interim stand-in until that
+// stream (T7). This build meters the turn's self-reported usage totals as an interim placeholder until that
 // stream is wired. message.sent / storage.vector meters belong to the channel / vector layers.
 import {createHash} from 'node:crypto';
 import {

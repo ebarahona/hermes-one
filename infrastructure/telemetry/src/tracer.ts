@@ -4,11 +4,11 @@
 // span is parented by passing that string, never by relying on ambient async-hooks context (which does
 // not survive a Temporal serialization boundary / the deterministic sandbox).
 //
-// JIT (flagged): the contract names the binding `platform.telemetry.tracer: Tracer` but gives no TS method
+// Flagged: the contract names the binding `platform.telemetry.tracer: Tracer` but gives no TS method
 // shape for `Tracer` (only the trace-header + interceptor interfaces). This `Tracer`/`SpanScope` port is
-// authored JIT to the canonical binding key + the span tree (names/attributes), the same
+// authored on demand to the canonical binding key + the span tree (names/attributes), the same
 // way `Logger`/`Meter` were. The `traceparent`-only parenting model is the faithful realization of the
-// doc's "explicit-header, never ambient" propagation contract.
+// "explicit-header, never ambient" propagation contract.
 import {
   ROOT_CONTEXT,
   SpanStatusCode,
@@ -45,7 +45,7 @@ export interface SpanScope {
   end(opts?: {ok?: boolean; error?: Error}): void;
 }
 
-/** platform.telemetry.tracer — the explicit-propagation tracer port (JIT to the binding key). */
+/** platform.telemetry.tracer — the explicit-propagation tracer port (on demand, to the binding key). */
 export interface Tracer {
   /** Start a span. `parentTraceparent` (if a valid W3C header) makes this a child of that span's trace;
    *  absent/invalid → a new root trace. Attributes are set at start. */

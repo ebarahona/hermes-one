@@ -2,8 +2,8 @@
 // `platform.extensions.authStrategies`), the DefaultPrincipalMapper (sole writer of
 // platform.request.principal), and contributes the api-key strategy as a tagged extension. The
 // composition root supplies the request-shaped bits it can't: the ApiKeyStore (config/seed) and the
-// AuthConfig — same split as the ChannelComponent + credential store. Slice 2 registers one strategy;
-// oidc/bearer + its verifiers are added the same way (Slice 4).
+// AuthConfig — same split as the ChannelComponent + credential store. Currently one strategy is registered;
+// oidc/bearer + its verifiers are added the same way.
 import {Binding, BindingScope, type Component, CoreTags} from '@loopback/core';
 import type {PlatformComponentBoundary} from '@hermes-one/loopback-core';
 import {

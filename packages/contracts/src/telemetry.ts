@@ -2,11 +2,11 @@
 // Observability correlation + structured logging + redaction + the metrics catalog + trace-propagation
 // interfaces. Covers correlation, metrics, logging, redaction, and tracing.
 // IMPLEMENTED in @hermes-one/telemetry: the structured Logger + Redactor. Meter + the Temporal
-// trace interceptors are transcribed as interfaces only — impl deferred (needs the OTel SDK + Temporal
+// trace interceptors are declared as interfaces only — impl deferred (needs the OTel SDK + Temporal
 // interceptors; DEFERRED-AND-FLAGGED OB5).
 // NOTE: the contract brands workflowId (WorkflowId) + nodeId (NodeId); WorkflowId has no substrate brand and
 // NodeId lives in workflow.ts — typed here as `string | null` to keep this module dependency-light
-// (flagged). Logger/Meter interfaces are JIT to the canonical binding keys (platform.telemetry.*).
+// (flagged). Logger/Meter interfaces follow the canonical binding keys (platform.telemetry.*).
 import {TenantId, WorkspaceId, ConversationId, TurnId} from './substrate.js';
 
 /* --------------------- Correlation (the id bag) ------------------------- */
@@ -73,7 +73,7 @@ export interface SloTarget {
   readonly windowDays: number;
 }
 
-/** platform.telemetry.meter — JIT interface (impl deferred to the OTel wiring). */
+/** platform.telemetry.meter — on-demand interface (impl deferred to the OTel wiring). */
 export interface Meter {
   increment(
     metric: MetricName,
@@ -102,7 +102,7 @@ export interface LogRecord {
   readonly fields: Record<string, unknown>;
 }
 
-/** platform.telemetry.logger — JIT interface to the canonical binding key. */
+/** platform.telemetry.logger — on-demand interface to the canonical binding key. */
 export interface Logger {
   log(record: LogRecord): void;
 }
@@ -124,7 +124,7 @@ export interface Redactor {
 }
 
 /* -------------------------------- Tracing -------------------------------- */
-// Transcribed; impl deferred (Temporal workflow/activity interceptors + OTel SDK — OB5).
+// Interfaces only; impl deferred (Temporal workflow/activity interceptors + OTel SDK — OB5).
 
 /** W3C traceparent, carried explicitly across the Temporal serialization boundary. */
 export interface TraceHeader {

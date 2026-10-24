@@ -13,7 +13,7 @@
 //
 // FLAGGED: the poll is PER-TENANT (withTenant → RLS) because the cross-tenant relay role
 // (`platform-admin`) is an UNRESOLVED question — this
-// build never invents a bypass-capable role. The tenant list is injected (config stand-in; the real
+// build never invents a bypass-capable role. The tenant list is injected (config placeholder; the real
 // source is the tenant registry, blocked on CT1).
 import {and, asc, eq, sql} from 'drizzle-orm';
 import type {

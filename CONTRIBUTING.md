@@ -7,7 +7,6 @@ must pass, and the conventions the codebase follows.
 
 - Node.js ≥ 22.13 and pnpm 11 (`corepack enable` picks up the pinned version)
 - Docker, for the local stack (Temporal, PostgreSQL, Redis, Qdrant, OpenTelemetry collector)
-- The [Temporal CLI](https://docs.temporal.io/cli), for the replay gate fixtures
 - Any OpenAI-compatible LLM endpoint, for the live agent end-to-end runs (see the README)
 
 ## Setup
@@ -63,7 +62,9 @@ CI runs the same checks on every push and pull request.
   only for a genuinely new platform capability.
 - **Every read and write is tenant-scoped.** New tenant tables need row-level security policies.
 - **Workflow changes must stay deterministic.** If you change interpreter control flow, run the replay
-  gate and follow the versioning discipline in ADR-029.
+  gate and follow the versioning discipline in ADR-029. Capturing new replay-gate fixtures uses
+  `apps/workflow-worker/scripts/capture-replay-fixtures.sh` against the compose stack (it runs the
+  Temporal CLI inside the compose container; no local CLI install is needed).
 - **Deliberate gaps are recorded.** If a change intentionally leaves something unfinished, add a row to
   `docs/DEFERRED-AND-FLAGGED.md` rather than leaving it implicit.
 - **Architecture decisions** that change a governing rule are recorded as ADRs in `docs/adr/README.md`.

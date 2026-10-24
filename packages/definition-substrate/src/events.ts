@@ -1,5 +1,5 @@
 // Substrate lifecycle audit events (domain events): `definition.published` (fires for
-// kind:'capability' definitions — the catalog's own trigger column) and `deployment.published`
+// kind:'capability' definitions — the schema's own trigger column) and `deployment.published`
 // (DeploymentService.publish). Both are OUTBOX-BACKED with aggregate.type 'audit_event': the audit
 // row IS the domain event, and the write port commits row + audit + outbox in ONE transaction
 // (commit-and-publish — the same F3 rule persistTurnAtomic enforces for turns).

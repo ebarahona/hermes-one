@@ -44,10 +44,10 @@ export const OidcIssuerConfig = z.object({
 export type OidcIssuerConfig = z.infer<typeof OidcIssuerConfig>;
 
 /**
- * AuthConfig. Slice 2 shipped `apiKey`; Slice 4 adds the optional `oidc` block. The `oidc` strategy is
+ * AuthConfig. `apiKey` shipped first; the optional `oidc` block was added later. The `oidc` strategy is
  * INERT when the block is absent (no JWKS/issuers) — so a stackless deployment stays api-key-only. The
  * remaining fields (strategyOrder, session, stepUp — design 001 Configuration) land with the
- * session/cookie branch. The AuthConfig design is JSON-Schema-only; this is the Zod source (Zod-first).
+ * session/cookie branch. This is the Zod source for AuthConfig (Zod-first, ADR-020).
  */
 export const AuthConfig = z.object({
   apiKey: z.object({

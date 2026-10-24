@@ -1,6 +1,6 @@
 // @hermes-one/scheduler — internal-scheduler provider (none plane). Named by the platform's
 // canonical examples and realizes the platform capability appointment.slot.read. There is no appointment/slot table in the
-// canonical 21-table catalog, so this is the ADR-013 "genuinely new platform capability" code exception —
+// canonical 21-table schema, so this is the ADR-013 "genuinely new platform capability" code exception —
 // a real deployment resolves slots from the tenant's own scheduler vendor behind this same
 // ProviderAdapter port. Until that vendor adapter exists, slots are read straight off
 // ProviderExecutionContext.config (the provider configKey seam) — never a platform table.
@@ -25,7 +25,7 @@ export interface SlotReadResult {
   slots: string[];
 }
 
-/** Config-driven appointment.slot.read stand-in — see file header for why this isn't table-backed. */
+/** Config-driven appointment.slot.read placeholder — see file header for why this isn't table-backed. */
 export class InternalSchedulerProvider implements ProviderAdapter<
   SlotReadInput,
   SlotReadResult

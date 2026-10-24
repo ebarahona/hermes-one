@@ -483,7 +483,7 @@ describe('bounded post-gate repair (ADR-019, A2)', () => {
   });
 });
 
-describe('turn budget enforcement (over-budget short-circuits, agent-runtime-contracts "Bounded loop")', () => {
+describe('turn budget enforcement (over-budget short-circuits the bounded loop)', () => {
   // The fixture's budgets: maxInputTokens 8000, maxOutputTokens 2000, maxModelCostUsd 1.
   const costly = {inputTokens: 10, outputTokens: 10, costUsd: 2}; // over maxModelCostUsd
   const modest = {inputTokens: 100, outputTokens: 50, costUsd: 0.01}; // within every bound

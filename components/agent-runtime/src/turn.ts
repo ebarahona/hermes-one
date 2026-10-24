@@ -68,7 +68,7 @@ export interface TurnLedgerHandoff {
 /**
  * The durable ledger a completed turn emits for persistence. Uses only contract types so the agent
  * plane stays free of any store dependency — the edge composition maps it onto the Drizzle repo
- * (no canonical turn-ledger port is defined; this seam is authored JIT).
+ * (no canonical turn-ledger port is defined; this seam is authored on demand).
  */
 export interface TurnLedger {
   turnId: TurnId;

@@ -55,7 +55,7 @@ export const HermesConfig = z.object({
     .object({masterKey: z.string().regex(/^[0-9a-f]{64}$/i)})
     .optional(),
   // Transactional-outbox publisher. The loop drains
-  // per tenant under RLS — the tenant list is a config stand-in until the tenant registry exists
+  // per tenant under RLS — the tenant list is a config placeholder until the tenant registry exists
   // (CT1/CT2; the cross-tenant relay role is an unresolved question). Empty tenants → loop off.
   outbox: z.object({
     pollIntervalMs: z.coerce.number().int().min(100),

@@ -35,7 +35,7 @@ export interface GatewayConfig {
   signingSecret?: string;
   /** Destination-number → tenant map (a signed webhook only reaches the tenant that owns the number). */
   tenantByNumber: TenantByNumber;
-  /** Rule parameters per tenant (demo stand-in for tenant configuration). */
+  /** Rule parameters per tenant (demo default for tenant configuration). */
   parametersFor: (tenantId: TenantId) => Record<string, unknown>;
 }
 

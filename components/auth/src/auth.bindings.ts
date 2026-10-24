@@ -1,6 +1,6 @@
 // AuthBindings — the `platform.auth.*` edge-plane binding keys,
-// Slice 2 declares the keys the api-key path uses + CONFIG; the oidc/session/webhook/service-identity
-// verifier keys land with their strategies (Slice 4+). CONFIG is typed to the component's AuthConfig
+// The api-key increment declares the keys the api-key path uses + CONFIG; the oidc/session/webhook/service-identity
+// verifier keys land with their strategies (later). CONFIG is typed to the component's AuthConfig
 // (imported from ./contracts).
 import {BindingKey} from '@loopback/context';
 import type {

@@ -1,4 +1,4 @@
-// Live-PG integration for the OIDC bearer path (Slice 4): boots admin-api WITH Persistence + an
+// Live-PG integration for the OIDC bearer path: boots admin-api WITH Persistence + an
 // oidc-configured JoseJwtVerifier (local RS256 key, local JWKS — no network) and drives /v1/whoami
 // with a real signed bearer JWT. Proves the full human path end-to-end: JWT verified → user Principal
 // minted with tenant from the tenant claim and SCOPES RESOLVED per-request via the RLS-enforced
@@ -89,7 +89,7 @@ describe('OIDC bearer path (live)', () => {
     };
     expect(me.kind).toBe('user');
     expect(me.tenantId).toBe(TENANT);
-    expect(me.principalId).toBe('prn_auth0adminitest'); // derived from sub (JIT)
+    expect(me.principalId).toBe('prn_auth0adminitest'); // derived from sub
     // Scopes resolved from the platform `customer` role (migration 0029), per-request via RLS registry.
     expect(me.scopes).toEqual(
       expect.arrayContaining([

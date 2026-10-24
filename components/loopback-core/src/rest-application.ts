@@ -3,7 +3,7 @@
 // middleware/interceptor chain on the RestApplication root.
 //
 // Design notes (flagged, not improvised):
-// - The bootstrap doc keeps ONE class name `PlatformApplication` for both REST-listening and
+// - The original plan kept ONE class name `PlatformApplication` for both REST-listening and
 //   non-listening edge apps ("Reuse one composition-root base; override serve()"). This repo
 //   instead introduces a SEPARATE `PlatformRestApplication extends RestApplication` and leaves the
 //   existing `PlatformApplication extends Application` untouched. Rationale: api-gateway (node:http

@@ -1,6 +1,6 @@
-// Live-PG integration for the DeploymentController writes (Slice 9) — the full substrate lifecycle over
+// Live-PG integration for the DeploymentController writes — the full substrate lifecycle over
 // admin HTTP: author (PUT) the three required members (workflow + agent-engine + policy) → preview →
-// publish → READ the active deployment (200 — closes the L1a happy-path deferred in Slice 6) → rollback.
+// publish → READ the active deployment (200 — closes the L1a happy-path deferred earlier) → rollback.
 // Plus the scope/tenant gates. Uses the minimal compilable bodies from workflow-worker/lifecycle.itest.
 // Needs the compose PG stack.
 import 'reflect-metadata';

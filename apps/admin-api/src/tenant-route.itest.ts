@@ -1,4 +1,4 @@
-// Live-PG integration for the TenantController (Slice 7): boots admin-api WITH Persistence and drives
+// Live-PG integration for the TenantController: boots admin-api WITH Persistence and drives
 // GET/PATCH /v1/tenants/{tenantId} with real api-key principals. Seeds one tenant row directly (the
 // create route is a platform-operator surface, deferred) via an owner connection with the tenant GUC
 // set, then proves: the tenant-scoped read (200 TenantContext), the tenant-scoped update (200 reflects

@@ -5,9 +5,9 @@
 // tenant claim, roles from the roles claim, SCOPES RESOLVED PER REQUEST via RoleRegistry.resolveScopes
 // (never cached — a role edit lands on the next request), authStrength derived honestly from `amr`.
 //
-// Deferred (Slice 4 = bearer branch only; flagged): the Redis SessionStore + cookie/login branch
-// (SessionStore.get/put) and step-up. JIT (flagged): the principal id is derived from `sub`
-// (`prn_<sub>`) — real user resolution against tenant.users is a later slice.
+// Deferred (this is the bearer branch only; flagged): the Redis SessionStore + cookie/login branch
+// (SessionStore.get/put) and step-up. Flagged: the principal id is derived from `sub`
+// (`prn_<sub>`) — real user resolution against tenant.users is later work.
 import {inject, injectable} from '@loopback/core';
 import {decodeJwt} from 'jose';
 import type {Request} from '@loopback/rest';

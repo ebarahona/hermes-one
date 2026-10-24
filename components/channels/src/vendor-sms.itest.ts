@@ -2,7 +2,7 @@
 // Proves Tier 1.4 end to end: VendorSmsProvider delegates to SmsChannelTransport.deliver (a REAL HTTP
 // POST over global fetch), the fake vendor returns a SID, and the authoritative runtime.messages row is
 // persisted tenant-scoped (RLS 'strict') with the real vendor id + status 'sent'. The "vendor" is a
-// local stand-in — the adapter code exercised (HTTP, auth header, form body, SID parse, persistence,
+// local placeholder — the adapter code exercised (HTTP, auth header, form body, SID parse, persistence,
 // RLS) is the real production path.
 import {createServer, type Server} from 'node:http';
 import {AddressInfo} from 'node:net';

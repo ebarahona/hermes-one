@@ -1,4 +1,4 @@
-// JIT helpers (flagged — no contract names these; they are the mechanical projections consumers
+// Helpers (flagged — no contract names these; they are the mechanical projections consumers
 // need to use the registry, not new policy):
 // - `toTemporalActivityOptions` maps an `ActivityOptionsSpec` onto Temporal's `ActivityOptions`
 //   field-for-field, dropping `rationale` (operability metadata, not a Temporal field).

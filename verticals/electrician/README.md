@@ -1,4 +1,4 @@
-# Electrician vertical (Pack E)
+# Electrician vertical
 
 The **reference vertical**, authored entirely as **data** (ADR-013 — "verticals are data, not code").
 Nothing here is industry code: `pack.json` is a data bundle of five substrate definitions plus a
@@ -19,13 +19,13 @@ code is ever compiled into the platform.
 
 ## Status
 
-- **Slice 1 (done):** the pack installs through the admin API and produces a resolvable **active
+- **Install (done):** the pack installs through the admin API and produces a resolvable **active
   deployment** for a tenant (`pack-e.itest.ts`) — proving the data-driven vertical runtime.
-- **Slice 2 (done):** a real inbound turn runs against an electrician tenant on live Temporal + the local
+- **Live turn (done):** a real inbound turn runs against an electrician tenant on live Temporal + the local
   LLM — the generic host interprets `electrician-intake` → the triage rule routes to the dispatcher agent
   node → a real bounded agent turn completes (`path=[triage,assist,end]`).
   Run note: the e2e now also requires `HERMES_CREDENTIALS_MASTER_KEY` (ADR-026 envelope store).
-- **Slice 3 (done, 2026-07-17) — TOOL-BACKED, verified live:** the dispatcher answers from real data.
+- **Tool-backed turns (done, 2026-07-17), verified live:** the dispatcher answers from real data.
   `appointment.slot.read` — the platform's canonical scheduling capability — is projected into a real
   agentback `@tool` whose body resolves the ranked `ProviderAdapter`, and `InternalSchedulerProvider`
   (`infrastructure/scheduler`) serves it. A scheduling intent drives the LLM to call the tool → real
@@ -49,7 +49,7 @@ Tracked in [`../../docs/DEFERRED-AND-FLAGGED.md`](../../docs/DEFERRED-AND-FLAGGE
 
 - **The per-vertical doc set is not yet authored** (domain model, workflow catalog, and related
   documents).
-- **PE5** — the scheduler provider is a config-driven **stand-in**: slots come from
+- **PE5** — the scheduler provider is a config-driven **placeholder**: slots come from
   `ProviderExecutionContext.config.slotTemplates` (now resolved from the tenant's OWN
   envelope-encrypted credential row — ADR-026, landed 2026-07-17; the e2e proves a tenant `rotate()`
   changes live slot output with zero deploys). A real vendor scheduler binds behind the same

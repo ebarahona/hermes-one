@@ -470,7 +470,7 @@ async function runAgentTurn(
 
   // The model only ever sees capabilities that BOTH pass the scope gate AND projected to a real
   // provider-backed tool. Offering a skipped capability would let dispatch fall through to whatever
-  // else answers to that name — the fixture path this slice retires — and pass canned data off as
+  // else answers to that name — the retired fixture path — and pass canned data off as
   // provider evidence. Fail-closed: no binding, no tool.
   const tools: DeciderTool[] = eligible
     .filter(c => projected.bindings.has(c.name))

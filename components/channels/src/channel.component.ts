@@ -6,7 +6,7 @@
 // resolver fails over when the vendor circuit is open).
 //
 // The full ChannelComponent (transport lifecycle, per-channel components as MVP expands — L1/L7)
-// grows here; this slice owns exactly what the roots used to wire inline.
+// grows here; this component owns exactly what the roots used to wire inline.
 import {Binding, CoreTags, type Component} from '@loopback/core';
 import {BindingScope, inject} from '@loopback/context';
 import {

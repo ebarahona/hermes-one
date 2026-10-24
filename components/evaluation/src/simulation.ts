@@ -4,7 +4,7 @@
 // `onPersist` sink captures the TurnLedger IN MEMORY and NEVER writes to the audit/usage/ledger tables, so
 // evaluation traffic can't contaminate real data.
 //
-// FLAGGED: the design's SimulationService.simulateWorkflow runs the WHOLE workflow through a Temporal
+// FLAGGED: a full SimulationService.simulateWorkflow would run the WHOLE workflow through a Temporal
 // mock-provider worker on a separate task queue; this is a turn-level, in-process cut that reuses the real
 // turn loop. The workflow-level Temporal simulation (+ the workflowId-loading signature) is deferred
 // (DEFERRED-AND-FLAGGED OB6).

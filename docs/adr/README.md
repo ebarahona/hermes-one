@@ -6,10 +6,76 @@ what those citations resolve to.
 
 Each entry is a one-paragraph distillation.
 
-> Status: all decisions below are **ratified**. ADR-001…012 cover the earlier
-> pre-implementation architecture phase and are not reproduced here.
+> Status: all decisions below are **ratified**. ADR-001…012 are the foundation
+> decisions the later ones build on; ADR-013 onward record decisions made during
+> implementation.
 
 ---
+
+- **ADR-001 — LoopBack 4 is the application composition framework.** DI, IoC,
+  contexts, components, extension points, controllers, repositories, and
+  application lifecycle come from LoopBack 4, giving modular, discoverable
+  capabilities and tenant-aware dependency resolution. Packages follow its binding
+  and metadata conventions.
+
+- **ADR-002 — AgentBack is the agent-facing contract layer.** AgentBack projects
+  approved capabilities through MCP, REST, OpenAPI, typed contracts, and
+  machine-readable errors. Agent-facing interfaces need stricter contracts than
+  generic service APIs; AgentBack complements LoopBack 4 and does not replace the
+  service architecture.
+
+- **ADR-003 — Temporal is the initial durable workflow runtime.** Retries,
+  timers, signals, durable waits, workflow history, and long-running execution
+  (seconds to months) belong to Temporal. Workflow code stays deterministic;
+  network and database work lives in activities.
+
+- **ADR-004 — The platform owns a workflow DSL.** The DSL is independent of
+  Temporal SDK types, so the workflow definition stays a portable,
+  tenant-configurable product asset. This requires a compiler and a compatibility
+  layer.
+
+- **ADR-005 — PostgreSQL is authoritative platform storage.** Tenants, workflow
+  definitions, deployments, conversations, audit records, and configuration live in
+  PostgreSQL for transactional consistency and relational integrity. Schema design
+  and tenant isolation are therefore critical.
+
+- **ADR-006 — Redis holds only derived or ephemeral state.** Caches, idempotency,
+  locks, quotas, rate limits, queues, pub/sub, and ephemeral coordination use
+  Redis; it is never the only source of critical truth. Queues and pub/sub serve
+  non-durable coordination and real-time fan-out only, and work that must survive
+  restarts belongs in Temporal. Cache rebuild and fallback behavior must be
+  defined.
+
+- **ADR-007 — Retrieve relevant slices; do not replay whole conversations.** Only
+  relevant knowledge and memory slices are retrieved, because full transcript
+  replay raises cost and noise. Summarization, embeddings, and retrieval quality
+  are first-class concerns.
+
+- **ADR-008 — Graph storage is optional.** No graph database is required for the
+  MVP; PostgreSQL, Redis, and vector retrieval serve the early use cases. Graph
+  interfaces stay abstracted so one can be added later.
+
+- **ADR-009 — Decision is separated from composition.** The model proposes tool
+  calls in one phase and composes customer-facing language only after confirmed
+  execution, so the agent cannot claim actions that did not happen. The runtime
+  accumulates explicit evidence to compose from.
+
+- **ADR-010 — Capabilities are provider-neutral.** Workflows reference stable
+  capability names so vendors can be replaced without changing workflow semantics.
+  Provider resolution and contract compatibility are platform responsibilities.
+
+- **ADR-011 — Vertical packs are installable units.** Industry behavior (tools,
+  workflows, policies, schemas, evaluations) ships as an installable pack, so the
+  product can expand across industries; manifests, compatibility rules, signing,
+  and upgrade behavior follow. Refined by ADR-013: a pack is a data bundle
+  interpreted by the platform runtime, and contributes a LoopBack component only to
+  register a new platform-level provider-neutral capability or adapter, never to
+  carry industry content.
+
+- **ADR-012 — Human handoff is an explicit workflow outcome.** Handoff, pause,
+  resume, and takeover are durable workflow states, because human intervention is
+  expected and must be auditable. The admin console and workflow runtime support
+  the ownership transitions.
 
 - **ADR-013 — Verticals are data, not code.** Industry packs (workflows, rules,
   policies, prompts, templates, knowledge, evals) are authored, versioned, signed
@@ -69,19 +135,17 @@ Each entry is a one-paragraph distillation.
   composable core (services depend on interfaces, not implementations); services
   own their data; independent scaling per traffic tier.
 
-- **ADR-025 — One SecretProvider; references never name vendors.** The
-  secrets-and-key-management port is canonical: `SecretRef` is
+- **ADR-025 — One SecretProvider; references never name vendors.** This port is canonical: `SecretRef` is
   `secret://<store>/<path>` where the first segment is a logical STORE, never a
   backend vendor; `resolve()` returns `ResolvedSecret`; caching is TTL-bounded
   with `invalidate()` (rotation is a cache-drop, never a process restart).
-  The earlier secrets-registry design is SUPERSEDED for the port/grammar (its
-  ops/runbook content stands). `SecretManagerConfig.backend` stays unpinned
+  An earlier registry-style design is SUPERSEDED for the port/grammar. `SecretManagerConfig.backend` stays unpinned
   config chosen at the composition root — embedding a vendor in every stored
   reference would make swapping backends a platform-wide rewrite and forecloses
   per-residency backends. Resolves ledger S5.
 
 - **ADR-026 — Tenant provider credentials are envelope-encrypted rows, not
-  secret-manager entries.** The platform has two trust chains (ADR-025's doc):
+  secret-manager entries.** The platform has two trust chains (ADR-025):
   operational secrets by ref, and per-tenant keys enveloped under a tenant CMK.
   Tenant vendor credentials (Twilio SIDs etc.) belong to the SECOND chain: a
   cloud secret manager priced/quota'd per secret is O(tenants × providers) —
@@ -92,13 +156,11 @@ Each entry is a one-paragraph distillation.
   SecretProvider chain. `ProviderCredentialStore.resolve(tenantId, providerId,
 capability)` returns the credential RECORD (decrypt happens behind the port;
   only one component touches key material); the orphaned `configKey` is DELETED
-  from contracts — the tuple is the identifier. Resolves ledger S6; amends
-  the table catalog (new table) and the secrets-and-key-management design (chain
-  ownership).
+  from contracts — the tuple is the identifier. Resolves ledger S6; adds the `capability.provider_credentials` table and assigns
+  tenant vendor credentials to the second chain, platform secrets to the first.
 
 - **ADR-027 — The role matrix governs role scopes; seeded defaults never carry
-  wildcards.** The security pack owns the role model; the
-  migrations-and-seed design's divergent `customer` seed (`appointment.booking.*`) is corrected to the
+  wildcards.** The security pack owns the role model; an earlier divergent `customer` seed (`appointment.booking.*`) is corrected to the
   role-matrix scopes. A wildcard in a SEEDED DEFAULT role silently auto-grants
   every future capability in that namespace (a new `appointment.booking.refund`
   would flow to every customer) — least-privilege requires enumerated leaf
@@ -118,17 +180,16 @@ capability)` returns the credential RECORD (decrypt happens behind the port;
   split trust by FIELD, not by flipping the envelope. Resolves ledger A6.
 
 - **ADR-029 — Worker versioning pins the Worker-Deployments generation; the
-  replay gate is generation-independent and lands first.** the
-  worker-versioning-and-replay design mandates Build-ID versioning + `patched()`
+  replay gate is generation-independent and lands first.** The platform's versioning discipline mandates Build-ID versioning + `patched()`
   for risky interpreter changes + a hard replay-test gate, but leaves the
-  Temporal API generation UNPINNED (an open question in that design). Our installed SDK
+  Temporal API generation UNPINNED (an open question). Our installed SDK
   (@temporalio 1.20.2) deprecates the legacy `buildId`/`useVersioning` shape;
   the successor is `workerDeploymentOptions` ({version: {buildId,
   deploymentName}, useWorkerVersioning, defaultVersioningBehavior}) — and
-  `PINNED` behavior is exactly the design's requirement (open executions stay on
+  `PINNED` behavior is exactly the requirement (open executions stay on
   the build they started on). Building new infrastructure on a deprecated API
   contradicts this platform's charter, so: (1) the generation is PINNED to
-  Worker Deployments; the design's `BuildIdRegistry` compatible-with model maps
+  Worker Deployments; the `BuildIdRegistry` compatible-with model maps
   onto deployment versions; (2) `executeCompiledWorkflow` runs PINNED —
   interpreter code (`buildId`) and plan data (`contentHash`) stay orthogonal
   axes (ADR-014); (3) the REPLAY GATE — replay captured histories against the

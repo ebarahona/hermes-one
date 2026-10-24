@@ -23,7 +23,7 @@ export type EventType = z.infer<typeof EventType>;
 
 export const EventAggregateRef = z.object({
   /** Free-form (matches `event.event_outbox.aggregate_type`, an untyped `text` column — extensible,
-   *  not a closed enum). Documented values in use: the domain-event and billing-event catalogs. */
+   *  not a closed enum). Documented values in use: the domain events and billing events. */
   type: z.string().min(1),
   id: z.string().min(1),
 });
@@ -54,7 +54,7 @@ export const EventEnvelope = z.object({
   occurredAt: IsoTimestamp,
   /** Stable across republish/redelivery — consumer's at-least-once dedupe key. */
   idempotencyKey: z.string().min(1),
-  /** Typed per `type` — see the domain-event and billing-event catalogs. */
+  /** Typed per `type` — see the domain events and billing events. */
   payload: z.record(z.string(), z.unknown()),
   trace: EventTrace.optional(),
 });

@@ -1,6 +1,6 @@
 // Coarse edge authorization (ADR-019): the "can this principal call this route at all" scope gate.
 // The admin-api extraction: RouteAuthorization.requiredScope → `edge-authorization` returns
-// 403 `forbidden_scope` (NOT 401) when the authenticated principal lacks the scope. Slice 3 enforces
+// 403 `forbidden_scope` (NOT 401) when the authenticated principal lacks the scope. The first controller enforces
 // this inline at the controller (via assertScope); the middleware-based route→scope gate that runs
 // before invokeMethod is a later refinement (flagged) — this helper is the reusable primitive either
 // way. Wildcard matching is shared with the capability plane's tool-visibility gate (scopeSatisfies).

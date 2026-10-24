@@ -53,7 +53,7 @@ export function createOpenAICompatibleModel(
         }));
         params.tool_choice = 'auto';
       }
-      // llama-server extension (ignored by other servers): drop qwen <think>.
+      // llama-server extension (ignored by other servers): disable reasoning-model thinking output.
       params.chat_template_kwargs = {enable_thinking: false};
 
       const resp = await client.chat.completions.create(

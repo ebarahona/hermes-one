@@ -1,9 +1,9 @@
-// Live-PG integration for the DeploymentController reads (Slice 6): boots admin-api WITH Persistence +
+// Live-PG integration for the DeploymentController reads: boots admin-api WITH Persistence +
 // the SubstrateComponent (which binds DeploymentService over the content-addressed store) and drives
 // the deployment read routes with real api-key principals. Proves the wiring + gates: a fresh tenant
 // with no deployment → 404 (a real round-trip DeploymentService → store → RLS query), the scope gate
 // (deployment.read), and the tenant boundary. The 200-with-a-real-deployment happy path needs a full
-// publish to seed — deferred to the deployment WRITE slice; the same store read methods are already
+// publish to seed — deferred to the deployment WRITE work; the same store read methods are already
 // exercised by the agent-worker e2e (which publishes then reads deployments). Needs the compose PG stack.
 import 'reflect-metadata';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';

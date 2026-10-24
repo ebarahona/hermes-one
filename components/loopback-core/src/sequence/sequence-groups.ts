@@ -23,7 +23,7 @@ export const PlatformSequenceGroups = {
 // never reaches route matching or schema validation, so error shapes never leak the request contract
 // and an unknown path returns 401, not 404. LB4's built-in default instead runs `authentication`
 // AFTER `findRoute` (it keys off route metadata); the platform overrides `orderedGroups` to reposition
-// these ahead of it (see registerPlatformRestSequence). Slice 1 mounts CORRELATION + AUTHENTICATION;
+// these ahead of it (see registerPlatformRestSequence). The first increment mounts CORRELATION + AUTHENTICATION;
 // the remaining groups layer in with tenant-resolution / the first real controller.
 export const PLATFORM_PRE_ROUTING_GROUPS: readonly string[] = [
   PlatformSequenceGroups.CORRELATION,

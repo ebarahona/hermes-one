@@ -1,4 +1,4 @@
-// admin-api Slice 1+2 e2e — boots the real LB4 REST surface on an ephemeral port and drives the
+// admin-api e2e — boots the real LB4 REST surface on an ephemeral port and drives the
 // sequence + AUTH-3 api-key path end-to-end (no mocks). Asserts:
 //   1. GET /v1/healthz (public)      → 200, {status:'ok'}, X-Correlation-Id present (minted)
 //   2. inbound x-correlation-id      → echoed on the response (Correlation-always law)

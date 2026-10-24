@@ -100,7 +100,7 @@ export class DrizzleRoleRegistry
   }
 
   /**
-   * FLAGGED (design doc AUTH-2): update/delete take only a roleId (the port shape) —
+   * FLAGGED (edge-authn design, AUTH-2): update/delete take only a roleId (the port shape) —
    * under RLS they need the ADMIN request context that establishes the tenant GUC, which is the
    * Tier-4 admin surface. The tenant-scoped cores below (`updateFor`/`deleteFor`) are the real
    * implementations; the port methods fail loud until the admin context exists. AUTH-2's runtime

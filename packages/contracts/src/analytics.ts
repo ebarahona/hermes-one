@@ -4,8 +4,8 @@
 // summarize() is a pass-through to UsageMeter.summarize() (never a second counter); reconcile() only
 // COMPARES against agentback's own metering export and reports drift. The scalability KPIs make the
 // three scalability levers measurable — a deterministic-hit-rate drop is a scalability bug, not a prose target.
-// NOTE: the eval-framework types (GoldenConversationCase/EvaluationRun/RegressionGate) live in the eval
-// slice (they need the SimulationService) — defined there when built.
+// NOTE: the eval-framework types (GoldenConversationCase/EvaluationRun/RegressionGate) live in the evaluation
+// component (they need the SimulationService) — defined there when built.
 import {z} from 'zod';
 import {TenantId, IsoTimestamp} from './substrate.js';
 import {MeterKind} from './audit.js';

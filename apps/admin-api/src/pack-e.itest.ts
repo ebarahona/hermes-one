@@ -1,4 +1,4 @@
-// Pack E (electrician vertical) — the vertical-as-DATA proof (ADR-013). Reads the electrician pack
+// Electrician pack (vertical) — the vertical-as-DATA proof (ADR-013). Reads the electrician pack
 // (verticals/electrician/pack.json — pure data, no industry code) and installs it for a demo tenant
 // THROUGH THE ADMIN API we built: author each of the five definitions via PUT /v1/definitions/{id},
 // then publish the manifest via POST /v1/deployments. Asserts the resulting active deployment
@@ -158,7 +158,7 @@ const putDef = async (d: PackDef): Promise<Pick> => {
   };
 };
 
-describe('Pack E — the electrician vertical installs from data (live)', () => {
+describe('electrician pack — installs from data (live)', () => {
   it('authors all five definitions, publishes, and the active deployment reconstructs the vertical', async () => {
     // Author each family through the admin API — this is a REAL vertical, authored as data.
     // The workflow pins its siblings (rule, agent-engine) by CONTENT HASH, so author them first,

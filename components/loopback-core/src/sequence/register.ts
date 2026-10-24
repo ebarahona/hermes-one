@@ -4,7 +4,7 @@
 //      runs `authentication` AFTER routing (it keys off route metadata), but the platform sequence
 //      authorizes before routing so an unknown path returns 401, not 404, and no schema leaks;
 //   3. the single error exit (PlatformReject over the default REJECT sequence action).
-// Slice 1 mounts the two slots the public-health surface needs; tenant-resolution / rate-limit / the
+// The first increment mounts the two slots the public-health surface needs; tenant-resolution / rate-limit / the
 // interceptor stack layer in with the first real controller.
 import {createBindingFromClass} from '@loopback/core';
 import {

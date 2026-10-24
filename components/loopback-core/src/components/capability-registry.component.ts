@@ -22,7 +22,7 @@ import type {PlatformComponentBoundary} from '../boundary.js';
 
 /**
  * The registry plus a latest-by-name index backing the invoker's SYNC `CapabilityLookup`
- * (JIT convenience — replaces the ad-hoc Map the worker composition kept; the canonical async
+ * (convenience — replaces the ad-hoc Map the worker composition kept; the canonical async
  * `get(name, version)` port is untouched).
  */
 export class IndexedCapabilityRegistry extends InMemoryCapabilityRegistry {

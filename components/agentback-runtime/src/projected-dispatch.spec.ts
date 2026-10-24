@@ -109,7 +109,7 @@ describe('projected capability → real agentback dispatch → provider', () => 
   });
 
   // The live path registers NO fixtures, so a capability that failed to project cannot silently fall
-  // through to canned data. Before this slice, SpikeBookingTools answered 'appointment.slot.read' with
+  // through to canned data. Previously, SpikeBookingTools answered 'appointment.slot.read' with
   // a hardcoded fixture on every agent turn.
   it('the live agent-plane app serves no capability without a projected binding', async () => {
     await using t = await createTestApp(() => createAgentPlaneApp());

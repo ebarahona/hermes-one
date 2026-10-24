@@ -12,7 +12,7 @@ export const AUTH_STRATEGY_EXTENSION_TYPE = 'auth.strategy'; // matches ^[a-z]+\
 
 @extensionPoint(AUTH_STRATEGIES_EXTENSION_POINT)
 export class AuthStrategyRegistry {
-  // Spec shows `@extensions()` (name inferred from @extensionPoint); the explicit name is the robust
+  // `@extensions()` alone (name inferred from @extensionPoint) is not used; the explicit name is the robust
   // form — the inferred variant discovered zero strategies in this wiring.
   constructor(
     @extensions(AUTH_STRATEGIES_EXTENSION_POINT)

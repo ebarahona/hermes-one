@@ -1,4 +1,4 @@
-// Live-PG integration for the UserController (Slice 10): boots admin-api WITH Persistence and drives
+// Live-PG integration for the UserController: boots admin-api WITH Persistence and drives
 // POST/GET /v1/tenants/{tenantId}/users with real api-key principals. Proves the tenant-scoped
 // create (201 UserDto → appears in the list), the per-tenant uniqueness conflict (409), validation,
 // the scope gates, and the tenant boundary — all through the RLS-enforced DrizzleUserRepository.

@@ -1,4 +1,4 @@
-// Live-PG integration for the DefinitionController PUT (Slice 8): boots admin-api WITH Persistence +
+// Live-PG integration for the DefinitionController PUT: boots admin-api WITH Persistence +
 // the SubstrateComponent (which binds DefinitionRegistry with the logic-DSL compilers) and authors a
 // real capability definition over HTTP. Proves the write path end-to-end: PUT → validate-and-pin →
 // content-hash → store (a real PutDefinitionResult with a contentHash), plus the scope gate, the

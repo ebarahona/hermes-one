@@ -1,16 +1,15 @@
 // @hermes-one/contracts — src/secret.ts
 // The secret-pointer grammar + resolution port, defined here. The grammar (`secret-ref.ts`) and the
-// provider port (`infrastructure/secrets/src/secret-provider.ts`) are pure TS, so contracts hosts them
-// until the dedicated secrets infrastructure member exists (flagged — same hosting rule as
-// composition-root.ts). NO resolved secret value is ever logged, stored in a definition body,
+// `SecretProvider` port are pure TS, so contracts hosts them (same hosting rule as composition-root.ts);
+// adapters live in infrastructure (e.g. `infrastructure/config/src/env-secret-provider.ts`). NO resolved secret value is ever logged, stored in a definition body,
 // prompt, or the config object at rest — config carries only `secret://` refs.
 import {z} from 'zod';
 import type {CapabilityName} from './capability.js';
 import type {IsoTimestamp, TenantId} from './substrate.js';
 
 /** `secret://<store>/<path...>` — the ONE secret-pointer grammar used everywhere in the platform
- *  (binding-key registry CONFIG, authentication-strategies jwksRef/trustBundleRef,
- *  provider-contract configKey resolve through this same grammar). */
+ *  (binding-key registry CONFIG, authentication-strategy jwksRef/trustBundleRef
+ *  references resolve through this same grammar). */
 export const SecretRef = z
   .string()
   .regex(
@@ -44,10 +43,9 @@ export interface SecretProvider {
 /**
  * One tenant's credential set for one provider serving one capability — the SECOND trust chain
  * (ADR-026): envelope-encrypted rows under the tenant CMK, NOT secret-manager entries (per-secret
- * pricing/quotas are O(tenants × providers) on the dispatch hot path). Deviation from the
- * earlier secrets design RATIFIED by ADR-026: the record carries the
+ * pricing/quotas are O(tenants × providers) on the dispatch hot path). RATIFIED by ADR-026: the record carries the
  * DECRYPTED `config` (decrypt happens behind the port — only one component touches key material),
- * reconciling that design's interface-vs-sequence-diagram conflict (ledger S6); the orphaned
+ * reconciling an earlier interface-vs-sequence-diagram conflict (ledger S6); the orphaned
  * `configKey` is deleted — the (tenant, provider, capability) tuple IS the identifier.
  */
 export interface ProviderCredentialRecord {
@@ -61,7 +59,7 @@ export interface ProviderCredentialRecord {
 }
 
 /**
- * Bound at platform.provider.credentialStore (camelCase per the registry-sync list).
+ * Bound at platform.provider.credentialStore (camelCase).
  * Fail-closed: no bundle → throws (never silently send); a credential-LESS internal provider is an
  * EXPLICIT empty bundle, not an absent one; a REVOKED credential throws.
  * `rotate` is the ONLY write path — credentials enter the store already-typed and leave encrypted;

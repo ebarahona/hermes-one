@@ -87,6 +87,7 @@ node apps/agent-worker/dist/e2e.js      # 3-plane triage with a live LLM (see "L
 # the electrician vertical, end to end, tool-backed. Needs HERMES_CREDENTIALS_MASTER_KEY in the
 # environment (ADR-026 envelope store): the run resolves the tenant's OWN credentials and fails
 # closed rather than falling back to platform defaults.
+cp .env.example .env   # once; then set HERMES_CREDENTIALS_MASTER_KEY in it
 set -a; . ./.env; set +a
 node apps/agent-worker/dist/pack-e.e2e.js
 
@@ -117,7 +118,7 @@ is added as a `SingleStepModel` adapter in `infrastructure/model-client`.
 ## Engineering discipline
 
 Every intentional deferral and design deviation is recorded in `docs/DEFERRED-AND-FLAGGED.md` — nothing
-is silently improvised. The design is the source of truth; where a library or a second design constraint genuinely
+is silently improvised. The architecture is the source of truth; where a library or a second architectural constraint genuinely
 conflicts, the conflict is ratified as an ADR (`docs/adr/`), never resolved ad hoc. CI runs the
 typecheck, the plane-isolation lint, the unit and integration suites, and the interpreter replay
 gate on every push.

@@ -3,7 +3,7 @@
 // side effect (gather facts, evaluate a rule, invoke a capability, read the
 // clock) is delegated to injected `WorkflowEffects`, which in production are
 // Temporal activities. Keeping the walk pure over (plan, input, effects) makes
-// it deterministic and replay-safe, and lets the slice run without Temporal.
+// it deterministic and replay-safe, and lets it run without Temporal.
 import type {
   CompiledWorkflowPlan,
   IsoTimestamp,

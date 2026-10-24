@@ -1,4 +1,4 @@
-// Pack E — LIVE electrician turn on real Temporal + a live LLM (MANUAL GATE, not CI: needs
+// Electrician pack — LIVE electrician turn on real Temporal + a live LLM (MANUAL GATE, not CI: needs
 // an OpenAI-compatible endpoint, see README "LLM configuration"). Installs the electrician vertical FROM DATA (verticals/electrician/pack.json)
 // for a demo tenant, then drives real inbound turns: the generic workflow interpreter host (runAgentWorkflow)
 // interprets the electrician-intake workflow → the electrician-triage rule routes to the dispatcher
@@ -252,11 +252,11 @@ async function main(): Promise<void> {
   for (const r of results)
     console.log(`${r.pass ? '✅ PASS' : '❌ FAIL'} ${r.name}: ${r.detail}`);
   if (results.some(r => !r.pass) || results.length !== CASES.length) {
-    console.error('\nPack E live-turn E2E FAILED');
+    console.error('\nelectrician pack live-turn E2E FAILED');
     process.exit(1);
   }
   console.log(
-    "\nPack E live-turn E2E OK — the electrician vertical (authored as DATA) ran real agent turns end-to-end on Temporal + the live LLM, and the scheduling turn reached the REAL provider plane through the tenant's OWN envelope-encrypted credentials (ADR-026).",
+    "\nelectrician pack live-turn E2E OK — the electrician vertical (authored as DATA) ran real agent turns end-to-end on Temporal + the live LLM, and the scheduling turn reached the REAL provider plane through the tenant's OWN envelope-encrypted credentials (ADR-026).",
   );
   process.exit(0);
 }

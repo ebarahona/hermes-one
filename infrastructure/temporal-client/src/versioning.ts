@@ -6,7 +6,7 @@
 // walks (planRef contentHash). Publishing a plan never needs a
 // new buildId; shipping a buildId never republishes plans.
 //
-// NOTE (flagged, ADR-029): the `BuildIdRegistry` design is
+// NOTE (flagged, ADR-029): the `BuildIdRegistry` model is
 // written against Temporal's LEGACY compatible-sets API (`useVersioning`/`buildId`), which
 // @temporalio 1.20.2 marks @deprecated. ADR-029 pins the successor (Worker Deployments:
 // `workerDeploymentOptions` with `PINNED` behavior — exactly the open-executions-stay-put
@@ -73,7 +73,7 @@ export interface WorkflowWorkerVersioning {
 
 export interface ReplayHistoryFixture {
   fixtureId: string;
-  // Spec says 'executeCompiledWorkflow'; the repo's REGISTERED types are the host workflows that
+  // The interpreter is named 'executeCompiledWorkflow'; the repo's REGISTERED types are the host workflows that
   // call it in-process (flagged — same one-interpreter surface, different registration names).
   // `runMissedCall` / `runTriage` are the previous export names of `runCompiledWorkflow` /
   // `runAgentWorkflow`, retained so committed fixtures recorded under them type-check.
@@ -118,7 +118,7 @@ export interface ReplayTestGate {
   ): Promise<ReplayGateResult>;
 }
 
-/** Retirement discipline for a drained build (deploy-time tooling; transcribed for the pipeline). */
+/** Retirement discipline for a drained build (deploy-time tooling; declared for the pipeline). */
 export interface DrainPolicy {
   buildId: WorkerBuildId;
   /** Never retire before this elapses, even at openExecutionCount 0. */

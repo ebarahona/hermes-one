@@ -248,7 +248,7 @@ Verbatim transcriptions when built (no new invention):
   the brand; uuid buys nothing here. Needs sign-off as it contradicts the repository-patterns
   column type.
 - **API-key storage:** `ApiKeyRecord` needs a table (hashed key, tenant, principal, scopes, status,
-  expiry). Candidates: a `tenant.api_keys` table (new catalog row — needs a table-catalog amendment)
+  expiry). Candidates: a `tenant.api_keys` table (a new row in the table catalog)
   vs overloading `tenant.users.attributes`. Recommendation: a real table, amended into the catalog —
   overloading attributes hides a credential store from RLS review.
 - **OIDC IdP:** config-driven issuer list; which IdP the first deployment uses is an ops

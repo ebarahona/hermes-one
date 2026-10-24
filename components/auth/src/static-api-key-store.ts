@@ -1,13 +1,12 @@
 // StaticApiKeyStore — a config/seed-backed realization of the `ApiKeyStore` port.
-// The design leaves the ApiKeyStore BACKING "prose/port-only,
-// deferred" — no table DDL — so this in-memory store is the faithful stand-in, mirroring AUTH-1's
+// The ApiKeyStore BACKING is port-only (no table DDL yet), so this in-memory store is the faithful interim implementation, mirroring AUTH-1's
 // webhook `tenantByNumber` map and the `StaticProviderCredentialStore` seam.
 //
 // Why NOT a DrizzleApiKeyStore yet (flagged, ledger): `resolve(presentedKey)` takes ONLY the key, so
 // the lookup is inherently PRE-TENANT (the key alone determines the tenant) — a cross-tenant read of
 // an RLS-forced, tenant-owned table. That hits the unresolved relay-role / platform-admin cross-tenant
 // posture (design 001 Open Questions; same tension as the outbox aggregator). A DB-backed store lands
-// with that posture; tenant-scoped admin CRUD of keys (a later slice) can be tenant-scoped.
+// with that posture; tenant-scoped admin CRUD of keys (later work) can be tenant-scoped.
 import {createHash, timingSafeEqual} from 'node:crypto';
 import {
   type ApiKeyRecord,

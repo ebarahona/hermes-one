@@ -27,6 +27,7 @@ import {
   toTemporalActivityOptions,
 } from '@hermes-one/temporal-client';
 import type {WorkflowRunRef} from './bundle.js';
+import {gatherFacts} from './facts.js';
 import {buildAgentTurnRequest} from './turn-request.js';
 import {ACTIVITY_QUEUE, AGENT_QUEUE} from './queues.js';
 
@@ -101,21 +102,6 @@ const {agentTurn} = proxyActivities<AgentActivities>({
   ...toTemporalActivityOptions(RETRY_POLICY_REGISTRY['model-call']),
 });
 
-/** Pure fact-gathering runs in the workflow (deterministic, no I/O). */
-function gatherFacts(
-  spec: Record<string, unknown>,
-  input: Record<string, unknown>,
-): RuleFacts {
-  const facts: RuleFacts = {};
-  for (const [k, v] of Object.entries(spec)) {
-    facts[k] =
-      v && typeof v === 'object' && '$input' in v
-        ? input[(v as {$input: string}).$input]
-        : v;
-  }
-  return facts;
-}
-
 function edgeEffects(
   rulePlan: CompiledRulePlan,
   parameters: Record<string, unknown>,
@@ -160,8 +146,8 @@ function edgeEffects(
   };
 }
 
-/** No-LLM missed-call workflow: load plans (activity) → rule → reply → terminal. */
-export async function runMissedCall(ref: WorkflowRunRef) {
+/** Deterministic host (no agent nodes): load plans (activity) → interpret the compiled graph. */
+export async function runCompiledWorkflow(ref: WorkflowRunRef) {
   const workflowPlan = await loadWorkflowPlan({
     tenantId: ref.tenantId,
     ...ref.workflow,
@@ -179,20 +165,20 @@ export async function runMissedCall(ref: WorkflowRunRef) {
   );
 }
 
-/** Triage workflow: rule routes to a bounded agent turn OR a deterministic reply. */
-export async function runTriage(ref: WorkflowRunRef) {
+/** Agent host: interprets a compiled graph whose nodes include bounded agent turns. */
+export async function runAgentWorkflow(ref: WorkflowRunRef) {
   // The agent plane replays against the deployment PINNED at start (D1), acting AS the principal
   // minted at the edge (AUTH-2) — an agent workflow started without either is a configuration error,
   // failed before any side effect runs.
   const pin = ref.deployment;
   if (!pin)
     throw new Error(
-      'runTriage requires ref.deployment — the agent turn resolves the PINNED deployment (D1)',
+      'runAgentWorkflow requires ref.deployment — the agent turn resolves the PINNED deployment (D1)',
     );
   const principal = ref.principal;
   if (!principal)
     throw new Error(
-      'runTriage requires ref.principal — the acting identity is minted at the edge (AUTH-2)',
+      'runAgentWorkflow requires ref.principal — the acting identity is minted at the edge (AUTH-2)',
     );
   const workflowPlan = await loadWorkflowPlan({
     tenantId: ref.tenantId,
@@ -239,3 +225,7 @@ export async function runTriage(ref: WorkflowRunRef) {
   };
   return executeCompiledWorkflow(workflowPlan, {input: ref.input}, effects);
 }
+
+// Previous export names, retained so recorded histories and in-flight runs resolve.
+export const runMissedCall = runCompiledWorkflow;
+export const runTriage = runAgentWorkflow;

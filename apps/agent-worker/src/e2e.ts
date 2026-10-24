@@ -114,7 +114,7 @@ async function main() {
         'cnv_15125559999',
       );
       ref.trace = {traceparent: EDGE_TRACEPARENT};
-      const handle = await client.workflow.start('runTriage', {
+      const handle = await client.workflow.start('runAgentWorkflow', {
         taskQueue: WORKFLOW_QUEUE,
         workflowId: `triage-${c.name}-${Date.now()}`,
         args: [ref],

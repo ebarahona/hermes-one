@@ -52,6 +52,13 @@ export interface ProviderAdapter<I = unknown, O = unknown> {
 
 /* -------------------------- Channel messages --------------------------- */
 
+/** Provider metadata normalized by the channel transport into plain JSON scalars (workflow-facing). */
+export const InboundMeta = z.record(
+  z.string(),
+  z.union([z.string(), z.number(), z.boolean(), z.null()]),
+);
+export type InboundMeta = z.infer<typeof InboundMeta>;
+
 export const InboundMessage = z.object({
   tenantId: TenantId,
   channel: Channel,
@@ -74,6 +81,8 @@ export const InboundMessage = z.object({
   receivedAt: IsoTimestamp,
   /** Raw provider metadata (opaque, for audit). */
   providerMeta: z.record(z.string(), z.unknown()).default({}),
+  /** `providerMeta` normalized by the transport (vendor key casing and string encodings resolved). */
+  meta: InboundMeta.default({}),
 });
 export type InboundMessage = z.infer<typeof InboundMessage>;
 

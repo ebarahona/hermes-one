@@ -12,6 +12,7 @@ import {
 import type {NonceStore} from '@hermes-one/redis';
 import {
   SmsChannelTransport,
+  normalizeSmsMeta,
   smsSignedMaterial,
   type FetchLike,
   type SmsTransportConfig,
@@ -44,6 +45,31 @@ const raw = (parsed: Record<string, string>, ts: string = String(NOW_S)) => {
   };
 };
 
+describe('normalizeSmsMeta', () => {
+  it('camelCases keys, decodes boolean strings, keeps scalars, drops lifted and non-scalar fields', () => {
+    expect(
+      normalizeSmsMeta({
+        From: '+1',
+        To: '+2',
+        Body: 'x',
+        MessageSid: 'SM',
+        Answered: 'true',
+        CallStatus: 'no-answer',
+        Zip: '07001',
+        NumMedia: 0,
+        Flag: false,
+        Nested: {a: 1},
+      }),
+    ).toEqual({
+      answered: true,
+      callStatus: 'no-answer',
+      zip: '07001',
+      numMedia: 0,
+      flag: false,
+    });
+  });
+});
+
 describe('SmsChannelTransport.ingest (AUTH-1 verification ladder)', () => {
   it('verifies the signature and normalizes to an InboundMessage', async () => {
     const {rawWebhook, headers} = raw({
@@ -59,6 +85,20 @@ describe('SmsChannelTransport.ingest (AUTH-1 verification ladder)', () => {
     expect(msg!.from).toBe('+15125559999');
     expect(msg!.text).toBe('help');
     expect(msg!.providerMessageId).toBe('SM1');
+  });
+
+  it('normalizes the extra webhook fields into typed meta (raw providerMeta kept)', async () => {
+    const {rawWebhook, headers} = raw({
+      From: '+15125559999',
+      To: '+15125550100',
+      Body: 'missed you',
+      MessageSid: 'SM1b',
+      Zip: '75001',
+      Answered: 'false',
+    });
+    const msg = await transport.ingest(rawWebhook, headers);
+    expect(msg!.meta).toEqual({zip: '75001', answered: false});
+    expect(msg!.providerMeta.Answered).toBe('false');
   });
 
   it('rejects a forged request (bad signature)', async () => {

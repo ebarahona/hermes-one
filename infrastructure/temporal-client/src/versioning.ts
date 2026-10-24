@@ -75,7 +75,14 @@ export interface ReplayHistoryFixture {
   fixtureId: string;
   // Spec says 'executeCompiledWorkflow'; the repo's REGISTERED types are the host workflows that
   // call it in-process (flagged — same one-interpreter surface, different registration names).
-  workflowType: 'runMissedCall' | 'runTriage' | 'executeCompiledWorkflow';
+  // `runMissedCall` / `runTriage` are the previous export names of `runCompiledWorkflow` /
+  // `runAgentWorkflow`, retained so committed fixtures recorded under them type-check.
+  workflowType:
+    | 'runCompiledWorkflow'
+    | 'runAgentWorkflow'
+    | 'runMissedCall'
+    | 'runTriage'
+    | 'executeCompiledWorkflow';
   capturedFromBuildId: WorkerBuildId;
   source: 'production-export' | 'golden-test';
   /** Opaque Temporal history payload (proto/JSON export) — replayed via the SDK's replay harness. */

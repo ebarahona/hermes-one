@@ -1,7 +1,7 @@
 // Inbound-channel e2e on REAL Temporal + PG + Redis: a signed SMS webhook POSTed over HTTP to the
 // gateway drives the whole loop — verify → normalize → persist inbound → resolve the active deployment →
-// start the missed-call workflow → rule decides → capability sends a reply. No e2e client starts the
-// workflow; a real inbound event does.
+// start the host workflow the plan selects (the missed-call demo plan → the deterministic host) → rule
+// decides → capability sends a reply. No e2e client starts the workflow; a real inbound event does.
 //
 //   docker compose -f infra/docker-compose.yml up -d
 //   pnpm -r build && node apps/api-gateway/dist/e2e.js
@@ -120,7 +120,7 @@ async function main() {
     process.exit(1);
   }
   console.log(
-    '\nE2E OK — a signed inbound webhook drove the missed-call workflow on real Temporal.',
+    '\nE2E OK — a signed inbound webhook drove the missed-call plan on real Temporal.',
   );
   process.exit(0);
 }

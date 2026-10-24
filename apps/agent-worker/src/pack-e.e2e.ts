@@ -1,6 +1,6 @@
 // Pack E — LIVE electrician turn on real Temporal + a live LLM (MANUAL GATE, not CI: needs
 // an OpenAI-compatible endpoint, see README "LLM configuration"). Installs the electrician vertical FROM DATA (verticals/electrician/pack.json)
-// for a demo tenant, then drives real inbound turns: the generic workflow interpreter host (runTriage)
+// for a demo tenant, then drives real inbound turns: the generic workflow interpreter host (runAgentWorkflow)
 // interprets the electrician-intake workflow → the electrician-triage rule routes to the dispatcher
 // agent node → a REAL bounded agent turn runs against the electrician engine (persona + policy) and the
 // live LLM → the workflow completes. Proves the platform runs a real vertical, authored purely as data,
@@ -147,7 +147,7 @@ async function main(): Promise<void> {
   const clientWork = (async () => {
     for (const c of CASES) {
       const correlationId = `pack-e-elec-${Date.now()}`;
-      const handle = await client.workflow.start('runTriage', {
+      const handle = await client.workflow.start('runAgentWorkflow', {
         taskQueue: WORKFLOW_QUEUE,
         workflowId: correlationId,
         args: [

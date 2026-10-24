@@ -50,7 +50,7 @@ export interface DeploymentPin {
  * scoped by `tenantId` (the cache namespace) and verified by `contentHash`. `deployment`
  * pins the exact deployment version the run belongs to — the agent turn resolves THAT
  * deployment, never whatever is active at turn time (`resolveVersion`).
- * Optional only for workflows with no agent node; `runTriage` fails without it.
+ * Optional only for workflows with no agent node; `runAgentWorkflow` fails without it.
  */
 export interface WorkflowRunRef {
   tenantId: string;
@@ -111,12 +111,14 @@ const missedCallRule: RuleDefinition = {
         when: {
           type: 'and',
           all: [
+            // The run input carries the inbound channel; the demo receives call notices over a
+            // voice or an SMS webhook.
             {
               type: 'op',
-              op: 'equals',
+              op: 'in',
               args: [
                 {type: 'fact', path: 'channel'},
-                {type: 'literal', value: 'voice'},
+                {type: 'literal', value: ['voice', 'sms']},
               ],
             },
             {type: 'not', expr: {type: 'fact', path: 'answered'}},
@@ -181,8 +183,8 @@ export function buildBundle(input: Record<string, unknown>): RunBundle {
           rule: ruleRef,
           facts: {
             channel: {$input: 'channel'},
-            answered: {$input: 'answered'},
-            zip: {$input: 'zip'},
+            answered: {$input: 'meta.answered'},
+            zip: {$input: 'meta.zip'},
           },
           routes: {callBack: 'reply', outOfArea: 'end', default: 'end'},
         },

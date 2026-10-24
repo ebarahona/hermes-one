@@ -1,12 +1,13 @@
 // Self-contained e2e for the split worker topology on REAL local Temporal.
 // Runs the workflow-worker (workflow-only) + activity-worker in one process (each
 // on its own task queue — real Temporal task-queue routing) and submits the
-// missed-call workflow by name via the client. `Worker.runUntil` keeps both
+// missed-call plan on the deterministic host by name via the client. `Worker.runUntil` keeps both
 // workers alive only for the client work, then exits.
 //
 //   docker compose -f infra/docker-compose.yml up -d
 //   pnpm -r build && node apps/workflow-worker/dist/e2e.js
 import {Client, Connection} from '@temporalio/client';
+import type {InboundWorkflowInput} from '@hermes-one/contracts';
 import {loadConfig} from '@hermes-one/config';
 import {createActivityWorker} from '@hermes-one/activity-worker';
 import {createWorkflowWorker} from './worker.js';
@@ -14,20 +15,32 @@ import {WORKFLOW_QUEUE} from './queues.js';
 import {buildBundle, bundleToRef} from './bundle.js';
 import {publishBundle, E2E_TENANT} from './publish.js';
 
-const CASES = [
+const CASES: {name: string; input: InboundWorkflowInput; expect: string[]}[] = [
   {
     name: 'eligible',
-    input: {channel: 'voice', answered: false, zip: '75001', from: '+15551234'},
+    input: {
+      channel: 'voice',
+      from: '+15551234',
+      meta: {answered: false, zip: '75001'},
+    },
     expect: ['eligibility', 'reply', 'end'],
   },
   {
     name: 'out-of-area',
-    input: {channel: 'voice', answered: false, zip: '99999', from: '+15559999'},
+    input: {
+      channel: 'voice',
+      from: '+15559999',
+      meta: {answered: false, zip: '99999'},
+    },
     expect: ['eligibility', 'end'],
   },
   {
     name: 'answered',
-    input: {channel: 'voice', answered: true, zip: '75001', from: '+15550000'},
+    input: {
+      channel: 'voice',
+      from: '+15550000',
+      meta: {answered: true, zip: '75001'},
+    },
     expect: ['eligibility', 'end'],
   },
 ];
@@ -52,7 +65,7 @@ async function main() {
   const clientWork = (async () => {
     const out: {name: string; path: string[]; expect: string[]}[] = [];
     for (const c of CASES) {
-      const handle = await client.workflow.start('runMissedCall', {
+      const handle = await client.workflow.start('runCompiledWorkflow', {
         taskQueue: WORKFLOW_QUEUE,
         workflowId: `missed-call-${c.name}-${Date.now()}`,
         args: [bundleToRef(bundle, c.input, E2E_TENANT)],

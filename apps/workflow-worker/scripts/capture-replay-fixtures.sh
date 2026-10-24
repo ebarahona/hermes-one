@@ -28,7 +28,7 @@ import json, sys
 history = json.load(sys.stdin)
 json.dump({
   'fixtureId': 'missed-call-${CASE}',
-  'workflowType': 'runMissedCall',
+  'workflowType': 'runCompiledWorkflow',
   'capturedFromBuildId': '${BUILD_ID}',
   'tags': ['missed-call', '${CASE}', 'captured-${STAMP}'],
   'history': history,

@@ -1,21 +1,30 @@
 // InboundIngestor: turns a verified InboundMessage into a running workflow. It persists the inbound
 // message (tenant-scoped, RLS), resolves the tenant's active deployment to get the entry workflow +
-// rule plan refs (ADR-014), and starts the Temporal workflow with a serializable ref. The workflowId is
-// derived from the provider message id, so a replayed webhook dedupes at the Temporal level.
+// rule plan refs (ADR-014), and starts the Temporal workflow with a serializable ref. The host workflow
+// is selected from the compiled entry plan (agent nodes → the agent host, else the deterministic host),
+// and the run input is the channel-neutral InboundWorkflowInput (channel, sender, text, and the
+// provider metadata the channel transport already normalized). The workflowId is derived from the
+// provider message id, so a replayed webhook dedupes at the Temporal level.
 //
 // Flagged (JIT): rule parameters (serviceZips) come from a demo config here — in production they are
-// tenant configuration; and the demo maps the webhook to the missed-call workflow input.
+// tenant configuration.
 import type {Client} from '@temporalio/client';
 import type {CompiledPlanStore} from '@hermes-one/drizzle';
 import type {DrizzleMessageRepository} from '@hermes-one/drizzle';
 import type {
+  CompiledWorkflowPlan,
   InboundMessage,
+  InboundWorkflowInput,
   PlanId,
   Principal,
   RoleRegistry,
   TenantId,
 } from '@hermes-one/contracts';
-import {WORKFLOW_QUEUE, type WorkflowRunRef} from '@hermes-one/workflow-worker';
+import {
+  WORKFLOW_QUEUE,
+  selectHostWorkflow,
+  type WorkflowRunRef,
+} from '@hermes-one/workflow-worker';
 
 export interface IngestDeps {
   store: CompiledPlanStore;
@@ -67,6 +76,12 @@ export async function startFromInbound(
       `deployment for ${tenantId} is missing a workflow or rule plan`,
     );
   }
+  // Load the compiled entry plan (tenant-scoped, hash-verified, cached) to select the host workflow.
+  const workflowPlan = (await deps.store.resolvePlanCached(
+    tenantId,
+    deployment.workflow.planId as PlanId,
+    deployment.workflow.contentHash,
+  )) as CompiledWorkflowPlan;
 
   // Mint the ACTING principal (AUTH-2, docs/design/001-edge-authn-design.md): the customer the
   // conversation acts FOR — distinct from the webhook-source system principal that authenticated the
@@ -81,7 +96,12 @@ export async function startFromInbound(
     attributes: {externalHandle: inbound.from, channel: inbound.channel},
   };
 
-  const meta = inbound.providerMeta as Record<string, unknown>;
+  const input: InboundWorkflowInput = {
+    channel: inbound.channel,
+    from: inbound.from,
+    text: inbound.text,
+    meta: inbound.meta,
+  };
   const ref: WorkflowRunRef = {
     tenantId,
     workflow: {
@@ -103,19 +123,17 @@ export async function startFromInbound(
     // Carry the edge trace context onto the workflow input (OB5) so the run joins the edge trace.
     trace: edgeTraceparent ? {traceparent: edgeTraceparent} : undefined,
     parameters: deps.parametersFor(tenantId),
-    input: {
-      channel: 'voice',
-      answered: meta.Answered === true || meta.Answered === 'true',
-      zip: meta.Zip,
-      from: inbound.from,
-    },
+    input,
   };
 
-  const handle = await deps.client.workflow.start('runMissedCall', {
-    taskQueue: WORKFLOW_QUEUE,
-    workflowId: `inbound-${short(inbound.providerMessageId)}`,
-    args: [ref],
-  });
+  const handle = await deps.client.workflow.start(
+    selectHostWorkflow(workflowPlan),
+    {
+      taskQueue: WORKFLOW_QUEUE,
+      workflowId: `inbound-${short(inbound.providerMessageId)}`,
+      args: [ref],
+    },
+  );
   return {
     workflowId: handle.workflowId,
     runId: handle.firstExecutionRunId,

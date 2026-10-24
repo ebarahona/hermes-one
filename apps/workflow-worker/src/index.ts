@@ -12,6 +12,7 @@ export {
   type WorkflowRunRef,
   type PlanLoadRef,
 } from './bundle.js';
+export {selectHostWorkflow, type HostWorkflowName} from './host.js';
 export {publishBundle, publishAgentDeployment, E2E_TENANT} from './publish.js';
 export {
   installVerticalPack,

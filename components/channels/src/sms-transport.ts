@@ -16,6 +16,7 @@ import {
   type ErrorCategory,
   type ErrorCode,
   type InboundMessage,
+  type InboundMeta,
   type OutboundMessage,
   type ProviderExecutionContext,
   type SecretProvider,
@@ -48,6 +49,30 @@ interface RawSmsWebhook {
   To?: string;
   Body?: string;
   MessageSid?: string;
+}
+
+/** Fields lifted onto the InboundMessage itself; every other webhook field is metadata. */
+const LIFTED_FIELDS = new Set(['From', 'To', 'Body', 'MessageSid']);
+
+/**
+ * Normalize the Twilio-shaped webhook's extra fields into plain typed metadata: PascalCase keys →
+ * camelCase (`Zip` → `zip`), form-encoded `'true'`/`'false'` → booleans, non-scalar values dropped.
+ */
+export function normalizeSmsMeta(parsed: Record<string, unknown>): InboundMeta {
+  const meta: InboundMeta = {};
+  for (const [key, value] of Object.entries(parsed)) {
+    if (LIFTED_FIELDS.has(key)) continue;
+    const name = key.charAt(0).toLowerCase() + key.slice(1);
+    if (value === 'true' || value === 'false') meta[name] = value === 'true';
+    else if (
+      value === null ||
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'boolean'
+    )
+      meta[name] = value;
+  }
+  return meta;
 }
 
 export interface SmsTransportConfig {
@@ -185,6 +210,7 @@ export class SmsChannelTransport implements ChannelTransport {
       providerMessageId: p.MessageSid,
       receivedAt: now as InboundMessage['receivedAt'],
       providerMeta: {...p},
+      meta: normalizeSmsMeta(p as Record<string, unknown>),
     } as InboundMessage;
   }
 

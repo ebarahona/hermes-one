@@ -12,7 +12,8 @@ import {
   PlanId,
   SemVer,
 } from './substrate.js';
-import {WorkspaceContext} from './tenant.js';
+import {Channel, WorkspaceContext} from './tenant.js';
+import {InboundMeta} from './provider.js';
 
 /* --------------------------- Node identifiers -------------------------- */
 export const NodeId = z
@@ -172,6 +173,16 @@ export const WorkflowExecutionInput = z.object({
   input: z.record(z.string(), z.unknown()).default({}),
 });
 export type WorkflowExecutionInput = z.infer<typeof WorkflowExecutionInput>;
+
+/** Channel-neutral run input the ingest edge builds from an InboundMessage. Plans read it via
+ *  `{$input: 'from'}` / `{$input: 'meta.<key>'}`. */
+export const InboundWorkflowInput = z.object({
+  channel: Channel,
+  from: z.string().min(1),
+  text: z.string().optional(),
+  meta: InboundMeta.default({}),
+});
+export type InboundWorkflowInput = z.infer<typeof InboundWorkflowInput>;
 
 export const WorkflowExecutionResult = z.object({
   workflowRunId: z.string().min(1),

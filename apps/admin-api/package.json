@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@loopback/core": "^7.0.13",
-    "@loopback/rest": "^14.0.13",
+    "@loopback/rest": "^15.0.16",
     "@hermes-one/auth": "workspace:*",
     "@hermes-one/config": "workspace:*",
     "@hermes-one/drizzle": "workspace:*",

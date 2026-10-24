@@ -134,7 +134,7 @@ importers:
         version: 8.20.0
       jose:
         specifier: ^6.2.3
-        version: 6.2.3
+        version: 6.2.13
       pg:
         specifier: ^8.22.0
         version: 8.22.0
@@ -421,7 +421,7 @@ importers:
         version: 14.0.14(@loopback/core@7.0.13)(@loopback/repository@7.0.14(@loopback/core@7.0.13))
       jose:
         specifier: ^6.2.3
-        version: 6.2.3
+        version: 6.2.13
       zod:
         specifier: ^4.4.3
         version: 4.4.3
@@ -2953,6 +2953,9 @@ packages:
   jiti@2.7.0:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
     hasBin: true
+
+  jose@6.2.13:
+    resolution: {integrity: sha512-7TIg10ZE1x82YediN+lcrPNvGMKge9yFHQD+Qho/b8y2adfugU3AsvvHfxV0fzyFllT6l9xCjf4RWY9g/Z9PJQ==}
 
   jose@6.2.3:
     resolution: {integrity: sha512-YYVDInQKFJfR/xa3ojUTl8c2KoTwiL1R5Wg9YCydwH0x0B9grbzlg5HC7mMjCtUJjbQ/YnGEZIhI5tCgfTb4Hw==}
@@ -6744,6 +6747,8 @@ snapshots:
       supports-color: 8.1.1
 
   jiti@2.7.0: {}
+
+  jose@6.2.13: {}
 
   jose@6.2.3: {}
 

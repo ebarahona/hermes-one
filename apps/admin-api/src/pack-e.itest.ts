@@ -3,7 +3,7 @@
 // THROUGH THE ADMIN API we built: author each of the five definitions via PUT /v1/definitions/{id},
 // then publish the manifest via POST /v1/deployments. Asserts the resulting active deployment
 // reconstructs with the electrician's own members — i.e. the platform runs a real vertical purely
-// from data. Needs the compose PG stack (no LLM — the live inbound turn is a separate manual gate).
+// from data. Needs the compose PG stack (no LLM; the inbound turn is the separate pack-e.e2e.ts).
 import 'reflect-metadata';
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';

@@ -1,9 +1,9 @@
-// Electrician pack — LIVE electrician turn on real Temporal + a live LLM (MANUAL GATE, not CI: needs
-// an OpenAI-compatible endpoint, see README "LLM configuration"). Installs the electrician vertical FROM DATA (verticals/electrician/pack.json)
+// Electrician pack: electrician turns on real Temporal against the configured LLM (any
+// OpenAI-compatible endpoint, see README "LLM configuration"; CI runs it against `pnpm mock-llm`). Installs the electrician vertical FROM DATA (verticals/electrician/pack.json)
 // for a demo tenant, then drives real inbound turns: the generic workflow interpreter host (runAgentWorkflow)
 // interprets the electrician-intake workflow → the electrician-triage rule routes to the dispatcher
 // agent node → a REAL bounded agent turn runs against the electrician engine (persona + policy) and the
-// live LLM → the workflow completes. Proves the platform runs a real vertical, authored purely as data,
+// configured LLM → the workflow completes. Proves the platform runs a real vertical, authored purely as data,
 // end-to-end on durable infrastructure.
 //
 // TWO CASES, because the workflow path alone proves nothing about tools (both intents walk
@@ -256,7 +256,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
   console.log(
-    "\nelectrician pack live-turn E2E OK — the electrician vertical (authored as DATA) ran real agent turns end-to-end on Temporal + the live LLM, and the scheduling turn reached the REAL provider plane through the tenant's OWN envelope-encrypted credentials (ADR-026).",
+    "\nelectrician pack live-turn E2E OK — the electrician vertical (authored as DATA) ran real agent turns end-to-end on Temporal + the configured LLM, and the scheduling turn reached the REAL provider plane through the tenant's OWN envelope-encrypted credentials (ADR-026).",
   );
   process.exit(0);
 }

@@ -6,7 +6,7 @@
 //                                      (fail-closed authenticate + authorize-before-validate), no leakage
 //   4. GET /v1/whoami, bad key       → 401 (indistinguishable from absent)
 //   5. GET /v1/whoami, valid api key → 200 + the bound service principal (api-key strategy)
-// Run: `node apps/admin-api/dist/e2e.js` (no backing stack needed — no datasource bound).
+// Run: `node apps/admin-api/dist/e2e.js` (needs the local Postgres: persistence runs the RLS boot check).
 import 'reflect-metadata';
 import {loadConfig} from '@hermes-one/config';
 import type {ApiKeySeed} from '@hermes-one/auth';

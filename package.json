@@ -25,6 +25,7 @@
     "test:itest": "vitest run --config vitest.itest.config.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "plane-lint": "tsx tools/plane-lint.ts",
+    "mock-llm": "tsx tools/mock-llm.ts",
     "lint": "eslint . && prettier --check \"**/*.{ts,json,md}\"",
     "lint:fix": "eslint . --fix && prettier --write \"**/*.{ts,json,md}\"",
     "verify": "pnpm typecheck && pnpm plane-lint && pnpm test",

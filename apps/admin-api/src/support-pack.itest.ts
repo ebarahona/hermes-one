@@ -4,7 +4,7 @@
 // via PUT /v1/definitions/{id}, then publish the manifest via POST /v1/deployments. Asserts the
 // resulting active deployment reconstructs with the support pack's own members — the same platform,
 // with no code change, runs a second, unrelated vertical. Needs the compose PG stack (no LLM — the
-// live inbound run is a separate manual gate, support-pack.e2e.ts).
+// inbound run is the separate support-pack.e2e.ts).
 import 'reflect-metadata';
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';

@@ -13,6 +13,7 @@ export default defineConfig({
   test: {
     include: [
       '{apps,packages,components,infrastructure}/*/src/**/*.{test,spec}.ts',
+      'tools/**/*.spec.ts',
     ],
     exclude: ['**/node_modules/**', '**/dist/**'],
     environment: 'node',

@@ -1,13 +1,13 @@
-# Minimal CI (deferral-ledger I0): the safety-critical verifications that previously ran
-# only when a human remembered to run them.
-#   verify      — hermetic: typecheck + plane-lint + unit tests + full build + REPLAY GATE
-#                 (golden histories vs the candidate interpreter — ADR-029, fail on ANY nondeterminism)
-#   integration — live PG (RLS itests + the schema↔DB drift gate, I1) + Redis + a Temporal dev server;
-#                 runs `pnpm test:itest` TWICE (idempotency/replay bugs hide behind clean state —
-#                 verification discipline) and the two non-LLM e2es (missed-call workflow, signed webhook).
-# NOT run here (stays a manual local gate): apps/agent-worker e2e — it drives a REAL LLM
-# (an OpenAI-compatible endpoint at LLM_BASE_URL), which CI does not provision.
+# CI (ledger I0): the checks that used to run only when someone remembered to run them.
+#   verify      hermetic: typecheck, plane-lint, unit tests, full build, lint, and the replay gate
+#               (recorded histories against the candidate interpreter, ADR-029; any nondeterminism fails)
+#   integration live PG (RLS itests + the schema/DB drift check, I1), Redis, and a Temporal dev server.
+#               Runs `pnpm test:itest` twice (idempotency and replay bugs hide behind clean state), the
+#               three no-LLM e2es (missed-call workflow, signed webhook, admin API), and the three agent e2es
+#               against `pnpm mock-llm`, a scripted OpenAI-compatible model. A real model is still a
+#               manual run: point LLM_BASE_URL at it (see README "LLM configuration").
 # Service ports mirror infra/docker-compose.yml (PG 5433, Redis 6380) so the config dev defaults just work.
+
 name: ci
 
 on:
@@ -98,3 +98,25 @@ jobs:
         run: node apps/workflow-worker/dist/e2e.js
       - name: E2E signed webhook → workflow (real Temporal, no LLM)
         run: node apps/api-gateway/dist/e2e.js
+      - name: E2E admin API surface and API-key auth (no LLM)
+        run: node apps/admin-api/dist/e2e.js
+
+      - name: Start the mock LLM
+        run: |
+          pnpm mock-llm > mock-llm.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:4010/v1/models >/dev/null && exit 0
+            sleep 1
+          done
+          cat mock-llm.log
+          exit 1
+      - name: Agent e2es against the mock LLM
+        env:
+          LLM_BASE_URL: http://127.0.0.1:4010/v1
+          LLM_MODEL: mock
+          LLM_API_KEY: mock
+        run: |
+          export HERMES_CREDENTIALS_MASTER_KEY=$(openssl rand -hex 32)
+          node apps/agent-worker/dist/e2e.js
+          node apps/agent-worker/dist/support-pack.e2e.js
+          node apps/agent-worker/dist/pack-e.e2e.js

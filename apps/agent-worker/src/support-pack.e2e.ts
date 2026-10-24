@@ -1,5 +1,5 @@
-// Support-ticket triage vertical — LIVE run on real Temporal + a live LLM (MANUAL GATE, not CI: needs
-// an OpenAI-compatible endpoint, see README "LLM configuration"). Installs the support vertical FROM
+// Support-ticket triage vertical: a run on real Temporal against the configured LLM (any
+// OpenAI-compatible endpoint, see README "LLM configuration"; CI runs it against `pnpm mock-llm`). Installs the support vertical FROM
 // DATA (verticals/support/pack.json) for a demo tenant with the same generic installer the electrician
 // pack uses, then drives real inbound runs through the generic workflow interpreter host
 // (runAgentWorkflow) with the channel-neutral InboundWorkflowInput the ingest edge builds.
@@ -89,7 +89,7 @@ const CASES: Case[] = [
     agentTurn: false,
   },
   {
-    name: 'needs judgment → bounded agent turn on the live LLM',
+    name: 'needs judgment → bounded agent turn on the configured LLM',
     text: 'We are a team of twelve and mostly use the reporting features. Which plan would fit us best?',
     ruleOutcome: 'needs-judgment',
     path: ['triage', 'assist', 'end'],
@@ -214,7 +214,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
   console.log(
-    "\nSupport pack live E2E OK — the support vertical (authored as DATA) answered and escalated by rule with no model call, handed the judgment case to a bounded agent turn on the live LLM, and delivered every reply on the customer's channel.",
+    "\nSupport pack live E2E OK — the support vertical (authored as DATA) answered and escalated by rule with no model call, handed the judgment case to a bounded agent turn on the configured LLM, and delivered every reply on the customer's channel.",
   );
   process.exit(0);
 }

@@ -14,7 +14,7 @@ import {
   type ToolCall,
   type ToolExecutor,
   type TurnContext,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {COLLECTOR_KEY, type TurnCollector} from './envelope-hook.js';
 
 /** Platform-owned metadata the envelope needs but agentback's @tool doesn't carry. */

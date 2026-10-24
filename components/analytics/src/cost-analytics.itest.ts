@@ -4,12 +4,9 @@
 // agentback export.
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {Pool} from 'pg';
-import {loadConfig} from '@platform-internal/config';
-import {
-  createUsageMeter,
-  type UsageMeterHandle,
-} from '@platform-internal/drizzle';
-import type {MeterKind, TenantId} from '@platform/contracts';
+import {loadConfig} from '@hermes-one/config';
+import {createUsageMeter, type UsageMeterHandle} from '@hermes-one/drizzle';
+import type {MeterKind, TenantId} from '@hermes-one/contracts';
 import {UsageCostAnalyticsService} from './cost-analytics.js';
 
 const cfg = loadConfig();

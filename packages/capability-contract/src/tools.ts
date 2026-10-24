@@ -6,7 +6,7 @@ import type {
   CapabilityContract,
   CapabilityName,
   Scope,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 /** True if any granted scope covers `required` (segment-wise, `*` wildcards allowed in granted). */
 export function scopeSatisfies(

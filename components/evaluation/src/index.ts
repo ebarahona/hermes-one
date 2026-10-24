@@ -1,4 +1,4 @@
-// @platform-internal/evaluation — component (agent plane).
+// @hermes-one/evaluation — component (agent plane).
 // The golden-conversation evaluation framework: plays
 // cases through the ONE turn loop against mock providers (dryRun), scores assertions, gates deployment
 // publish on required-case regressions. The workflow-level Temporal simulation is deferred (see
@@ -26,7 +26,7 @@ export {
 } from './candidate-check.js';
 
 export const descriptor = {
-  name: '@platform-internal/evaluation',
+  name: '@hermes-one/evaluation',
   role: 'component',
   plane: 'agent',
   published: false,

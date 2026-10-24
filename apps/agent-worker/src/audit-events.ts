@@ -15,8 +15,8 @@ import type {
   PrincipalId,
   TenantId,
   IsoTimestamp,
-} from '@platform/contracts';
-import type {TurnLedger} from '@platform-internal/agent-runtime';
+} from '@hermes-one/contracts';
+import type {TurnLedger} from '@hermes-one/agent-runtime';
 
 const sha256hex = (s: string) => createHash('sha256').update(s).digest('hex');
 

@@ -3,11 +3,11 @@
 //
 // Design notes (flagged, not improvised):
 // - The design places this file in `packages/agent-platform-internal/bindings`; this repo hosts it in
-//   `components/loopback-core` (edge) so `@platform/contracts` stays free of any container dependency
+//   `components/loopback-core` (edge) so `@hermes-one/contracts` stays free of any container dependency
 //   (BindingKey.create is an @loopback/context API; contracts is plane-neutral).
 // - Keys whose PORT TYPE does not exist yet are NOT declared (declaring them typed `unknown` would
 //   invite untyped resolution). Pending, with their type owner:
-//   TEMPORAL_* (`@platform/temporal` — Pack B types unbuilt), QDRANT (`VectorStore` port unbuilt),
+//   TEMPORAL_* (`@hermes-one/temporal` — Pack B types unbuilt), QDRANT (`VectorStore` port unbuilt),
 //   TRACER (OTel SDK pending, OB5), TENANT_RESOLVER / TENANT_RUNTIME_* (tenant registry, CT1/CT2),
 //   MEMORY_PROVIDER (memory pack unbuilt), AGENTBACK_BRIDGE (`AgentBackBridge` type pack-owned),
 //   WORKFLOW_VERSION_ANALYZER + admin/config-subtree keys (their packs are unbuilt).
@@ -30,12 +30,12 @@ import type {
   Meter,
   EventOutboxRepository,
   EventPublisher,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import type {
   CapabilityInvoker,
   ProviderRegistry,
   ProviderResolver,
-} from '@platform/capability-contract';
+} from '@hermes-one/capability-contract';
 import type {
   CompiledPlanStore,
   DrizzleHandoffRepository,
@@ -45,13 +45,13 @@ import type {
   DrizzleTurnPersistence,
   DrizzleUserRepository,
   PlatformDbHandle,
-} from '@platform-internal/drizzle';
-import type {RedisClient} from '@platform-internal/redis';
-import type {HermesConfig} from '@platform-internal/config';
+} from '@hermes-one/drizzle';
+import type {RedisClient} from '@hermes-one/redis';
+import type {HermesConfig} from '@hermes-one/config';
 import type {
   DefinitionRegistry,
   DeploymentService,
-} from '@platform/definition-substrate';
+} from '@hermes-one/definition-substrate';
 
 /**
  * PlatformBindings — every edge/data-plane (`@loopback/context`) binding key.
@@ -107,7 +107,7 @@ export namespace PlatformBindings {
   );
 
   // ── datasources (singletons) ────────────────────────────────────────────
-  /** Spec type `PostgresDatabase` (@platform/data, unbuilt) — the repo's PlatformDbHandle carries
+  /** Spec type `PostgresDatabase` (@hermes-one/data, unbuilt) — the repo's PlatformDbHandle carries
    *  the drizzle db + pool the lifecycle observer needs (flagged). */
   export const POSTGRES = BindingKey.create<PlatformDbHandle>(
     'platform.data.postgres',

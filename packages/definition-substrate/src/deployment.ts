@@ -13,7 +13,7 @@ import {
   type PrincipalId,
   type SemVer,
   type TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import type {
   DeploymentWritePort,
   PlanStorePort,

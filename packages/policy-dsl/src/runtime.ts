@@ -5,14 +5,14 @@
 import {
   evaluatePredicate,
   type OperatorRegistry,
-} from '@platform/expression-core';
+} from '@hermes-one/expression-core';
 import type {
   CompiledPolicyPlan,
   CompiledVoter,
   PolicyDecision,
   PolicyEvaluationContext,
   PolicyRuntime,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 export class ExpressionPolicyRuntime implements PolicyRuntime {
   constructor(private readonly operators: OperatorRegistry) {}

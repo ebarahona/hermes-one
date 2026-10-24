@@ -15,8 +15,8 @@ import {
   type Response,
 } from '@loopback/rest';
 import {z} from 'zod';
-import {PlatformBindings} from '@platform-internal/loopback-core';
-import {assertScope, forbiddenScopeError} from '@platform-internal/auth';
+import {PlatformBindings} from '@hermes-one/loopback-core';
+import {assertScope, forbiddenScopeError} from '@hermes-one/auth';
 import {
   type ErrorIssue,
   PlatformErrorException,
@@ -24,7 +24,7 @@ import {
   type RoleRegistry,
   type Scope,
   type TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 const READ_ROLES = 'tenant.role.read' as Scope;
 const CREATE_ROLES = 'tenant.role.create' as Scope;

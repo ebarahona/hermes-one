@@ -12,13 +12,13 @@
 import 'reflect-metadata';
 import {fileURLToPath} from 'node:url';
 import {NativeConnection, Worker} from '@temporalio/worker';
-import {loadConfig, type HermesConfig} from '@platform-internal/config';
+import {loadConfig, type HermesConfig} from '@hermes-one/config';
 import {
   EnvelopeCredentialStore,
   FallbackCredentialStore,
   LocalAesGcmCipher,
   StaticProviderCredentialStore,
-} from '@platform-internal/secrets';
+} from '@hermes-one/secrets';
 import {
   CapabilityRegistryComponent,
   ObservabilityComponent,
@@ -27,20 +27,20 @@ import {
   PlatformBindings,
   RuleRuntimeComponent,
   type IndexedCapabilityRegistry,
-} from '@platform-internal/loopback-core';
+} from '@hermes-one/loopback-core';
 import {
   createCredentialRowStore,
   EventOutboxPublisherLoop,
   type DrizzleAuditSink,
   type DrizzleEventOutboxRepository,
-} from '@platform-internal/drizzle';
-import {RedisPubSubEventPublisher} from '@platform-internal/redis';
-import type {TenantId} from '@platform/contracts';
+} from '@hermes-one/drizzle';
+import {RedisPubSubEventPublisher} from '@hermes-one/redis';
+import type {TenantId} from '@hermes-one/contracts';
 import {
   ChannelComponent,
   messagingReplySendContract,
-} from '@platform-internal/channels';
-import {withPlatformFailures} from '@platform-internal/temporal-client';
+} from '@hermes-one/channels';
+import {withPlatformFailures} from '@hermes-one/temporal-client';
 import {createRuleActivities} from './activities.js';
 import {createPlanActivities} from './plan-activities.js';
 import {createCapabilityActivities} from './capability-activities.js';

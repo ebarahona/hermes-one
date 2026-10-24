@@ -2,7 +2,7 @@
 
 > Companion to `DEFERRED-AND-FLAGGED.md` (the exhaustive per-item registry). That file is the _what_;
 > this file is the _order and why_. Updated at each phase boundary. Governing laws: **composable**
-> (ports in `@platform/contracts`, impls in `infrastructure/*`, planes meet only at serializable
+> (ports in `@hermes-one/contracts`, impls in `infrastructure/*`, planes meet only at serializable
 > boundaries, wiring only at composition roots — ADR-017/024) and **scalable** (costs O(1) in tenants
 > wherever possible; deterministic-first; nothing on the hot path that breaks at 1,000 tenants).
 
@@ -44,7 +44,7 @@ Before this phase the credential store was env-backed and tenant-agnostic, its P
 plane (`components/channels`, so the agent plane structurally could not import it — root cause of
 PE7), and BOTH planes passed `providerConfig: {}`.
 
-1. ✅ **S7 (structural, DONE 2026-07-17):** move the `ProviderCredentialStore` port to `@platform/contracts`
+1. ✅ **S7 (structural, DONE 2026-07-17):** move the `ProviderCredentialStore` port to `@hermes-one/contracts`
    beside every other port; create `infrastructure/secrets` (plane `none`) — the member the design
    already assigns; wire BOTH call sites (`agent-activity.ts`, `capability-activities.ts`).
 2. ✅ **ADR-026 store (DONE 2026-07-17):** `capability.provider_credentials` table (envelope-encrypted, RLS'd, per

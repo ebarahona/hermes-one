@@ -1,5 +1,5 @@
 {
-  "name": "@platform-internal/auth",
+  "name": "@hermes-one/auth",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -15,7 +15,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "hermes": {
-    "name": "@platform-internal/auth",
+    "name": "@hermes-one/auth",
     "role": "component",
     "plane": "edge",
     "published": false,
@@ -29,9 +29,9 @@
     "@loopback/context": "^8.0.13",
     "@loopback/core": "^7.0.13",
     "@loopback/rest": "^14.0.13",
-    "@platform-internal/loopback-core": "workspace:*",
-    "@platform/capability-contract": "workspace:*",
-    "@platform/contracts": "workspace:*",
+    "@hermes-one/loopback-core": "workspace:*",
+    "@hermes-one/capability-contract": "workspace:*",
+    "@hermes-one/contracts": "workspace:*",
     "jose": "^6.2.3",
     "zod": "^4.4.3"
   }

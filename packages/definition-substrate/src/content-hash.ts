@@ -2,7 +2,7 @@
 // sha256 of its canonical JSON — stable key ordering so two structurally-equal
 // plans hash identically (replay + dedup). Pure compute (no I/O).
 import {createHash} from 'node:crypto';
-import type {ContentHash} from '@platform/contracts';
+import type {ContentHash} from '@hermes-one/contracts';
 
 /** Recursively sort object keys for a stable serialization. */
 function canonical(v: unknown): unknown {

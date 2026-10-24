@@ -1,4 +1,4 @@
-// @platform/contracts — src/role.ts
+// @hermes-one/contracts — src/role.ts
 // Role definitions + the role→scope resolution port, defined here. Roles are the SOURCE; scopes are derived per request and never
 // stored on a principal row or cached (ADR-019 "scopes are the one visibility source"; no table stores
 // Principal.scopes — a role edit takes effect on the next request).

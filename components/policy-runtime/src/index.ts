@@ -1,7 +1,7 @@
-// @platform-internal/policy-runtime — component (agent plane). Placeholder module — reserves the workspace slot; scope tracked in docs/DEFERRED-AND-FLAGGED.md.
+// @hermes-one/policy-runtime — component (agent plane). Placeholder module — reserves the workspace slot; scope tracked in docs/DEFERRED-AND-FLAGGED.md.
 
 export const descriptor = {
-  name: '@platform-internal/policy-runtime',
+  name: '@hermes-one/policy-runtime',
   role: 'component',
   plane: 'agent',
   published: false,

@@ -7,18 +7,18 @@
 //   pnpm -r build && node apps/api-gateway/dist/e2e.js
 import {createHmac} from 'node:crypto';
 import {Client, Connection} from '@temporalio/client';
-import {loadConfig} from '@platform-internal/config';
+import {loadConfig} from '@hermes-one/config';
 import {
   buildBundle,
   publishBundle,
   publishAgentDeployment,
   createWorkflowWorker,
   E2E_TENANT,
-} from '@platform-internal/workflow-worker';
-import {createActivityWorker} from '@platform-internal/activity-worker';
-import {smsSignedMaterial} from '@platform-internal/channels';
+} from '@hermes-one/workflow-worker';
+import {createActivityWorker} from '@hermes-one/activity-worker';
+import {smsSignedMaterial} from '@hermes-one/channels';
 import {createInboundGateway} from './index.js';
-import type {TenantId} from '@platform/contracts';
+import type {TenantId} from '@hermes-one/contracts';
 
 const PORT = 8790;
 const SECRET = 'dev-webhook-secret';

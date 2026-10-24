@@ -8,7 +8,7 @@
 //   docker compose -f infra/docker-compose.yml up -d
 //   pnpm -r build && node apps/agent-worker/dist/e2e.js
 import {Client, Connection} from '@temporalio/client';
-import {loadConfig} from '@platform-internal/config';
+import {loadConfig} from '@hermes-one/config';
 import {
   createWorkflowWorker,
   buildTriageBundle,
@@ -17,10 +17,10 @@ import {
   publishAgentDeployment,
   E2E_TENANT,
   WORKFLOW_QUEUE,
-} from '@platform-internal/workflow-worker';
-import {createActivityWorker} from '@platform-internal/activity-worker';
-import {createRoleRegistry} from '@platform-internal/drizzle';
-import type {Principal} from '@platform/contracts';
+} from '@hermes-one/workflow-worker';
+import {createActivityWorker} from '@hermes-one/activity-worker';
+import {createRoleRegistry} from '@hermes-one/drizzle';
+import type {Principal} from '@hermes-one/contracts';
 import {createAgentWorker} from './worker.js';
 
 const CASES = [

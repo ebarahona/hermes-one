@@ -15,9 +15,9 @@ import type {
   RuleFacts,
   SemVer,
   WorkflowDefinition,
-} from '@platform/contracts';
-import {builtinRegistry} from '@platform/expression-core';
-import {compileRule, createRuleRuntime} from '@platform/rule-dsl';
+} from '@hermes-one/contracts';
+import {builtinRegistry} from '@hermes-one/expression-core';
+import {compileRule, createRuleRuntime} from '@hermes-one/rule-dsl';
 import {compileWorkflow} from './compile.js';
 import {executeCompiledWorkflow, type WorkflowEffects} from './interpreter.js';
 

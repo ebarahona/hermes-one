@@ -15,7 +15,7 @@ import {
   type TenantId,
   type ToolCall,
   type TurnId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import type {ProviderResolver} from './resolver.js';
 
 const MUTATING = new Set(['write', 'external', 'payment']);

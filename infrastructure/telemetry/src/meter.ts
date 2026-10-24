@@ -8,7 +8,7 @@ import {
   type MetricName,
   type Meter,
   type SloTarget,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 /** Stable key for a metric + its tag set (sorted so tag order doesn't matter). */
 function seriesKey(metric: string, tags?: Record<string, string>): string {

@@ -4,7 +4,7 @@
 // tenant_id). A per-tenant unique (email / externalHandle / auth-identity) collision → 409 conflict.
 import {randomUUID} from 'node:crypto';
 import {eq} from 'drizzle-orm';
-import {PlatformErrorException, type TenantId} from '@platform/contracts';
+import {PlatformErrorException, type TenantId} from '@hermes-one/contracts';
 import {TenantAwareRepository} from './tenant-aware.repository.js';
 import {users} from './schema/tenant.schema.js';
 

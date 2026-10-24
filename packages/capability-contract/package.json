@@ -1,5 +1,5 @@
 {
-  "name": "@platform/capability-contract",
+  "name": "@hermes-one/capability-contract",
   "version": "0.1.0",
   "license": "MIT",
   "type": "module",
@@ -21,7 +21,7 @@
     "access": "public"
   },
   "hermes": {
-    "name": "@platform/capability-contract",
+    "name": "@hermes-one/capability-contract",
     "role": "package",
     "plane": "none",
     "published": true,
@@ -31,7 +31,7 @@
     ]
   },
   "dependencies": {
-    "@platform/contracts": "workspace:*",
-    "@platform/expression-core": "workspace:*"
+    "@hermes-one/contracts": "workspace:*",
+    "@hermes-one/expression-core": "workspace:*"
   }
 }

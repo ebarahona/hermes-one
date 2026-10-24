@@ -1,4 +1,4 @@
-// @platform/contracts — src/audit-replay.ts
+// @hermes-one/contracts — src/audit-replay.ts
 // The READ side of the audit trail (audit and replay): the composed incident timeline
 // (audit_events ⋈ tool_executions ⋈ policy_decisions ⋈ evidence_records by tenant+correlation) + the two
 // replay modes.

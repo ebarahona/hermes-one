@@ -2,7 +2,7 @@
 // decryption fail LOUDLY (GCM auth), rotation is an upsert, revocation fail-closes and never falls
 // through to platform defaults.
 import {describe, expect, it} from 'vitest';
-import type {CapabilityName, TenantId} from '@platform/contracts';
+import type {CapabilityName, TenantId} from '@hermes-one/contracts';
 import {LocalAesGcmCipher} from './credential-cipher.js';
 import {
   EnvelopeCredentialStore,

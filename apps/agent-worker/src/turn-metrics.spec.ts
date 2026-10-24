@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import type {TurnLedger} from '@platform-internal/agent-runtime';
-import {InMemoryMeter} from '@platform-internal/telemetry';
+import type {TurnLedger} from '@hermes-one/agent-runtime';
+import {InMemoryMeter} from '@hermes-one/telemetry';
 import {emitTurnMetrics} from './turn-metrics.js';
 
 const ledger = (): TurnLedger => ({

@@ -1,4 +1,4 @@
-// @platform/contracts — src/provider.ts
+// @hermes-one/contracts — src/provider.ts
 import {z} from 'zod';
 import {TenantId, ConversationId, IsoTimestamp} from './substrate.js';
 import {Channel} from './tenant.js';

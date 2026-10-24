@@ -1,5 +1,5 @@
 {
-  "name": "@platform/workflow-dsl",
+  "name": "@hermes-one/workflow-dsl",
   "version": "0.1.0",
   "license": "MIT",
   "type": "module",
@@ -25,7 +25,7 @@
     "access": "public"
   },
   "hermes": {
-    "name": "@platform/workflow-dsl",
+    "name": "@hermes-one/workflow-dsl",
     "role": "package",
     "plane": "none",
     "published": true,
@@ -34,11 +34,11 @@
     ]
   },
   "dependencies": {
-    "@platform/contracts": "workspace:*",
-    "@platform/definition-substrate": "workspace:*"
+    "@hermes-one/contracts": "workspace:*",
+    "@hermes-one/definition-substrate": "workspace:*"
   },
   "devDependencies": {
-    "@platform/rule-dsl": "workspace:*",
-    "@platform/expression-core": "workspace:*"
+    "@hermes-one/rule-dsl": "workspace:*",
+    "@hermes-one/expression-core": "workspace:*"
   }
 }

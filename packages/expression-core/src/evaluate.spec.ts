@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import type {RuleExpression} from '@platform/contracts';
+import type {RuleExpression} from '@hermes-one/contracts';
 import {
   evaluateExpression,
   evaluatePredicate,

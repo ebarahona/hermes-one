@@ -1,4 +1,4 @@
-// @platform-internal/analytics — component (edge plane).
+// @hermes-one/analytics — component (edge plane).
 // Read-only cost/token analytics over the deduped UsageRecord stream. Cost analytics is live; the scalability KPI dashboard/gate is deferred until its data
 // sources exist (deterministic-decision counter, model-call meter, model routing, worker metrics) — see
 // docs/DEFERRED-AND-FLAGGED.md.
@@ -13,7 +13,7 @@ export {
 } from './scalability-analytics.js';
 
 export const descriptor = {
-  name: '@platform-internal/analytics',
+  name: '@hermes-one/analytics',
   role: 'component',
   plane: 'edge',
   published: false,

@@ -9,8 +9,12 @@ import {
   type MCPServer,
 } from '@agentback/mcp';
 import type {Context} from '@agentback/context';
-import {createAgentPlaneApp} from '@platform-internal/agentback-runtime';
-import type {CapabilityName, ToolCall, TurnContext} from '@platform/contracts';
+import {createAgentPlaneApp} from '@hermes-one/agentback-runtime';
+import type {
+  CapabilityName,
+  ToolCall,
+  TurnContext,
+} from '@hermes-one/contracts';
 import {
   PlatformToolExecutor,
   type CapabilityMeta,

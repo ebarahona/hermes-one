@@ -7,7 +7,7 @@ import {
   HTTP_STATUS_BY_CODE,
   type PlatformError,
   type SideEffectClass,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {
   ACTIVITY_CATEGORY_TO_RETRY_POLICY_CLASS,
   ActivityCategory,
@@ -25,7 +25,7 @@ import {
   toTemporalActivityOptions,
   withPlatformFailures,
 } from './activity-options.js';
-import {PlatformErrorException} from '@platform/contracts';
+import {PlatformErrorException} from '@hermes-one/contracts';
 
 const platformError = (code: ErrorCode, retryable: boolean): PlatformError => ({
   category: CATEGORY_BY_CODE[code],

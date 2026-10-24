@@ -1,4 +1,4 @@
-// @platform/contracts — src/analytics.ts
+// @hermes-one/contracts — src/analytics.ts
 // Cost/token analytics + scalability KPI contracts.
 // CostAnalyticsService is a read-only rollup over the already-deduped UsageRecord stream (T7) —
 // summarize() is a pass-through to UsageMeter.summarize() (never a second counter); reconcile() only

@@ -1,9 +1,9 @@
-// @platform-internal/temporal-client — infrastructure (none plane). The canonical Temporal
+// @hermes-one/temporal-client — infrastructure (none plane). The canonical Temporal
 // retry-policy registry: six ActivityOptions classes, the
 // ErrorCode→ApplicationFailure.type crosswalk, and the generated nonRetryableErrorTypes list.
 
 export const descriptor = {
-  name: '@platform-internal/temporal-client',
+  name: '@hermes-one/temporal-client',
   role: 'infrastructure',
   plane: 'none',
   published: false,

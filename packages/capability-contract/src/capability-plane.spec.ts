@@ -12,7 +12,7 @@ import {
   type ToolCall,
   type ToolCallId,
   type TurnId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {InMemoryCapabilityRegistry} from './registry.js';
 import {ProviderRegistry} from './provider-registry.js';
 import {ProviderResolver, NoProviderError} from './resolver.js';

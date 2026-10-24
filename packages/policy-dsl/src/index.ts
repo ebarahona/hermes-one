@@ -1,4 +1,4 @@
-// @platform/policy-dsl — package (none plane).
+// @hermes-one/policy-dsl — package (none plane).
 // Policy compiler (→ content-hashed CompiledPolicyPlan) + the pure ExpressionPolicyRuntime (ADR-019).
 
 export {
@@ -9,7 +9,7 @@ export {
 export {ExpressionPolicyRuntime} from './runtime.js';
 
 export const descriptor = {
-  name: '@platform/policy-dsl',
+  name: '@hermes-one/policy-dsl',
   role: 'package',
   plane: 'none',
   published: true,

@@ -14,8 +14,8 @@ import {
   deriveDedupeKey,
   type MeterKind,
   type UsageEvent,
-} from '@platform/contracts';
-import type {TurnLedger} from '@platform-internal/agent-runtime';
+} from '@hermes-one/contracts';
+import type {TurnLedger} from '@hermes-one/agent-runtime';
 
 interface MeterInput {
   principalId: UsageEvent['principalId'];

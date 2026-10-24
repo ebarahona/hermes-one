@@ -1,5 +1,5 @@
 {
-  "name": "@platform-internal/agent-runtime",
+  "name": "@hermes-one/agent-runtime",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -15,21 +15,21 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@platform-internal/model-client": "workspace:*",
-    "@platform-internal/tool-executor": "workspace:*",
-    "@platform/contracts": "workspace:*"
+    "@hermes-one/model-client": "workspace:*",
+    "@hermes-one/tool-executor": "workspace:*",
+    "@hermes-one/contracts": "workspace:*"
   },
   "devDependencies": {
     "@agentback/context": "0.7.1",
     "@agentback/mcp": "0.7.1",
     "@agentback/testing": "0.7.1",
-    "@platform-internal/agentback-runtime": "workspace:*",
-    "@platform/expression-core": "workspace:*",
-    "@platform/rule-dsl": "workspace:*",
-    "@platform/workflow-dsl": "workspace:*"
+    "@hermes-one/agentback-runtime": "workspace:*",
+    "@hermes-one/expression-core": "workspace:*",
+    "@hermes-one/rule-dsl": "workspace:*",
+    "@hermes-one/workflow-dsl": "workspace:*"
   },
   "hermes": {
-    "name": "@platform-internal/agent-runtime",
+    "name": "@hermes-one/agent-runtime",
     "role": "component",
     "plane": "agent",
     "published": false,

@@ -7,12 +7,12 @@ import type {
   RuleEvaluationContext,
   RuleEvaluationResult,
   RuleRuntime,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {
   evaluatePredicate,
   type OperatorRegistry,
   type TraceEntry,
-} from '@platform/expression-core';
+} from '@hermes-one/expression-core';
 
 export class RuleEvaluationError extends Error {}
 

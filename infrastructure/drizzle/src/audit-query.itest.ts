@@ -4,12 +4,12 @@
 // via the correlation's turnIds — tenant-scoped (RLS), sorted by occurredAt.
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {Pool} from 'pg';
-import {loadConfig} from '@platform-internal/config';
+import {loadConfig} from '@hermes-one/config';
 import {
   createAuditQueryService,
   type AuditQueryServiceHandle,
 } from './client.js';
-import type {TenantId} from '@platform/contracts';
+import type {TenantId} from '@hermes-one/contracts';
 
 const cfg = loadConfig();
 const PG = cfg.stores.authoritative.url;

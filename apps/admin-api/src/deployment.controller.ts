@@ -11,13 +11,13 @@
 import {inject} from '@loopback/core';
 import {get, param, post, requestBody} from '@loopback/rest';
 import {z} from 'zod';
-import {PlatformBindings} from '@platform-internal/loopback-core';
-import {assertScope, forbiddenScopeError} from '@platform-internal/auth';
+import {PlatformBindings} from '@hermes-one/loopback-core';
+import {assertScope, forbiddenScopeError} from '@hermes-one/auth';
 import type {
   DeploymentService,
   DeploymentValidation,
   PublishDeploymentInput,
-} from '@platform/definition-substrate';
+} from '@hermes-one/definition-substrate';
 import {
   type Deployment,
   type DeploymentMember,
@@ -29,7 +29,7 @@ import {
   type Scope,
   SemVer,
   type TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 const READ_DEPLOYMENTS = 'deployment.read' as Scope;
 const PUBLISH_DEPLOYMENTS = 'deployment.publish' as Scope;

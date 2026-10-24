@@ -8,7 +8,7 @@
 import {describe, it, expect, vi} from 'vitest';
 import {createTestApp} from '@agentback/testing';
 import {MCPBindings, type MCPServer} from '@agentback/mcp';
-import type {CapabilityContract, ProviderAdapter} from '@platform/contracts';
+import type {CapabilityContract, ProviderAdapter} from '@hermes-one/contracts';
 import {createAgentPlaneApp} from './app.js';
 import {
   CapabilityToolProjector,

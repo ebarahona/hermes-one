@@ -1,5 +1,5 @@
 {
-  "name": "@platform/expression-core",
+  "name": "@hermes-one/expression-core",
   "version": "0.1.0",
   "license": "MIT",
   "type": "module",
@@ -18,13 +18,13 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@platform/contracts": "workspace:*"
+    "@hermes-one/contracts": "workspace:*"
   },
   "publishConfig": {
     "access": "public"
   },
   "hermes": {
-    "name": "@platform/expression-core",
+    "name": "@hermes-one/expression-core",
     "role": "package",
     "plane": "none",
     "published": true,

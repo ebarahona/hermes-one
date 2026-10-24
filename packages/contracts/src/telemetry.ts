@@ -1,7 +1,7 @@
-// @platform/contracts — src/telemetry.ts
+// @hermes-one/contracts — src/telemetry.ts
 // Observability correlation + structured logging + redaction + the metrics catalogue + trace-propagation
 // interfaces. Covers correlation, metrics, logging, redaction, and tracing.
-// IMPLEMENTED in @platform-internal/telemetry: the structured Logger + Redactor. Meter + the Temporal
+// IMPLEMENTED in @hermes-one/telemetry: the structured Logger + Redactor. Meter + the Temporal
 // trace interceptors are transcribed as interfaces only — impl deferred (needs the OTel SDK + Temporal
 // interceptors; DEFERRED-AND-FLAGGED OB5).
 // NOTE: the contract brands workflowId (WorkflowId) + nodeId (NodeId); WorkflowId has no substrate brand and

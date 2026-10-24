@@ -1,4 +1,4 @@
-// @platform-internal/drizzle — infrastructure (none plane).
+// @hermes-one/drizzle — infrastructure (none plane).
 // Postgres adapters behind the platform's repository ports (ADR-022): the content-addressed
 // compiled-plan substrate, tenant-scoped runtime tables, RLS primitives, and migrations.
 
@@ -135,7 +135,7 @@ export {
 export {runMigrations, type MigrationResult} from './migrate.js';
 
 export const descriptor = {
-  name: '@platform-internal/drizzle',
+  name: '@hermes-one/drizzle',
   role: 'infrastructure',
   plane: 'none',
   published: false,

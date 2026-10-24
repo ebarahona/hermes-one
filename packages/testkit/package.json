@@ -1,5 +1,5 @@
 {
-  "name": "@platform/testkit",
+  "name": "@hermes-one/testkit",
   "version": "0.1.0",
   "license": "MIT",
   "type": "module",
@@ -21,7 +21,7 @@
     "access": "public"
   },
   "hermes": {
-    "name": "@platform/testkit",
+    "name": "@hermes-one/testkit",
     "role": "package",
     "plane": "none",
     "published": true,

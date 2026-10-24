@@ -1,13 +1,10 @@
 // Tenant-scoped row access for capability.provider_credentials (migration 0030, RLS strict) —
-// implements @platform-internal/secrets' CredentialRowStore port so EnvelopeCredentialStore owns
+// implements @hermes-one/secrets' CredentialRowStore port so EnvelopeCredentialStore owns
 // crypto + semantics and this class owns ONLY rows. Every access goes through withTenant →
 // set_config('app.tenant_id') like every other tenant repo; the ciphertext column is opaque here.
 import {and, eq} from 'drizzle-orm';
-import type {CapabilityName, TenantId} from '@platform/contracts';
-import type {
-  CredentialRow,
-  CredentialRowStore,
-} from '@platform-internal/secrets';
+import type {CapabilityName, TenantId} from '@hermes-one/contracts';
+import type {CredentialRow, CredentialRowStore} from '@hermes-one/secrets';
 import {TenantAwareRepository} from './tenant-aware.repository.js';
 import {providerCredentials} from './schema/capability.schema.js';
 

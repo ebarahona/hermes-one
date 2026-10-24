@@ -11,8 +11,8 @@ import {
   type ProviderExecutionContext,
   type ProviderStatus,
   type TenantId,
-} from '@platform/contracts';
-import type {DrizzleMessageRepository} from '@platform-internal/drizzle';
+} from '@hermes-one/contracts';
+import type {DrizzleMessageRepository} from '@hermes-one/drizzle';
 
 export const MESSAGING_REPLY_SEND = 'messaging.reply.send' as CapabilityName;
 

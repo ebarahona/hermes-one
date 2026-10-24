@@ -3,8 +3,8 @@
 // first import in the process (ADR-022) — this module imports it, and every main.ts imports this
 // module first.
 import 'reflect-metadata';
-import {loadConfig, type HermesConfig} from '@platform-internal/config';
-import type {CompositionRoot} from '@platform/contracts';
+import {loadConfig, type HermesConfig} from '@hermes-one/config';
+import type {CompositionRoot} from '@hermes-one/contracts';
 
 /** Every main.ts calls this with its own root; identical everywhere. */
 export async function bootstrap<TApp>(

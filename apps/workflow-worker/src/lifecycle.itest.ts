@@ -3,7 +3,7 @@
 // deployment through DeploymentService.publish, and resolve it back — resolveActive + resolvePlan
 // (hash-verified). Proves the lifecycle replaces the direct putCompiledPlan seeding.
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
-import {loadConfig} from '@platform-internal/config';
+import {loadConfig} from '@hermes-one/config';
 import {
   runMigrations,
   createCompiledPlanStore,
@@ -12,16 +12,16 @@ import {
   type CompiledPlanStoreHandle,
   type PlatformDbHandle,
   type SubstrateWriteHandle,
-} from '@platform-internal/drizzle';
-import {builtinRegistry} from '@platform/expression-core';
-import {compileRule} from '@platform/rule-dsl';
-import {compileWorkflow} from '@platform/workflow-dsl';
-import {compilePolicy} from '@platform/policy-dsl';
+} from '@hermes-one/drizzle';
+import {builtinRegistry} from '@hermes-one/expression-core';
+import {compileRule} from '@hermes-one/rule-dsl';
+import {compileWorkflow} from '@hermes-one/workflow-dsl';
+import {compilePolicy} from '@hermes-one/policy-dsl';
 import {
   DefinitionRegistry,
   DeploymentService,
   type CompileFn,
-} from '@platform/definition-substrate';
+} from '@hermes-one/definition-substrate';
 import type {
   Definition,
   DeploymentMember,
@@ -29,7 +29,7 @@ import type {
   PrincipalId,
   SemVer,
   TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 const cfg = loadConfig();
 const PG = cfg.stores.authoritative.url;

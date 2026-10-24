@@ -10,8 +10,8 @@ import {
   type PlanId,
   type SemVer,
   type WorkflowNode,
-} from '@platform/contracts';
-import {contentHashOf} from '@platform/definition-substrate';
+} from '@hermes-one/contracts';
+import {contentHashOf} from '@hermes-one/definition-substrate';
 
 export class WorkflowCompileError extends Error {}
 

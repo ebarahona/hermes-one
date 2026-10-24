@@ -8,7 +8,7 @@ import type {
   ResolvedSecret,
   SecretProvider,
   SecretRef,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 const ENV_STORE_PREFIX = 'secret://env/';
 

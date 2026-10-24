@@ -1,4 +1,4 @@
-// @platform/contracts — src/audit.ts
+// @hermes-one/contracts — src/audit.ts
 // Audit + usage-metering contracts.
 // AuditEvent is the append-only, immutable, tamper-evident record of every material action (integrityHash =
 // content hash of the row minus id). UsageEvent/UsageRecord carry principalId + a dedupeKey so at-least-once

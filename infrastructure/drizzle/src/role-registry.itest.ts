@@ -3,8 +3,8 @@
 // and the seeded platform matrix from migration 0029.
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {Pool} from 'pg';
-import {loadConfig} from '@platform-internal/config';
-import type {RoleId, TenantId} from '@platform/contracts';
+import {loadConfig} from '@hermes-one/config';
+import type {RoleId, TenantId} from '@hermes-one/contracts';
 import {runMigrations} from './migrate.js';
 import {createRoleRegistry, type RoleRegistryHandle} from './client.js';
 

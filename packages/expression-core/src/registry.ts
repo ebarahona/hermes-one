@@ -1,7 +1,7 @@
 // Operator registry — resolves an operator name to its pure implementation.
 // The platform discovers operators via the `rule.operator` LB4 extension type;
 // this in-memory registry is the pure core the runtime and tests use.
-import type {RuleOperator, SemVer} from '@platform/contracts';
+import type {RuleOperator, SemVer} from '@hermes-one/contracts';
 import {BUILTIN_OPERATORS} from './operators.js';
 
 export interface OperatorRegistry {

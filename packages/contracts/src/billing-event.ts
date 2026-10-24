@@ -1,6 +1,6 @@
-// @platform/contracts — src/billing-event.ts
+// @hermes-one/contracts — src/billing-event.ts
 // Billing event fan-out, hosted in contracts with the rest of the event family.
-// References @platform/contracts types; introduces no new metering model (T7: the UsageMeter stays
+// References @hermes-one/contracts types; introduces no new metering model (T7: the UsageMeter stays
 // the single billing source; these are its fan-out envelopes).
 import {z} from 'zod';
 import {MeterKind, UsageRecord} from './audit.js';

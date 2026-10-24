@@ -7,7 +7,7 @@ import {defineConfig} from 'vitest/config';
 // A separate `vitest.dist.config.ts` runs the full suite against built
 // `dist/` after development (see `pnpm test:dist`).
 export default defineConfig({
-  // Resolve @platform/* and @platform-internal/* to their TS source via the
+  // Resolve @hermes-one/* and @hermes-one/* to their TS source via the
   // tsconfig paths (same source of truth as `tsc`) — native Vite support.
   resolve: {tsconfigPaths: true},
   test: {

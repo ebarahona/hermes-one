@@ -1,5 +1,5 @@
 {
-  "name": "@platform-internal/capability-registry",
+  "name": "@hermes-one/capability-registry",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -15,7 +15,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "hermes": {
-    "name": "@platform-internal/capability-registry",
+    "name": "@hermes-one/capability-registry",
     "role": "component",
     "plane": "agent",
     "published": false,

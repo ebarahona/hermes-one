@@ -1,5 +1,5 @@
 {
-  "name": "@platform-internal/rule-runtime",
+  "name": "@hermes-one/rule-runtime",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -15,7 +15,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "hermes": {
-    "name": "@platform-internal/rule-runtime",
+    "name": "@hermes-one/rule-runtime",
     "role": "component",
     "plane": "edge",
     "published": false,

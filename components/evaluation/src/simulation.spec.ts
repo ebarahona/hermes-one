@@ -1,7 +1,7 @@
 // Proves the eval substrate runs the REAL single-step turn loop (runTurn) against injected mocks, captures
 // the ledger (dryRun, never persisted), and the runner scores a golden case end-to-end over it.
 import {describe, expect, it} from 'vitest';
-import type {Decider} from '@platform-internal/agent-runtime';
+import type {Decider} from '@hermes-one/agent-runtime';
 import type {
   IsoTimestamp,
   SemVer,
@@ -9,7 +9,7 @@ import type {
   ToolCall,
   ToolResult,
   TurnRequest,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {TurnSimulationService, type TurnSimulationDeps} from './simulation.js';
 import {DefaultEvaluationRunner, type SimulateTurnFn} from './runner.js';
 
@@ -184,7 +184,7 @@ describe('TurnSimulationService', () => {
       },
       {
         deploymentId:
-          'dpl_sim' as import('@platform/contracts').DeploymentRef['deploymentId'],
+          'dpl_sim' as import('@hermes-one/contracts').DeploymentRef['deploymentId'],
         tenantId: 'tnt_sim' as TenantId,
         version: '1.0.0' as SemVer,
       },

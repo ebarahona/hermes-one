@@ -3,7 +3,7 @@
 // turn writes when it hands off (status 'requested', owner 'agent'); the ownership lifecycle
 // (assign/takeover/resolve via Temporal signals + admin inbox) is a later build (flagged). Idempotent on
 // handoff_id so a replayed turn collapses. All access goes through withTenant → set_config('app.tenant_id').
-import type {TenantId, TenantScope} from '@platform/contracts';
+import type {TenantId, TenantScope} from '@hermes-one/contracts';
 import {
   TenantAwareRepository,
   type PlatformTx,

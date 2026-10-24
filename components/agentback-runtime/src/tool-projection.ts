@@ -35,7 +35,7 @@ import type {
   ProviderAdapter,
   SideEffectClass,
   TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {jsonSchemaToZod} from './json-schema-to-zod.js';
 
 /** Resolves the ranked/eligible/healthy adapter for a capability (ProviderResolver.resolve). */

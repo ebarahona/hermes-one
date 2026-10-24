@@ -8,10 +8,10 @@
 import {inject} from '@loopback/core';
 import {get, param, patch, requestBody} from '@loopback/rest';
 import {z} from 'zod';
-import {PlatformBindings} from '@platform-internal/loopback-core';
+import {PlatformBindings} from '@hermes-one/loopback-core';
 import {tenantConfigChangedEvent} from './audit-events.js';
-import {assertScope, forbiddenScopeError} from '@platform-internal/auth';
-import type {DrizzleTenantRepository} from '@platform-internal/drizzle';
+import {assertScope, forbiddenScopeError} from '@hermes-one/auth';
+import type {DrizzleTenantRepository} from '@hermes-one/drizzle';
 import {
   type ErrorIssue,
   PlatformErrorException,
@@ -20,7 +20,7 @@ import {
   type TenantContext,
   TenantStatus,
   type TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 const READ_TENANT = 'platform.tenant.read' as Scope;
 const UPDATE_TENANT = 'platform.tenant.update' as Scope;

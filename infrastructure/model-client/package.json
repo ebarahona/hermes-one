@@ -1,5 +1,5 @@
 {
-  "name": "@platform-internal/model-client",
+  "name": "@hermes-one/model-client",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -15,7 +15,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "hermes": {
-    "name": "@platform-internal/model-client",
+    "name": "@hermes-one/model-client",
     "role": "infrastructure",
     "plane": "none",
     "published": false,
@@ -24,7 +24,7 @@
     ]
   },
   "dependencies": {
-    "@platform/contracts": "workspace:*",
+    "@hermes-one/contracts": "workspace:*",
     "openai": "^4.77.0"
   }
 }

@@ -23,8 +23,8 @@ import type {
   IsoTimestamp,
   SemVer,
   TenantId,
-} from '@platform/contracts';
-import {toEventEnvelope} from '@platform/contracts';
+} from '@hermes-one/contracts';
+import {toEventEnvelope} from '@hermes-one/contracts';
 import {
   TenantAwareRepository,
   type PlatformDb,

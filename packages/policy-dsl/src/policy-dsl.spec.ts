@@ -3,7 +3,7 @@ import {
   BUILTIN_OPERATORS,
   builtinRegistry,
   InMemoryOperatorRegistry,
-} from '@platform/expression-core';
+} from '@hermes-one/expression-core';
 import type {
   DefinitionId,
   IsoTimestamp,
@@ -13,7 +13,7 @@ import type {
   Principal,
   RuleOperator,
   SemVer,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {
   compilePolicy,
   PolicyCompileError,

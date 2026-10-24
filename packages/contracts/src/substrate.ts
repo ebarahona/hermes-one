@@ -1,4 +1,4 @@
-// @platform/contracts — src/substrate.ts
+// @hermes-one/contracts — src/substrate.ts
 // Definition-substrate primitives (ADR-016): branded ids, primitive value
 // contracts, the Definition envelope, the CompiledPlan base every logic DSL
 // extends, and the immutable Deployment manifest. Zod-first.

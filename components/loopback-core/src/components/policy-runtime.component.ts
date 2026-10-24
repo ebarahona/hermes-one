@@ -2,8 +2,8 @@
 // a CompiledPolicyPlan.
 import {Binding, type Component} from '@loopback/core';
 import {BindingScope} from '@loopback/context';
-import {builtinRegistry} from '@platform/expression-core';
-import {ExpressionPolicyRuntime} from '@platform/policy-dsl';
+import {builtinRegistry} from '@hermes-one/expression-core';
+import {ExpressionPolicyRuntime} from '@hermes-one/policy-dsl';
 import {PlatformBindings} from '../bindings.js';
 import type {PlatformComponentBoundary} from '../boundary.js';
 

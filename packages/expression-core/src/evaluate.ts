@@ -2,7 +2,7 @@
 // RuleExpression, reused by workflow branch predicates, rules, and policy. No
 // I/O, no clock — facts (including `now`) are provided. Operators are resolved
 // from the registry and called with resolved argument values.
-import type {RuleExpression, RuleFacts} from '@platform/contracts';
+import type {RuleExpression, RuleFacts} from '@hermes-one/contracts';
 import type {OperatorRegistry} from './registry.js';
 
 export interface TraceEntry {

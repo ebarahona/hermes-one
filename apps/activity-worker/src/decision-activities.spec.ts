@@ -3,8 +3,8 @@
 // the id while the integrityHash (which covers occurredAt — the workflow clock, different per visit)
 // differed → the append-only sink tamper-rejected (409, non-retryable) and killed the run.
 import {describe, expect, it} from 'vitest';
-import type {AuditEvent} from '@platform/contracts';
-import type {DrizzleAuditSink} from '@platform-internal/drizzle';
+import type {AuditEvent} from '@hermes-one/contracts';
+import type {DrizzleAuditSink} from '@hermes-one/drizzle';
 import {
   createDecisionActivities,
   type EmitDecisionRuleArgs,

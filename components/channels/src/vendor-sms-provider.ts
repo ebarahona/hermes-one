@@ -18,14 +18,14 @@ import {
   type ProviderExecutionContext,
   type ProviderStatus,
   type TenantId,
-} from '@platform/contracts';
-import type {DrizzleMessageRepository} from '@platform-internal/drizzle';
+} from '@hermes-one/contracts';
+import type {DrizzleMessageRepository} from '@hermes-one/drizzle';
 import {
   MESSAGING_REPLY_SEND,
   type MessageSendResult,
   type OutboundInput,
 } from './messaging.js';
-import type {ProviderCredentialStore} from '@platform/contracts';
+import type {ProviderCredentialStore} from '@hermes-one/contracts';
 import type {SmsChannelTransport} from './sms-transport.js';
 
 export const TWILIO_SMS_PROVIDER_ID = 'twilio-sms';

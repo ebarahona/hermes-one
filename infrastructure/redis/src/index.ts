@@ -1,9 +1,9 @@
-// @platform-internal/redis — infrastructure (none plane).
+// @hermes-one/redis — infrastructure (none plane).
 // Ephemeral store: cache / idempotency / locks / debounce / pub-sub (ADR-006: Redis is a cache,
 // never the source of truth). Exposes a narrow client port so adapters depend on the interface,
 // not on ioredis directly.
 import {Redis} from 'ioredis';
-import type {EventEnvelope, EventPublisher} from '@platform/contracts';
+import type {EventEnvelope, EventPublisher} from '@hermes-one/contracts';
 
 /**
  * The narrow surface the platform's cache-through adapters consume, bound at `platform.data.redis`.
@@ -138,7 +138,7 @@ export class RedisPubSubEventPublisher implements EventPublisher {
 }
 
 export const descriptor = {
-  name: '@platform-internal/redis',
+  name: '@hermes-one/redis',
   role: 'infrastructure',
   plane: 'none',
   published: false,

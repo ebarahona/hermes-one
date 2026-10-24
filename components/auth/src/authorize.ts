@@ -8,8 +8,8 @@ import {
   type Principal,
   PlatformErrorException,
   type Scope,
-} from '@platform/contracts';
-import {scopeSatisfies} from '@platform/capability-contract';
+} from '@hermes-one/contracts';
+import {scopeSatisfies} from '@hermes-one/capability-contract';
 
 /** The canonical 403 for a missing scope. Generic body — no scope/route detail leaked. */
 export function forbiddenScopeError(): PlatformErrorException {

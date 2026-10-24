@@ -3,7 +3,7 @@ import {
   correlationFromWorkspace,
   type LogRecord,
   type RedactionRule,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {FieldRedactor} from './redactor.js';
 import {JsonLogger, RedactingLogger} from './logger.js';
 

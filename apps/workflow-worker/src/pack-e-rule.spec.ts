@@ -5,9 +5,9 @@
 import {describe, expect, it} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
-import {compileRule, createRuleRuntime} from '@platform/rule-dsl';
-import {builtinRegistry} from '@platform/expression-core';
-import type {IsoTimestamp, PlanId, SemVer} from '@platform/contracts';
+import {compileRule, createRuleRuntime} from '@hermes-one/rule-dsl';
+import {builtinRegistry} from '@hermes-one/expression-core';
+import type {IsoTimestamp, PlanId, SemVer} from '@hermes-one/contracts';
 
 const V1 = '1.0.0' as SemVer;
 const NOW = '2026-07-17T00:00:00.000Z' as IsoTimestamp;

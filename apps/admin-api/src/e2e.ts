@@ -8,9 +8,9 @@
 //   5. GET /v1/whoami, valid api key → 200 + the bound service principal (api-key strategy)
 // Run: `node apps/admin-api/dist/e2e.js` (no backing stack needed — no datasource bound).
 import 'reflect-metadata';
-import {loadConfig} from '@platform-internal/config';
-import type {ApiKeySeed} from '@platform-internal/auth';
-import type {PrincipalId, Scope, TenantId} from '@platform/contracts';
+import {loadConfig} from '@hermes-one/config';
+import type {ApiKeySeed} from '@hermes-one/auth';
+import type {PrincipalId, Scope, TenantId} from '@hermes-one/contracts';
 import {AdminApiRoot} from './root.js';
 
 const API_KEY = 'dev-key-e2e-xyz';

@@ -14,10 +14,10 @@ import type {
   Principal,
   TraceHeader,
   WorkflowDefinition,
-} from '@platform/contracts';
-import {builtinRegistry} from '@platform/expression-core';
-import {compileRule} from '@platform/rule-dsl';
-import {compileWorkflow} from '@platform/workflow-dsl';
+} from '@hermes-one/contracts';
+import {builtinRegistry} from '@hermes-one/expression-core';
+import {compileRule} from '@hermes-one/rule-dsl';
+import {compileWorkflow} from '@hermes-one/workflow-dsl';
 
 const V1 = '1.0.0' as SemVer;
 const AT = '2026-07-11T00:00:00.000Z' as IsoTimestamp;

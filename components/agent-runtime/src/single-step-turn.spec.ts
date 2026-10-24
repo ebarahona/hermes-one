@@ -11,17 +11,21 @@ import {
   type MCPServer,
 } from '@agentback/mcp';
 import type {Context} from '@agentback/context';
-import {createAgentPlaneApp} from '@platform-internal/agentback-runtime';
+import {createAgentPlaneApp} from '@hermes-one/agentback-runtime';
 import {
   PlatformToolExecutor,
   createEnvelopeHook,
   type CapabilityMeta,
   type CapabilityMetaSource,
-} from '@platform-internal/tool-executor';
-import type {CapabilityName, ToolCall, TurnContext} from '@platform/contracts';
+} from '@hermes-one/tool-executor';
+import type {
+  CapabilityName,
+  ToolCall,
+  TurnContext,
+} from '@hermes-one/contracts';
 import {runTurn, type Decider, type TurnLedger} from './index.js';
 import {testTurnRequest, noUsage, FIXED_NOW} from './_test-fixtures.js';
-import type {CompiledPolicyPlan, PolicyRuntime} from '@platform/contracts';
+import type {CompiledPolicyPlan, PolicyRuntime} from '@hermes-one/contracts';
 
 // A trivial always-allow policy runtime — enough to exercise pre/post-gate decision recording without
 // pulling the policy compiler into this unit test (the real runtime is covered in policy-dsl specs).

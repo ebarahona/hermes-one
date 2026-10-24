@@ -1,4 +1,4 @@
-// @platform/contracts — src/tenant-scope.ts
+// @hermes-one/contracts — src/tenant-scope.ts
 // The mandatory tenant selector every repository method takes, plus the
 // optimistic-concurrency token. Fail-closed tenant scoping (ADR-022).
 import type {TenantId} from './substrate.js';

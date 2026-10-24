@@ -8,19 +8,19 @@ import {
   createMigratorDb,
   createSubstrateWrite,
   runMigrations,
-} from '@platform-internal/drizzle';
-import {builtinRegistry} from '@platform/expression-core';
-import {compileRule} from '@platform/rule-dsl';
-import {compileWorkflow} from '@platform/workflow-dsl';
-import {compilePolicy} from '@platform/policy-dsl';
+} from '@hermes-one/drizzle';
+import {builtinRegistry} from '@hermes-one/expression-core';
+import {compileRule} from '@hermes-one/rule-dsl';
+import {compileWorkflow} from '@hermes-one/workflow-dsl';
+import {compilePolicy} from '@hermes-one/policy-dsl';
 import {
   DefinitionRegistry,
   DeploymentService,
   type CompileFn,
-} from '@platform/definition-substrate';
-import {ExpressionPolicyRuntime} from '@platform/policy-dsl';
-import {composeCandidateRegressionCheck} from '@platform-internal/evaluation';
-import type {Decider} from '@platform-internal/agent-runtime';
+} from '@hermes-one/definition-substrate';
+import {ExpressionPolicyRuntime} from '@hermes-one/policy-dsl';
+import {composeCandidateRegressionCheck} from '@hermes-one/evaluation';
+import type {Decider} from '@hermes-one/agent-runtime';
 import type {
   ContentHash,
   Definition,
@@ -34,7 +34,7 @@ import type {
   SemVer,
   TenantId,
   ToolCall,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import type {RunBundle} from './bundle.js';
 
 export const E2E_TENANT = 'tnt_e2e';

@@ -2,8 +2,8 @@
 // live itests/e2es — here we assert the BINDING GRAPH: every key a component claims is bound after
 // app.component(X), keys are plane-pure, and the pure services resolve.
 import {describe, expect, it} from 'vitest';
-import type {CapabilityContract} from '@platform/contracts';
-import type {HermesConfig} from '@platform-internal/config';
+import type {CapabilityContract} from '@hermes-one/contracts';
+import type {HermesConfig} from '@hermes-one/config';
 import {
   CapabilityRegistryComponent,
   ObservabilityComponent,
@@ -16,7 +16,7 @@ import {PlatformApplication} from './application.js';
 import {PlatformBindings, PlatformExtensionPoints} from './bindings.js';
 import type {PlatformComponentBoundary} from './boundary.js';
 import {Binding, CoreTags} from '@loopback/core';
-import type {ProviderAdapter, ProviderStatus} from '@platform/contracts';
+import type {ProviderAdapter, ProviderStatus} from '@hermes-one/contracts';
 
 const FAKE_CONFIG = {
   temporal: {address: 'x', namespace: 'default'},

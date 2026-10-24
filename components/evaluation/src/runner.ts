@@ -17,7 +17,7 @@ import {
   type GoldenConversationCase,
   type IsoTimestamp,
   type RegressionGate,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import type {TurnSimulationOutput} from './simulation.js';
 
 /** Runs one scripted inbound turn against a deployment and returns the captured turn output. */

@@ -2,7 +2,7 @@
 // matches; fail-closed if none. Discovered via the LB4 extension point.
 import {extensionPoint, extensions, type Getter} from '@loopback/core';
 import type {Request} from '@loopback/rest';
-import type {AuthenticatedIdentity} from '@platform/contracts';
+import type {AuthenticatedIdentity} from '@hermes-one/contracts';
 import type {AuthStrategy} from './contracts.js';
 import {unauthorizedError} from './contracts.js';
 

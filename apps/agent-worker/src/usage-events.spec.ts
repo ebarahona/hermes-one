@@ -4,8 +4,8 @@ import type {
   PrincipalId,
   TenantId,
   TurnId,
-} from '@platform/contracts';
-import type {TurnLedger} from '@platform-internal/agent-runtime';
+} from '@hermes-one/contracts';
+import type {TurnLedger} from '@hermes-one/agent-runtime';
 import {deriveUsageEvents} from './usage-events.js';
 
 const NOW = '2026-07-13T09:00:00.000Z' as IsoTimestamp;

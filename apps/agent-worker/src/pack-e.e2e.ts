@@ -19,28 +19,25 @@
 //   docker compose -f infra/docker-compose.yml up -d   (+ llama-server at :8080)
 //   HERMES_CREDENTIALS_MASTER_KEY=<64 hex> pnpm -r build && node apps/agent-worker/dist/pack-e.e2e.js
 import {Client, Connection} from '@temporalio/client';
-import {loadConfig} from '@platform-internal/config';
+import {loadConfig} from '@hermes-one/config';
 import {
   createAuditQueryService,
   createCredentialRowStore,
   createRoleRegistry,
-} from '@platform-internal/drizzle';
-import {
-  EnvelopeCredentialStore,
-  LocalAesGcmCipher,
-} from '@platform-internal/secrets';
+} from '@hermes-one/drizzle';
+import {EnvelopeCredentialStore, LocalAesGcmCipher} from '@hermes-one/secrets';
 import {
   createWorkflowWorker,
   installElectricianPack,
   WORKFLOW_QUEUE,
-} from '@platform-internal/workflow-worker';
-import {createActivityWorker} from '@platform-internal/activity-worker';
+} from '@hermes-one/workflow-worker';
+import {createActivityWorker} from '@hermes-one/activity-worker';
 import type {
   CapabilityName,
   Principal,
   TenantId,
   ToolResult,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {createAgentWorker} from './worker.js';
 
 const TENANT = 'tnt_elec_demo';

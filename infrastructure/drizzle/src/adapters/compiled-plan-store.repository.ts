@@ -22,9 +22,9 @@ import {
   type ContentHash,
   type DefinitionId,
   type TenantId,
-} from '@platform/contracts';
-import {Deployment as DeploymentSchema} from '@platform/contracts';
-import type {RedisClient} from '@platform-internal/redis';
+} from '@hermes-one/contracts';
+import {Deployment as DeploymentSchema} from '@hermes-one/contracts';
+import type {RedisClient} from '@hermes-one/redis';
 import {
   TenantAwareRepository,
   type PlatformDb,

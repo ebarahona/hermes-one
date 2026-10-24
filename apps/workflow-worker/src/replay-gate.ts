@@ -18,7 +18,7 @@ import type {
   ReplayHistoryFixture,
   ReplayNondeterminismError,
   WorkerBuildId,
-} from '@platform-internal/temporal-client';
+} from '@hermes-one/temporal-client';
 
 export const FIXTURE_DIR = fileURLToPath(
   new URL('../test/replay-fixtures/golden', import.meta.url),

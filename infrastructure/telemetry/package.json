@@ -1,5 +1,5 @@
 {
-  "name": "@platform-internal/telemetry",
+  "name": "@hermes-one/telemetry",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -15,7 +15,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "hermes": {
-    "name": "@platform-internal/telemetry",
+    "name": "@hermes-one/telemetry",
     "role": "infrastructure",
     "plane": "none",
     "published": false,
@@ -31,6 +31,6 @@
     "@opentelemetry/sdk-trace-base": "^2.9.0",
     "@opentelemetry/sdk-trace-node": "^2.9.0",
     "@opentelemetry/semantic-conventions": "^1.43.0",
-    "@platform/contracts": "workspace:*"
+    "@hermes-one/contracts": "workspace:*"
   }
 }

@@ -1,4 +1,4 @@
-// @platform-internal/api-gateway — app (edge plane).
+// @hermes-one/api-gateway — app (edge plane).
 // The inbound channel webhook ingress: verify → normalize → persist → start workflow.
 //
 // MIGRATED onto the LB4 composition layer (Phase 2a): the
@@ -9,20 +9,17 @@
 // is the admin-api build.
 import 'reflect-metadata';
 import {Client, Connection} from '@temporalio/client';
-import {EnvSecretProvider, loadConfig} from '@platform-internal/config';
+import {EnvSecretProvider, loadConfig} from '@hermes-one/config';
 import {
   ObservabilityComponent,
   PersistenceComponent,
   PlatformApplication,
   PlatformBindings,
-} from '@platform-internal/loopback-core';
-import {RedisNonceStore} from '@platform-internal/redis';
-import {
-  SmsChannelTransport,
-  type TenantByNumber,
-} from '@platform-internal/channels';
-import {initTracing, tracingConfigFor} from '@platform-internal/telemetry';
-import {SecretRef, type TenantId} from '@platform/contracts';
+} from '@hermes-one/loopback-core';
+import {RedisNonceStore} from '@hermes-one/redis';
+import {SmsChannelTransport, type TenantByNumber} from '@hermes-one/channels';
+import {initTracing, tracingConfigFor} from '@hermes-one/telemetry';
+import {SecretRef, type TenantId} from '@hermes-one/contracts';
 import {createGatewayServer} from './server.js';
 
 export {createGatewayServer, type GatewayDeps} from './server.js';
@@ -104,7 +101,7 @@ export async function createInboundGateway(
 }
 
 export const descriptor = {
-  name: '@platform-internal/api-gateway',
+  name: '@hermes-one/api-gateway',
   role: 'app',
   plane: 'edge',
   published: false,

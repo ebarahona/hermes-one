@@ -1,5 +1,5 @@
 {
-  "name": "@platform/definition-substrate",
+  "name": "@hermes-one/definition-substrate",
   "version": "0.1.0",
   "license": "MIT",
   "type": "module",
@@ -21,7 +21,7 @@
     "access": "public"
   },
   "hermes": {
-    "name": "@platform/definition-substrate",
+    "name": "@hermes-one/definition-substrate",
     "role": "package",
     "plane": "none",
     "published": true,
@@ -30,6 +30,6 @@
     ]
   },
   "dependencies": {
-    "@platform/contracts": "workspace:*"
+    "@hermes-one/contracts": "workspace:*"
   }
 }

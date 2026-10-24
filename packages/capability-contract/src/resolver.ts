@@ -7,12 +7,12 @@ import {
   builtinRegistry,
   evaluatePredicate,
   type OperatorRegistry,
-} from '@platform/expression-core';
+} from '@hermes-one/expression-core';
 import type {
   CapabilityName,
   ProviderAdapter,
   ProviderMapping,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import type {ProviderRegistry} from './provider-registry.js';
 
 /** Raised when no provider can serve a request. `onNoProvider` tells the caller to fail or hand off. */

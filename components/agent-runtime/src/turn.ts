@@ -31,8 +31,8 @@ import {
   type TurnId,
   type TurnRequest,
   type TurnResult,
-} from '@platform/contracts';
-import type {PlatformToolExecutor} from '@platform-internal/tool-executor';
+} from '@hermes-one/contracts';
+import type {PlatformToolExecutor} from '@hermes-one/tool-executor';
 import type {Decider} from './single-step-loop.js';
 import {composeEvidenceOnly, type Composer} from './compose.js';
 

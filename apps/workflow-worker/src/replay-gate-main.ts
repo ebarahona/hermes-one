@@ -1,6 +1,6 @@
 // CI entry for the replay gate (ADR-029): replay every committed golden fixture against THIS build's
 // interpreter; exit non-zero on ANY nondeterminism or a fixture shortfall. No server needed.
-import {deriveBuildId} from '@platform-internal/temporal-client';
+import {deriveBuildId} from '@hermes-one/temporal-client';
 import {FIXTURE_DIR, loadFixtures, runReplayGate} from './replay-gate.js';
 
 const fixtures = loadFixtures();

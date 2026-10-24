@@ -2,9 +2,9 @@
 // evaluation over the pinned operator registry.
 import {Binding, type Component} from '@loopback/core';
 import {BindingScope} from '@loopback/context';
-import type {SemVer} from '@platform/contracts';
-import {builtinRegistry} from '@platform/expression-core';
-import {createRuleRuntime} from '@platform/rule-dsl';
+import type {SemVer} from '@hermes-one/contracts';
+import {builtinRegistry} from '@hermes-one/expression-core';
+import {createRuleRuntime} from '@hermes-one/rule-dsl';
 import {PlatformBindings} from '../bindings.js';
 import type {PlatformComponentBoundary} from '../boundary.js';
 

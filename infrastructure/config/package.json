@@ -1,5 +1,5 @@
 {
-  "name": "@platform-internal/config",
+  "name": "@hermes-one/config",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -15,14 +15,14 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "hermes": {
-    "name": "@platform-internal/config",
+    "name": "@hermes-one/config",
     "role": "infrastructure",
     "plane": "none",
     "published": false,
     "governedBy": []
   },
   "dependencies": {
-    "@platform/contracts": "workspace:*",
+    "@hermes-one/contracts": "workspace:*",
     "zod": "^4.4.3"
   }
 }

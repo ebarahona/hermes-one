@@ -4,8 +4,8 @@
 // no SQL is issued. RLS on a NOSUPERUSER/NOBYPASSRLS role is the real boundary (ADR-022).
 import {sql} from 'drizzle-orm';
 import type {NodePgDatabase} from 'drizzle-orm/node-postgres';
-import {PlatformErrorException} from '@platform/contracts';
-import type {TenantScope} from '@platform/contracts';
+import {PlatformErrorException} from '@hermes-one/contracts';
+import type {TenantScope} from '@hermes-one/contracts';
 
 /** The Drizzle db handle bound at `platform.data.postgres`. */
 export type PlatformDb = NodePgDatabase<Record<string, never>>;

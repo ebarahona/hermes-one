@@ -51,13 +51,15 @@ see `docs/SPIKE-FINDINGS.md`.
 
 ## Layout (five areas)
 
-| Area              | Role                                                                                                                                     | Scope                  |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
-| `apps/`           | deployable processes, one composition root each (`admin-web` is reserved for the admin console, which drops onto the existing admin API) | `@platform-internal/*` |
-| `packages/`       | pure libraries — schemas, compilers, plan types                                                                                          | `@platform/*`          |
-| `components/`     | DI-wired engines (depend on ports, not adapters)                                                                                         | `@platform-internal/*` |
-| `infrastructure/` | I/O adapters (the only place with I/O)                                                                                                   | `@platform-internal/*` |
-| `verticals/`      | **data** bundles (not workspace packages)                                                                                                | —                      |
+| Area              | Role                                                                                                                                     |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/`           | deployable processes, one composition root each (`admin-web` is reserved for the admin console, which drops onto the existing admin API) |
+| `packages/`       | pure libraries — schemas, compilers, plan types                                                                                          |
+| `components/`     | DI-wired engines (depend on ports, not adapters)                                                                                         |
+| `infrastructure/` | I/O adapters (the only place with I/O)                                                                                                   |
+| `verticals/`      | **data** bundles (not workspace packages)                                                                                                |
+
+All workspace packages use the `@hermes-one/*` scope.
 
 ## Toolchain
 
@@ -73,7 +75,7 @@ docker compose -f infra/docker-compose.yml up -d   # Temporal + Postgres + Redis
 pnpm -r build      # build FIRST (tests resolve cross-package imports to dist)
 pnpm verify        # typecheck + plane-lint + unit tests — the CI gate
 pnpm test:itest    # integration suite against the live stack (RLS, atomicity, routes)
-pnpm -F @platform-internal/workflow-worker replay-gate   # interpreter nondeterminism gate (ADR-029)
+pnpm -F @hermes-one/workflow-worker replay-gate   # interpreter nondeterminism gate (ADR-029)
 
 node apps/workflow-worker/dist/e2e.js   # missed-call flow on real Temporal
 node apps/api-gateway/dist/e2e.js       # signed webhook → workflow (replay-attack rejected live)

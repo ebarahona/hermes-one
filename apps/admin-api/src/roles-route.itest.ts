@@ -6,12 +6,12 @@
 // up alongside the platform roles). Needs the compose PG stack (like the other itests).
 import 'reflect-metadata';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
-import {loadConfig} from '@platform-internal/config';
+import {loadConfig} from '@hermes-one/config';
 import {
   PlatformBindings,
   type PlatformRestApplication,
-} from '@platform-internal/loopback-core';
-import type {ApiKeySeed} from '@platform-internal/auth';
+} from '@hermes-one/loopback-core';
+import type {ApiKeySeed} from '@hermes-one/auth';
 import type {
   PrincipalId,
   RoleDefinition,
@@ -19,7 +19,7 @@ import type {
   RoleRegistry,
   Scope,
   TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {AdminApiRoot} from './root.js';
 
 /** The bound registry is a DrizzleRoleRegistry — its tenant-scoped `deleteFor` (impl-only, used for

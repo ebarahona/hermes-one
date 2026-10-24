@@ -9,7 +9,7 @@ import type {
   RuleFacts,
   RuleRuntime,
   SemVer,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 export function createRuleActivities(runtime: RuleRuntime) {
   return {

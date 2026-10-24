@@ -1,4 +1,4 @@
-// @platform/contracts — src/error.ts
+// @hermes-one/contracts — src/error.ts
 import {z} from 'zod';
 
 /* --------------------------- Categories & codes ------------------------ */

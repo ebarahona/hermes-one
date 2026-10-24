@@ -9,9 +9,9 @@ import {
   type RuleExpression,
   type IsoTimestamp,
   type SemVer,
-} from '@platform/contracts';
-import type {OperatorRegistry} from '@platform/expression-core';
-import {contentHashOf} from '@platform/definition-substrate';
+} from '@hermes-one/contracts';
+import type {OperatorRegistry} from '@hermes-one/expression-core';
+import {contentHashOf} from '@hermes-one/definition-substrate';
 
 export class RuleCompileError extends Error {}
 

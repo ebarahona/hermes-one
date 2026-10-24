@@ -1,7 +1,7 @@
 // Tenant-scoped writer for runtime.messages (RLS 'strict'). The outbound side of the messaging
 // capability persists here — idempotently (ON CONFLICT(message_id) DO NOTHING), so a replayed send
 // collapses to one row. All access goes through withTenant → set_config('app.tenant_id').
-import type {TenantScope} from '@platform/contracts';
+import type {TenantScope} from '@hermes-one/contracts';
 import {TenantAwareRepository} from './tenant-aware.repository.js';
 import {messages} from './schema/runtime.schema.js';
 

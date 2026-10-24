@@ -16,7 +16,7 @@ import {
   type TenantScope,
   type UsageEvent,
   type UsageRecord,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {TenantAwareRepository} from './tenant-aware.repository.js';
 import {
   insertTurnLedger,

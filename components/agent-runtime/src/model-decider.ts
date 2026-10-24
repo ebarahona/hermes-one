@@ -4,11 +4,8 @@
 // executor derives the real idempotency key from the capability contract; the decider supplies a
 // placeholder the turn/executor may override.
 import {createHash} from 'node:crypto';
-import type {CapabilityName, ToolCall, TurnId} from '@platform/contracts';
-import type {
-  ModelToolSpec,
-  SingleStepModel,
-} from '@platform-internal/model-client';
+import type {CapabilityName, ToolCall, TurnId} from '@hermes-one/contracts';
+import type {ModelToolSpec, SingleStepModel} from '@hermes-one/model-client';
 import type {Decider} from './single-step-loop.js';
 
 export interface DeciderTool {

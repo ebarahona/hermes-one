@@ -1,4 +1,4 @@
-// @platform/contracts — src/handoff.ts
+// @hermes-one/contracts — src/handoff.ts
 // Human-handoff contracts (ADR-012): HandoffRequest (durable request to move a conversation to a human)
 // and HandoffState (auditable ownership lifecycle). Handoff is an explicit, durable workflow state, not
 // a flag; resolution is a Temporal signal. The workflow/temporal signal wiring + admin inbox are separate

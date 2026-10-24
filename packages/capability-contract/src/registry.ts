@@ -9,7 +9,7 @@ import {
   type CapabilityName,
   type CapabilityRegistry,
   type SemVer,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 const key = (name: string, version: string) => `${name}@${version}`;
 

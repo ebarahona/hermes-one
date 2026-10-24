@@ -1,5 +1,5 @@
 {
-  "name": "@platform-internal/drizzle",
+  "name": "@hermes-one/drizzle",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -15,7 +15,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "hermes": {
-    "name": "@platform-internal/drizzle",
+    "name": "@hermes-one/drizzle",
     "role": "infrastructure",
     "plane": "none",
     "published": false,
@@ -26,16 +26,16 @@
     ]
   },
   "dependencies": {
-    "@platform-internal/redis": "workspace:*",
-    "@platform-internal/secrets": "workspace:*",
-    "@platform/contracts": "workspace:*",
+    "@hermes-one/redis": "workspace:*",
+    "@hermes-one/secrets": "workspace:*",
+    "@hermes-one/contracts": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "drizzle-zod": "^0.8.3",
     "pg": "^8.22.0"
   },
   "devDependencies": {
-    "@platform-internal/config": "workspace:*",
+    "@hermes-one/config": "workspace:*",
     "@types/pg": "^8.20.0",
-    "@platform/definition-substrate": "workspace:*"
+    "@hermes-one/definition-substrate": "workspace:*"
   }
 }

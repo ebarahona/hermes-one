@@ -13,7 +13,7 @@ import {
   type MeterKind,
   type TenantId,
   type UsageMeter,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 /** Pulls agentback's own metering totals for (tenant, period) — the reconcile comparison source. */
 export type AgentbackMeteringExport = (

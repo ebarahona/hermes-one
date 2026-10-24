@@ -17,16 +17,16 @@ import {
   type Response,
 } from '@loopback/rest';
 import {z} from 'zod';
-import {PlatformBindings} from '@platform-internal/loopback-core';
-import {assertScope, forbiddenScopeError} from '@platform-internal/auth';
-import type {DrizzleUserRepository, UserDto} from '@platform-internal/drizzle';
+import {PlatformBindings} from '@hermes-one/loopback-core';
+import {assertScope, forbiddenScopeError} from '@hermes-one/auth';
+import type {DrizzleUserRepository, UserDto} from '@hermes-one/drizzle';
 import {
   type ErrorIssue,
   PlatformErrorException,
   type Principal,
   type Scope,
   type TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 const CREATE_USER = 'tenant.user.create' as Scope;
 const READ_USER = 'tenant.user.read' as Scope;

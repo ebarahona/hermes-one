@@ -1,4 +1,4 @@
-// @platform-internal/agent-runtime — component (agent plane).
+// @hermes-one/agent-runtime — component (agent plane).
 // The platform-owned, policy-gated single-step agent turn (ADR-021/019/009/018).
 
 export {
@@ -16,7 +16,7 @@ export {composeEvidenceOnly, type Composer} from './compose.js';
 export type {Decider, Decision} from './single-step-loop.js';
 
 export const descriptor = {
-  name: '@platform-internal/agent-runtime',
+  name: '@hermes-one/agent-runtime',
   role: 'component',
   plane: 'agent',
   published: false,

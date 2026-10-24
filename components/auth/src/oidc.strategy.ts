@@ -19,8 +19,8 @@ import {
   Principal,
   type RoleRegistry,
   type TenantId,
-} from '@platform/contracts';
-import {PlatformBindings} from '@platform-internal/loopback-core';
+} from '@hermes-one/contracts';
+import {PlatformBindings} from '@hermes-one/loopback-core';
 import type {AuthStrategy, AuthConfig} from './contracts.js';
 import {unauthorizedError} from './contracts.js';
 import {AuthBindings} from './auth.bindings.js';

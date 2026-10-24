@@ -5,7 +5,7 @@
 // AuthConfig — same split as the ChannelComponent + credential store. Slice 2 registers one strategy;
 // oidc/bearer + its verifiers are added the same way (Slice 4).
 import {Binding, BindingScope, type Component, CoreTags} from '@loopback/core';
-import type {PlatformComponentBoundary} from '@platform-internal/loopback-core';
+import type {PlatformComponentBoundary} from '@hermes-one/loopback-core';
 import {
   AUTH_STRATEGIES_EXTENSION_POINT,
   AUTH_STRATEGY_EXTENSION_TYPE,

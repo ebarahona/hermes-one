@@ -31,31 +31,31 @@ import {
   type TurnContext,
   type TurnRequest,
   type TurnResult,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {
   capabilitiesForEngine,
   deriveIdempotencyKey,
   ProviderRegistry,
   ProviderResolver,
-} from '@platform/capability-contract';
-import {ExpressionPolicyRuntime} from '@platform/policy-dsl';
-import {builtinRegistry} from '@platform/expression-core';
-import {loadConfig} from '@platform-internal/config';
+} from '@hermes-one/capability-contract';
+import {ExpressionPolicyRuntime} from '@hermes-one/policy-dsl';
+import {builtinRegistry} from '@hermes-one/expression-core';
+import {loadConfig} from '@hermes-one/config';
 import {
   createOpenAICompatibleModel,
   type SingleStepModel,
-} from '@platform-internal/model-client';
+} from '@hermes-one/model-client';
 import {
   createAgentPlaneApp,
   CapabilityToolProjector,
-} from '@platform-internal/agentback-runtime';
-import {InternalSchedulerProvider} from '@platform-internal/scheduler';
+} from '@hermes-one/agentback-runtime';
+import {InternalSchedulerProvider} from '@hermes-one/scheduler';
 import {
   EnvelopeCredentialStore,
   FallbackCredentialStore,
   LocalAesGcmCipher,
   StaticProviderCredentialStore,
-} from '@platform-internal/secrets';
+} from '@hermes-one/secrets';
 import {
   PlatformToolExecutor,
   createEnvelopeHook,
@@ -63,13 +63,13 @@ import {
   type DispatchResult,
   type ToolBindingSource,
   type ProviderIdSource,
-} from '@platform-internal/tool-executor';
+} from '@hermes-one/tool-executor';
 import {
   createModelDecider,
   runTurn,
   type DeciderTool,
   type TurnLedger,
-} from '@platform-internal/agent-runtime';
+} from '@hermes-one/agent-runtime';
 import {
   assertRlsPostureAtBoot,
   createCompiledPlanStore,
@@ -80,7 +80,7 @@ import {
   type DrizzleTurnPersistence,
   type TurnLedgerRows,
   type HandoffTaskRow,
-} from '@platform-internal/drizzle';
+} from '@hermes-one/drizzle';
 import {
   correlationFromWorkspace,
   type IsoTimestamp,
@@ -88,7 +88,7 @@ import {
   type Meter,
   type PrincipalId,
   type ProviderCredentialStore,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {
   JsonLogger,
   RedactingLogger,
@@ -98,8 +98,8 @@ import {
   tracingConfigFor,
   type Tracer,
   type TracingHandle,
-} from '@platform-internal/telemetry';
-import {parentTraceparentFromArg} from '@platform-internal/temporal-client';
+} from '@hermes-one/telemetry';
+import {parentTraceparentFromArg} from '@hermes-one/temporal-client';
 import {deriveAuditEvents} from './audit-events.js';
 import {deriveUsageEvents} from './usage-events.js';
 import {emitTurnMetrics} from './turn-metrics.js';
@@ -190,7 +190,7 @@ interface Booted {
   tracing: TracingHandle;
   projector: CapabilityToolProjector;
   credentials: ProviderCredentialStore;
-  mappingOverrides: import('@platform-internal/drizzle').DrizzleProviderMappingRepository;
+  mappingOverrides: import('@hermes-one/drizzle').DrizzleProviderMappingRepository;
 }
 let booted: Promise<Booted> | undefined;
 
@@ -221,13 +221,13 @@ function boot(): Promise<Booted> {
     // The PROVIDER PLANE in the agent plane (tool projection). Before this the agent plane had no
     // ProviderRegistry at all and dispatched to the SpikeBookingTools fixtures; now a pinned capability
     // projects to a tool whose generic body resolves the ranked adapter here. Adapters are plane-neutral
-    // (@platform-internal/*, no @loopback/*) so the agent plane may import them (ADR-017 / plane-lint).
+    // (@hermes-one/*, no @loopback/*) so the agent plane may import them (ADR-017 / plane-lint).
     const providers = new ProviderRegistry([new InternalSchedulerProvider()]);
     const projector = new CapabilityToolProjector(
       (capability, mapping, facts) =>
         new ProviderResolver(providers).resolve(capability, mapping, facts),
     );
-    // ProviderCredentialStore (port in @platform/contracts, impl in the plane-neutral
+    // ProviderCredentialStore (port in @hermes-one/contracts, impl in the plane-neutral
     // infrastructure/secrets — ledger S7): the agent plane could never import the old edge-plane
     // store, which is WHY providerConfig was {} here (PE7). internal-scheduler is credential-less —
     // an EXPLICIT empty bundle; absence stays fail-closed. The per-tenant envelope store (ADR-026)

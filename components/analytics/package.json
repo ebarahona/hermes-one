@@ -1,5 +1,5 @@
 {
-  "name": "@platform-internal/analytics",
+  "name": "@hermes-one/analytics",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -15,18 +15,18 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "hermes": {
-    "name": "@platform-internal/analytics",
+    "name": "@hermes-one/analytics",
     "role": "component",
     "plane": "edge",
     "published": false,
     "governedBy": []
   },
   "dependencies": {
-    "@platform/contracts": "workspace:*"
+    "@hermes-one/contracts": "workspace:*"
   },
   "devDependencies": {
-    "@platform-internal/config": "workspace:*",
-    "@platform-internal/drizzle": "workspace:*",
+    "@hermes-one/config": "workspace:*",
+    "@hermes-one/drizzle": "workspace:*",
     "@types/pg": "^8.20.0",
     "pg": "^8.22.0"
   }

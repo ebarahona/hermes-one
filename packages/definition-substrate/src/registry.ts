@@ -18,7 +18,7 @@ import {
   type SemVer,
   type TenantId,
   type ValidatedContractBase,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {contentHashOf} from './content-hash.js';
 import type {DefinitionWritePort, PlanStorePort} from './ports.js';
 import {definitionPublishedEvent} from './events.js';

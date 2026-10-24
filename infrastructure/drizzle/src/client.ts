@@ -3,7 +3,7 @@
 // the privileged login for DDL. RLS on platform_app is the real tenant boundary.
 import {Pool} from 'pg';
 import {drizzle} from 'drizzle-orm/node-postgres';
-import {createRedisClient, type RedisClient} from '@platform-internal/redis';
+import {createRedisClient, type RedisClient} from '@hermes-one/redis';
 import type {PlatformDb} from './tenant-aware.repository.js';
 import {DrizzleMessageRepository} from './message-repository.js';
 import {DrizzleTurnLedgerRepository} from './turn-ledger-repository.js';
@@ -202,7 +202,7 @@ export interface CredentialRowStoreHandle {
   close: () => Promise<void>;
 }
 
-/** Row store behind @platform-internal/secrets' EnvelopeCredentialStore (ADR-026, migration 0030). */
+/** Row store behind @hermes-one/secrets' EnvelopeCredentialStore (ADR-026, migration 0030). */
 export interface VerticalPackInstallationsHandle {
   repo: DrizzleVerticalPackInstallationRepository;
   close: () => Promise<void>;

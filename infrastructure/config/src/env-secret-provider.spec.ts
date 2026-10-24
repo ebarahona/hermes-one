@@ -1,6 +1,6 @@
 // Unit tests for the dev/local SecretProvider backend (AUTH-1).
 import {describe, expect, it} from 'vitest';
-import {SecretRef} from '@platform/contracts';
+import {SecretRef} from '@hermes-one/contracts';
 import {EnvSecretProvider, envVarNameFor} from './env-secret-provider.js';
 
 describe('EnvSecretProvider', () => {

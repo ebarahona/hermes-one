@@ -4,7 +4,7 @@
 // security_invoker (no cross-tenant leak through a view), and a representative partial-unique holds.
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {Pool} from 'pg';
-import {loadConfig} from '@platform-internal/config';
+import {loadConfig} from '@hermes-one/config';
 import {runMigrations} from './migrate.js';
 import {createPlatformDb, type PlatformDbHandle} from './client.js';
 

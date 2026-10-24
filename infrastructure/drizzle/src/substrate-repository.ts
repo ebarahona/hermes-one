@@ -2,7 +2,7 @@
 // these own the tenant-scoped authoring/deployment writes under RLS). definitions/deployments are
 // tenant-owned and RLS-protected, so every write goes through withTenant → set_config('app.tenant_id').
 import {and, desc, eq} from 'drizzle-orm';
-import type {AuditEvent, TenantScope} from '@platform/contracts';
+import type {AuditEvent, TenantScope} from '@hermes-one/contracts';
 import {TenantAwareRepository} from './tenant-aware.repository.js';
 import {insertAuditEvent} from './audit-repository.js';
 import {enqueueOutboxRow, deriveOutboxId} from './event-outbox-repository.js';

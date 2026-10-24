@@ -4,8 +4,8 @@
 // idempotently (a Temporal activity replay collapses to the same rows).
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {Pool} from 'pg';
-import {loadConfig} from '@platform-internal/config';
-import type {AuditEvent, TenantId, UsageEvent} from '@platform/contracts';
+import {loadConfig} from '@hermes-one/config';
+import type {AuditEvent, TenantId, UsageEvent} from '@hermes-one/contracts';
 import {runMigrations} from './migrate.js';
 import {createTurnPersistence, type TurnPersistenceHandle} from './client.js';
 import type {TurnPersistenceBundle} from './turn-persistence.js';

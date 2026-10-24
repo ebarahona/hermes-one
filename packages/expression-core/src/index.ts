@@ -1,4 +1,4 @@
-// @platform/expression-core — package (none plane).
+// @hermes-one/expression-core — package (none plane).
 // The shared pure expression evaluator + operator registry (ADR-016).
 
 export {
@@ -16,7 +16,7 @@ export {
 export {BUILTIN_OPERATORS} from './operators.js';
 
 export const descriptor = {
-  name: '@platform/expression-core',
+  name: '@hermes-one/expression-core',
   role: 'package',
   plane: 'none',
   published: true,

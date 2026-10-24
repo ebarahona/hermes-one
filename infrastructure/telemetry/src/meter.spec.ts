@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {MetricName, type LogRecord} from '@platform/contracts';
+import {MetricName, type LogRecord} from '@hermes-one/contracts';
 import {InMemoryMeter, LoggingMeter, DEFAULT_SLO_TARGETS} from './meter.js';
 
 describe('InMemoryMeter', () => {

@@ -31,7 +31,7 @@ import {
 import {NodeTracerProvider} from '@opentelemetry/sdk-trace-node';
 import {OTLPTraceExporter} from '@opentelemetry/exporter-trace-otlp-http';
 import {ATTR_SERVICE_NAME} from '@opentelemetry/semantic-conventions';
-import type {TraceHeader} from '@platform/contracts';
+import type {TraceHeader} from '@hermes-one/contracts';
 
 /** Span attribute values the platform sets (strings, booleans). */
 export type SpanAttributes = Record<string, string | number | boolean>;

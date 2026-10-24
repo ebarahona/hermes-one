@@ -1,4 +1,4 @@
-// @platform-internal/temporal-client — the canonical Temporal retry-policy registry.
+// @hermes-one/temporal-client — the canonical Temporal retry-policy registry.
 // Exactly six named ActivityOptions profiles;
 // every activity the interpreter schedules resolves to exactly one. Every class's
 // `nonRetryableErrorTypes` is the SAME generated list — retryability is a property of the error,
@@ -6,23 +6,23 @@
 //
 // Layout notes (flagged — see docs/DEFERRED-AND-FLAGGED.md):
 // - This repo's Temporal infrastructure member is `infrastructure/temporal-client`.
-// - `WorkflowActivityMetadata` is owned by the binding-tag registry (`@platform-internal/tags`),
+// - `WorkflowActivityMetadata` is owned by the binding-tag registry (`@hermes-one/tags`),
 //   a package that does not exist yet (the LoopBack composition layer is unbuilt) — the minimal
 //   override slot is declared locally below until that layer lands.
-// Imports canonical contracts only; introduces no new @platform/contracts types.
+// Imports canonical contracts only; introduces no new @hermes-one/contracts types.
 import {z} from 'zod';
 import {ApplicationFailure} from '@temporalio/common';
 import type {
   PlatformError,
   ErrorCode,
   ErrorCategory,
-} from '@platform/contracts';
-import {RETRYABLE_BY_CATEGORY} from '@platform/contracts';
-import type {SideEffectClass} from '@platform/contracts';
+} from '@hermes-one/contracts';
+import {RETRYABLE_BY_CATEGORY} from '@hermes-one/contracts';
+import type {SideEffectClass} from '@hermes-one/contracts';
 
 /**
  * Minimal local slot for the per-activity override (the binding-tag registry's
- * `WorkflowActivityMetadata`) — flagged: lives here until `@platform-internal/tags` exists.
+ * `WorkflowActivityMetadata`) — flagged: lives here until `@hermes-one/tags` exists.
  */
 export interface WorkflowActivityMetadata {
   extensionType?: 'workflow.activity';

@@ -1,10 +1,10 @@
 // ObservabilityComponent (edge): binds the telemetry ports.
-// The dev/stdout implementations from @platform-internal/telemetry today; the OTel SDK swap (tracer +
+// The dev/stdout implementations from @hermes-one/telemetry today; the OTel SDK swap (tracer +
 // real exporter) is OB5 — TRACER is deliberately not bound until it exists (flagged in bindings.ts).
 import {Binding, type Component} from '@loopback/core';
 import {BindingScope} from '@loopback/context';
-import {JsonLogger, LoggingMeter} from '@platform-internal/telemetry';
-import type {Logger} from '@platform/contracts';
+import {JsonLogger, LoggingMeter} from '@hermes-one/telemetry';
+import type {Logger} from '@hermes-one/contracts';
 import {PlatformBindings} from '../bindings.js';
 import type {PlatformComponentBoundary} from '../boundary.js';
 

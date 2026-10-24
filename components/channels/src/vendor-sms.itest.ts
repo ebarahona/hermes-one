@@ -8,19 +8,19 @@ import {createServer, type Server} from 'node:http';
 import {AddressInfo} from 'node:net';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {Pool} from 'pg';
-import {loadConfig} from '@platform-internal/config';
+import {loadConfig} from '@hermes-one/config';
 import {
   createMessageRepository,
   runMigrations,
   type MessageRepositoryHandle,
-} from '@platform-internal/drizzle';
-import type {ProviderExecutionContext, TenantId} from '@platform/contracts';
+} from '@hermes-one/drizzle';
+import type {ProviderExecutionContext, TenantId} from '@hermes-one/contracts';
 import {
   CapabilityInvoker,
   ProviderRegistry,
   ProviderResolver,
   type CapabilityLookup,
-} from '@platform/capability-contract';
+} from '@hermes-one/capability-contract';
 import type {
   CapabilityContract,
   CapabilityName,
@@ -28,8 +28,8 @@ import type {
   ToolCall,
   ToolCallId,
   TurnId,
-} from '@platform/contracts';
-import {StaticProviderCredentialStore} from '@platform-internal/secrets';
+} from '@hermes-one/contracts';
+import {StaticProviderCredentialStore} from '@hermes-one/secrets';
 import {
   MESSAGING_REPLY_SEND,
   PersistingMessageProvider,

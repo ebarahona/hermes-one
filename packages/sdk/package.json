@@ -1,5 +1,5 @@
 {
-  "name": "@platform/sdk",
+  "name": "@hermes-one/sdk",
   "version": "0.1.0",
   "license": "MIT",
   "type": "module",
@@ -21,7 +21,7 @@
     "access": "public"
   },
   "hermes": {
-    "name": "@platform/sdk",
+    "name": "@hermes-one/sdk",
     "role": "package",
     "plane": "none",
     "published": true,

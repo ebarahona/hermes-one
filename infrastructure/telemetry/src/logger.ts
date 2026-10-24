@@ -6,7 +6,7 @@ import {
   type LogRecord,
   type Logger,
   type Redactor,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 const LEVEL_ORDER: Record<LogLevel, number> = {
   debug: 0,

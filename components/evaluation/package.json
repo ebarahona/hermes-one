@@ -1,5 +1,5 @@
 {
-  "name": "@platform-internal/evaluation",
+  "name": "@hermes-one/evaluation",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -15,7 +15,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "hermes": {
-    "name": "@platform-internal/evaluation",
+    "name": "@hermes-one/evaluation",
     "role": "component",
     "plane": "agent",
     "published": false,
@@ -24,8 +24,8 @@
     ]
   },
   "dependencies": {
-    "@platform-internal/agent-runtime": "workspace:*",
-    "@platform/capability-contract": "workspace:*",
-    "@platform/contracts": "workspace:*"
+    "@hermes-one/agent-runtime": "workspace:*",
+    "@hermes-one/capability-contract": "workspace:*",
+    "@hermes-one/contracts": "workspace:*"
   }
 }

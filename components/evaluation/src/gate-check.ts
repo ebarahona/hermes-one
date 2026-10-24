@@ -7,7 +7,7 @@ import type {
   EvaluationRunner,
   GoldenConversationCase,
   RegressionGate,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 export interface GateResult {
   pass: boolean;

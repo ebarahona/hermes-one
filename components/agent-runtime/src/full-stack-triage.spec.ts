@@ -26,21 +26,21 @@ import type {
   SemVer,
   ToolCall,
   WorkflowDefinition,
-} from '@platform/contracts';
-import {builtinRegistry} from '@platform/expression-core';
-import {compileRule, createRuleRuntime} from '@platform/rule-dsl';
+} from '@hermes-one/contracts';
+import {builtinRegistry} from '@hermes-one/expression-core';
+import {compileRule, createRuleRuntime} from '@hermes-one/rule-dsl';
 import {
   compileWorkflow,
   executeCompiledWorkflow,
   type WorkflowEffects,
-} from '@platform/workflow-dsl';
-import {createAgentPlaneApp} from '@platform-internal/agentback-runtime';
+} from '@hermes-one/workflow-dsl';
+import {createAgentPlaneApp} from '@hermes-one/agentback-runtime';
 import {
   PlatformToolExecutor,
   createEnvelopeHook,
   type CapabilityMeta,
   type CapabilityMetaSource,
-} from '@platform-internal/tool-executor';
+} from '@hermes-one/tool-executor';
 import {runTurn, type Decider} from './index.js';
 import {testTurnRequest, noUsage} from './_test-fixtures.js';
 

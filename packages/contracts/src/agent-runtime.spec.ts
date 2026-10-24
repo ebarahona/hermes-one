@@ -2,7 +2,7 @@ import {describe, it, expect} from 'vitest';
 import {CapabilityName, SideEffectClass} from './capability.js';
 import {ToolResult, ToolCall} from './agent-runtime.js';
 
-describe('@platform/contracts agent-runtime', () => {
+describe('@hermes-one/contracts agent-runtime', () => {
   it('accepts a well-formed domain.resource.action capability name', () => {
     expect(CapabilityName.parse('appointment.booking.create')).toBe(
       'appointment.booking.create',

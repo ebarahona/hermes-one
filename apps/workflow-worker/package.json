@@ -1,5 +1,5 @@
 {
-  "name": "@platform-internal/workflow-worker",
+  "name": "@hermes-one/workflow-worker",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -18,7 +18,7 @@
     "replay-gate": "node dist/replay-gate-main.js"
   },
   "hermes": {
-    "name": "@platform-internal/workflow-worker",
+    "name": "@hermes-one/workflow-worker",
     "role": "app",
     "plane": "edge",
     "published": false,
@@ -28,17 +28,17 @@
   },
   "dependencies": {
     "@loopback/context": "^8.0.13",
-    "@platform-internal/agent-runtime": "workspace:*",
-    "@platform-internal/config": "workspace:*",
-    "@platform-internal/evaluation": "workspace:*",
-    "@platform-internal/loopback-core": "workspace:*",
-    "@platform-internal/temporal-client": "workspace:*",
-    "@platform/contracts": "workspace:*",
-    "@platform/definition-substrate": "workspace:*",
-    "@platform/expression-core": "workspace:*",
-    "@platform/policy-dsl": "workspace:*",
-    "@platform/rule-dsl": "workspace:*",
-    "@platform/workflow-dsl": "workspace:*",
+    "@hermes-one/agent-runtime": "workspace:*",
+    "@hermes-one/config": "workspace:*",
+    "@hermes-one/evaluation": "workspace:*",
+    "@hermes-one/loopback-core": "workspace:*",
+    "@hermes-one/temporal-client": "workspace:*",
+    "@hermes-one/contracts": "workspace:*",
+    "@hermes-one/definition-substrate": "workspace:*",
+    "@hermes-one/expression-core": "workspace:*",
+    "@hermes-one/policy-dsl": "workspace:*",
+    "@hermes-one/rule-dsl": "workspace:*",
+    "@hermes-one/workflow-dsl": "workspace:*",
     "@temporalio/activity": "^1.20.2",
     "@temporalio/client": "^1.20.2",
     "@temporalio/common": "^1.20.2",
@@ -47,7 +47,7 @@
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
-    "@platform-internal/activity-worker": "workspace:*",
-    "@platform-internal/drizzle": "workspace:*"
+    "@hermes-one/activity-worker": "workspace:*",
+    "@hermes-one/drizzle": "workspace:*"
   }
 }

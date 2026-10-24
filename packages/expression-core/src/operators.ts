@@ -7,7 +7,7 @@ import type {
   RuleOperator,
   RuleOperatorSpec,
   SemVer,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 const V1 = '1.0.0' as SemVer;
 

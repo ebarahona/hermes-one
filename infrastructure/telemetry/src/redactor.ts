@@ -5,7 +5,7 @@
 // FLAGGED: the canonical rule SOURCE is the PiiCipher dataClass tagging
 // (not yet built) — the rules passed here are a stand-in until that classification exists.
 import {createHash} from 'node:crypto';
-import type {LogRecord, RedactionRule, Redactor} from '@platform/contracts';
+import type {LogRecord, RedactionRule, Redactor} from '@hermes-one/contracts';
 
 const sha256short = (s: string) =>
   createHash('sha256').update(s).digest('hex').slice(0, 12);

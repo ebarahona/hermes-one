@@ -1,5 +1,5 @@
 {
-  "name": "@platform-internal/redis",
+  "name": "@hermes-one/redis",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -15,7 +15,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "hermes": {
-    "name": "@platform-internal/redis",
+    "name": "@hermes-one/redis",
     "role": "infrastructure",
     "plane": "none",
     "published": false,
@@ -24,10 +24,10 @@
     ]
   },
   "dependencies": {
-    "@platform/contracts": "workspace:*",
+    "@hermes-one/contracts": "workspace:*",
     "ioredis": "^5.11.1"
   },
   "devDependencies": {
-    "@platform-internal/config": "workspace:*"
+    "@hermes-one/config": "workspace:*"
   }
 }

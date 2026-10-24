@@ -1,4 +1,4 @@
-// @platform/rule-dsl — package (none plane).
+// @hermes-one/rule-dsl — package (none plane).
 // Rule compiler (→ content-hashed plan) + the pure RuleRuntime (ADR-015).
 
 export {compileRule, RuleCompileError, type CompileOptions} from './compile.js';
@@ -9,7 +9,7 @@ export {
 } from './runtime.js';
 
 export const descriptor = {
-  name: '@platform/rule-dsl',
+  name: '@hermes-one/rule-dsl',
   role: 'package',
   plane: 'none',
   published: true,

@@ -1,4 +1,4 @@
-// @platform/contracts — src/tenant.ts
+// @hermes-one/contracts — src/tenant.ts
 import {z} from 'zod';
 import {
   TenantId,

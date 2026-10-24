@@ -1,4 +1,4 @@
-// @platform/workflow-dsl — package (none plane).
+// @hermes-one/workflow-dsl — package (none plane).
 // The workflow compiler + the ONE interpreter, executeCompiledWorkflow (ADR-014).
 
 export {
@@ -15,7 +15,7 @@ export {
 } from './interpreter.js';
 
 export const descriptor = {
-  name: '@platform/workflow-dsl',
+  name: '@hermes-one/workflow-dsl',
   role: 'package',
   plane: 'none',
   published: true,

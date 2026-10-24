@@ -26,13 +26,9 @@ import type {
   ToolCall,
   ToolResult,
   TurnRequest,
-} from '@platform/contracts';
-import {capabilitiesForEngine} from '@platform/capability-contract';
-import type {
-  Decider,
-  DeciderTool,
-  TurnDeps,
-} from '@platform-internal/agent-runtime';
+} from '@hermes-one/contracts';
+import {capabilitiesForEngine} from '@hermes-one/capability-contract';
+import type {Decider, DeciderTool, TurnDeps} from '@hermes-one/agent-runtime';
 import {
   TurnSimulationService,
   type TurnSimulationOutput,

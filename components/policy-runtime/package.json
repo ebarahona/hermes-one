@@ -1,5 +1,5 @@
 {
-  "name": "@platform-internal/policy-runtime",
+  "name": "@hermes-one/policy-runtime",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -15,7 +15,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "hermes": {
-    "name": "@platform-internal/policy-runtime",
+    "name": "@hermes-one/policy-runtime",
     "role": "component",
     "plane": "agent",
     "published": false,

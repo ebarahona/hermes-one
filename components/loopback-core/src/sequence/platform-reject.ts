@@ -5,7 +5,10 @@
 // through untouched; anything else collapses to a generic 500 `internal_error` (no leakage).
 import {injectable, type Provider} from '@loopback/core';
 import {type HandlerContext, type Reject} from '@loopback/rest';
-import {type PlatformError, PlatformErrorException} from '@platform/contracts';
+import {
+  type PlatformError,
+  PlatformErrorException,
+} from '@hermes-one/contracts';
 import {CORRELATION_ID_REQUEST_KEY} from './correlation.middleware.js';
 
 // Bound over RestBindings.SequenceActions.REJECT by registerPlatformRestSequence (register.ts).

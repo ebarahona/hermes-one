@@ -1,4 +1,4 @@
-// @platform-internal/model-client — infrastructure (none plane).
+// @hermes-one/model-client — infrastructure (none plane).
 // The single-step model seam (ADR-021) + an OpenAI-compatible adapter behind it. NOTE: the
 // SingleStepModel port here is authored to ADR-021 (see port.ts).
 
@@ -16,7 +16,7 @@ export {
 } from './openai-compatible.js';
 
 export const descriptor = {
-  name: '@platform-internal/model-client',
+  name: '@hermes-one/model-client',
   role: 'infrastructure',
   plane: 'none',
   published: false,

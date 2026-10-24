@@ -7,7 +7,7 @@ import type {
   ApiKeyStore,
   JwtVerifier,
   PrincipalMapper,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import type {AuthConfig} from './contracts.js';
 import type {AuthStrategyRegistry} from './auth-strategy.registry.js';
 

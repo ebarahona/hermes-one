@@ -3,8 +3,8 @@
 // (replay-safe), and reads them back through the tenant-scoped query.
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {Pool} from 'pg';
-import {loadConfig} from '@platform-internal/config';
-import type {AuditEvent, TenantId} from '@platform/contracts';
+import {loadConfig} from '@hermes-one/config';
+import type {AuditEvent, TenantId} from '@hermes-one/contracts';
 import {runMigrations} from './migrate.js';
 import {createAuditSink, type AuditSinkHandle} from './client.js';
 

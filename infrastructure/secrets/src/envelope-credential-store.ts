@@ -12,7 +12,7 @@ import type {
   ProviderCredentialRecord,
   ProviderCredentialStore,
   TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import type {CredentialCipher} from './credential-cipher.js';
 import {MissingCredentialsError} from './static-credential-store.js';
 

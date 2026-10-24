@@ -1,5 +1,5 @@
 {
-  "name": "@platform-internal/temporal-client",
+  "name": "@hermes-one/temporal-client",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -15,12 +15,12 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@platform/contracts": "workspace:*",
+    "@hermes-one/contracts": "workspace:*",
     "@temporalio/common": "^1.20.2",
     "zod": "^4.4.3"
   },
   "hermes": {
-    "name": "@platform-internal/temporal-client",
+    "name": "@hermes-one/temporal-client",
     "role": "infrastructure",
     "plane": "none",
     "published": false,

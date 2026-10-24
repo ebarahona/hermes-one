@@ -11,7 +11,7 @@ import type {
   IsoTimestamp,
   PrincipalId,
   TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 const sha256hex = (s: string) => createHash('sha256').update(s).digest('hex');
 

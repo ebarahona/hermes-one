@@ -10,7 +10,7 @@ import {
   type AuditEvent,
   type TenantId,
   type TenantStatus,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {TenantAwareRepository} from './tenant-aware.repository.js';
 import {insertAuditEvent} from './audit-repository.js';
 import {enqueueOutboxRow, deriveOutboxId} from './event-outbox-repository.js';

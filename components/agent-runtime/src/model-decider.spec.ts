@@ -1,7 +1,7 @@
 // Unit-test the model→Decision mapping with a fake SingleStepModel (no live LLM): a tool call maps to
 // a platform ToolCall (provider name → capability); no tool call finishes the turn.
 import {describe, it, expect} from 'vitest';
-import type {CapabilityName, TurnId} from '@platform/contracts';
+import type {CapabilityName, TurnId} from '@hermes-one/contracts';
 import {createModelDecider, type DeciderTool} from './model-decider.js';
 import {fakeModel, noUsage} from './_test-fixtures.js';
 

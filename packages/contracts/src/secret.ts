@@ -1,4 +1,4 @@
-// @platform/contracts — src/secret.ts
+// @hermes-one/contracts — src/secret.ts
 // The secret-pointer grammar + resolution port, defined here. The grammar (`secret-ref.ts`) and the
 // provider port (`infrastructure/secrets/src/secret-provider.ts`) are pure TS, so contracts hosts them
 // until the dedicated secrets infrastructure member exists (flagged — same hosting rule as

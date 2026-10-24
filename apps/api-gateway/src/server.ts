@@ -9,8 +9,8 @@ import {
   type Server,
   type ServerResponse,
 } from 'node:http';
-import type {SmsChannelTransport} from '@platform-internal/channels';
-import type {Tracer} from '@platform-internal/telemetry';
+import type {SmsChannelTransport} from '@hermes-one/channels';
+import type {Tracer} from '@hermes-one/telemetry';
 import {startFromInbound, type IngestDeps} from './ingestor.js';
 
 function readBody(req: IncomingMessage): Promise<string> {

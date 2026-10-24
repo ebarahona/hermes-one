@@ -5,7 +5,7 @@
 // second visit's persistTurnAtomic (409 idempotency_conflict, non-retryable) and the run died.
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {Pool} from 'pg';
-import {loadConfig} from '@platform-internal/config';
+import {loadConfig} from '@hermes-one/config';
 import type {
   ConversationId,
   IsoTimestamp,
@@ -14,14 +14,14 @@ import type {
   ToolCall,
   ToolResult,
   TurnId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {
   createTurnPersistence,
   runMigrations,
   type TurnPersistenceBundle,
   type TurnPersistenceHandle,
-} from '@platform-internal/drizzle';
-import type {TurnLedger} from '@platform-internal/agent-runtime';
+} from '@hermes-one/drizzle';
+import type {TurnLedger} from '@hermes-one/agent-runtime';
 import {deriveAuditEvents} from './audit-events.js';
 
 const cfg = loadConfig();

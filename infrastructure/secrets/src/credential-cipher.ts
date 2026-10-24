@@ -10,7 +10,7 @@ import {
   createHash,
   randomBytes,
 } from 'node:crypto';
-import type {TenantId} from '@platform/contracts';
+import type {TenantId} from '@hermes-one/contracts';
 
 export interface CredentialCipher {
   /** Encrypt one tenant's bundle. `keyRef` names the wrapping key for rotation-aware decrypt. */

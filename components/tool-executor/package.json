@@ -1,5 +1,5 @@
 {
-  "name": "@platform-internal/tool-executor",
+  "name": "@hermes-one/tool-executor",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -17,15 +17,15 @@
   "dependencies": {
     "@agentback/context": "0.7.1",
     "@agentback/mcp": "0.7.1",
-    "@platform/contracts": "workspace:*",
+    "@hermes-one/contracts": "workspace:*",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@agentback/testing": "0.7.1",
-    "@platform-internal/agentback-runtime": "workspace:*"
+    "@hermes-one/agentback-runtime": "workspace:*"
   },
   "hermes": {
-    "name": "@platform-internal/tool-executor",
+    "name": "@hermes-one/tool-executor",
     "role": "component",
     "plane": "agent",
     "published": false,

@@ -1,4 +1,4 @@
-// @platform-internal/tool-executor — component (agent plane).
+// @hermes-one/tool-executor — component (agent plane).
 // Wraps agentback callTool + synthesizes the ToolResult envelope (ADR-018).
 
 export {
@@ -18,7 +18,7 @@ export {
 } from './envelope-hook.js';
 
 export const descriptor = {
-  name: '@platform-internal/tool-executor',
+  name: '@hermes-one/tool-executor',
   role: 'component',
   plane: 'agent',
   published: false,

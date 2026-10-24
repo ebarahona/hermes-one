@@ -12,8 +12,8 @@ import {
   runTurn,
   type TurnDeps,
   type TurnLedger,
-} from '@platform-internal/agent-runtime';
-import type {TurnRequest, TurnResult} from '@platform/contracts';
+} from '@hermes-one/agent-runtime';
+import type {TurnRequest, TurnResult} from '@hermes-one/contracts';
 
 /** The turn deps a simulation runs against — the executor + decider are mock (CI) or real (shadow eval). */
 export interface TurnSimulationDeps {

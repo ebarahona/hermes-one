@@ -1,7 +1,7 @@
 // Holds the concrete ProviderAdapters (vendor realizations of a capability), keyed by
 // (capability, providerId). The composition root registers the adapters it wires; the resolver
 // looks them up by the ProviderRef the ProviderMapping ranks.
-import type {CapabilityName, ProviderAdapter} from '@platform/contracts';
+import type {CapabilityName, ProviderAdapter} from '@hermes-one/contracts';
 
 const key = (capability: string, providerId: string) =>
   `${capability}::${providerId}`;

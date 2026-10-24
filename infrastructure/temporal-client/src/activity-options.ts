@@ -7,7 +7,7 @@
 //   boundary, so a thrown `PlatformErrorException` always reaches Temporal as the stable typed
 //   `ApplicationFailure` the registry's `nonRetryableErrorTypes` can match.
 import type {Duration} from '@temporalio/common';
-import {PlatformErrorException} from '@platform/contracts';
+import {PlatformErrorException} from '@hermes-one/contracts';
 import {
   toApplicationFailure,
   type ActivityOptionsSpec,

@@ -1,11 +1,11 @@
 import {describe, expect, it} from 'vitest';
-import type {DrizzleMessageRepository} from '@platform-internal/drizzle';
+import type {DrizzleMessageRepository} from '@hermes-one/drizzle';
 import type {
   OutboundMessage,
   ProviderExecutionContext,
   TenantId,
-} from '@platform/contracts';
-import {StaticProviderCredentialStore} from '@platform-internal/secrets';
+} from '@hermes-one/contracts';
+import {StaticProviderCredentialStore} from '@hermes-one/secrets';
 import {MESSAGING_REPLY_SEND, type OutboundInput} from './messaging.js';
 import type {SmsChannelTransport} from './sms-transport.js';
 import {

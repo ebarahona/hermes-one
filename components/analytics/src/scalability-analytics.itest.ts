@@ -4,14 +4,14 @@
 // deterministic-hit-rate from seeded decision.rule events vs model turns.
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {Pool} from 'pg';
-import {loadConfig} from '@platform-internal/config';
+import {loadConfig} from '@hermes-one/config';
 import {
   createAuditSink,
   createUsageMeter,
   type AuditSinkHandle,
   type UsageMeterHandle,
-} from '@platform-internal/drizzle';
-import type {TenantId} from '@platform/contracts';
+} from '@hermes-one/drizzle';
+import type {TenantId} from '@hermes-one/contracts';
 import {
   UsageScalabilityAnalyticsService,
   type ScalabilityDataSources,

@@ -13,7 +13,7 @@ import {
   type RoleUpdateInput,
   type Scope,
   type TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {
   TenantAwareRepository,
   type PlatformTx,

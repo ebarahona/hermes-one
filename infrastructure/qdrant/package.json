@@ -1,5 +1,5 @@
 {
-  "name": "@platform-internal/qdrant",
+  "name": "@hermes-one/qdrant",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -15,7 +15,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "hermes": {
-    "name": "@platform-internal/qdrant",
+    "name": "@hermes-one/qdrant",
     "role": "infrastructure",
     "plane": "none",
     "published": false,

@@ -8,8 +8,8 @@ import {
   type ProviderExecutionContext,
   type SecretProvider,
   type TenantId,
-} from '@platform/contracts';
-import type {NonceStore} from '@platform-internal/redis';
+} from '@hermes-one/contracts';
+import type {NonceStore} from '@hermes-one/redis';
 import {
   SmsChannelTransport,
   smsSignedMaterial,

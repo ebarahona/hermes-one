@@ -1,4 +1,4 @@
-// @platform/contracts — the platform's canonical Zod-first contracts (ADR-020).
+// @hermes-one/contracts — the platform's canonical Zod-first contracts (ADR-020).
 // Barrel, in dependency order. The single source of truth every package depends
 // on; adapters implement the ports declared here.
 
@@ -26,7 +26,7 @@ export * from './auth.js';
 export * from './billing-event.js';
 
 export const descriptor = {
-  name: '@platform/contracts',
+  name: '@hermes-one/contracts',
   role: 'package',
   plane: 'none',
   published: true,

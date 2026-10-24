@@ -6,8 +6,8 @@ import type {
   CapabilityContract,
   DeploymentRef,
   GoldenConversationCase,
-} from '@platform/contracts';
-import type {Decider} from '@platform-internal/agent-runtime';
+} from '@hermes-one/contracts';
+import type {Decider} from '@hermes-one/agent-runtime';
 import {
   composeCandidateRegressionCheck,
   type CandidateCheckDeps,

@@ -4,7 +4,7 @@
 // or schema validation, so error shapes never leak the request contract and an unknown path returns
 // 401, not 404).
 //
-// Non-public routes are delegated to the AuthStrategyRegistry (AUTH-3, @platform-internal/auth),
+// Non-public routes are delegated to the AuthStrategyRegistry (AUTH-3, @hermes-one/auth),
 // resolved by BINDING KEY from the request context — loopback-core cannot import the auth component
 // (it's the other way round). On success the PrincipalMapper (the sole writer) binds the principal.
 // Fail-closed everywhere: no registry bound → 401; registry rejects → its `unauthorized` propagates.
@@ -19,7 +19,7 @@ import {
   type AuthenticatedIdentity,
   PlatformErrorException,
   type PrincipalMapper,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {PlatformSequenceGroups} from './sequence-groups.js';
 import {REST_PUBLIC_PATHS} from './rest-bindings.js';
 
@@ -28,7 +28,7 @@ import {REST_PUBLIC_PATHS} from './rest-bindings.js';
  *  like any other route; dev opts them back in via REST_PUBLIC_PATHS. */
 export const DEFAULT_PUBLIC_PATHS: readonly string[] = ['/v1/healthz'];
 
-// The `@platform-internal/auth` binding keys, referenced by string to avoid a layering cycle
+// The `@hermes-one/auth` binding keys, referenced by string to avoid a layering cycle
 // (auth → loopback-core, never the reverse). Mirror of AuthBindings.{STRATEGY_REGISTRY,PRINCIPAL_MAPPER}.
 const STRATEGY_REGISTRY_KEY = 'platform.auth.strategy-registry';
 const PRINCIPAL_MAPPER_KEY = 'platform.auth.principal-mapper';

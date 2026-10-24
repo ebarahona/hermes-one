@@ -13,7 +13,7 @@ import {
   type ApiKeyRecord,
   ApiKeyRecord as ApiKeyRecordSchema,
   type ApiKeyStore,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 export type ApiKeyHashAlgo = 'sha-256' | 'sha-512';
 

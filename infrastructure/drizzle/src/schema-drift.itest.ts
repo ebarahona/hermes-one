@@ -7,7 +7,7 @@ import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {Pool} from 'pg';
 import {getTableConfig, PgTable, type PgColumn} from 'drizzle-orm/pg-core';
 import {is} from 'drizzle-orm';
-import {loadConfig} from '@platform-internal/config';
+import {loadConfig} from '@hermes-one/config';
 import {runMigrations} from './migrate.js';
 import * as substrate from './schema/substrate.schema.js';
 import * as runtime from './schema/runtime.schema.js';

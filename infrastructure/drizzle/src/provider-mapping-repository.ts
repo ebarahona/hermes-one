@@ -11,7 +11,7 @@ import type {
   CapabilityName,
   ProviderMapping,
   TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {TenantAwareRepository} from './tenant-aware.repository.js';
 import {providerMappings} from './schema/capability.schema.js';
 

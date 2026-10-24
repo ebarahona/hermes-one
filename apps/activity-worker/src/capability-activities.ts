@@ -7,7 +7,7 @@ import {
   CapabilityInvoker,
   deriveIdempotencyKey,
   type CapabilityLookup,
-} from '@platform/capability-contract';
+} from '@hermes-one/capability-contract';
 import type {
   CapabilityName,
   IsoTimestamp,
@@ -15,7 +15,7 @@ import type {
   TenantId,
   ToolCallId,
   TurnId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 const short = (s: string, n: number) =>
   createHash('sha256').update(s).digest('hex').slice(0, n);

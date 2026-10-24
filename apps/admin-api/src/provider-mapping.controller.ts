@@ -10,9 +10,9 @@
 import {del, get, param, put, requestBody} from '@loopback/rest';
 import {inject} from '@loopback/core';
 import {z} from 'zod';
-import {PlatformBindings} from '@platform-internal/loopback-core';
-import {assertScope, forbiddenScopeError} from '@platform-internal/auth';
-import type {DrizzleProviderMappingRepository} from '@platform-internal/drizzle';
+import {PlatformBindings} from '@hermes-one/loopback-core';
+import {assertScope, forbiddenScopeError} from '@hermes-one/auth';
+import type {DrizzleProviderMappingRepository} from '@hermes-one/drizzle';
 import {
   type CapabilityName,
   type ErrorIssue,
@@ -21,7 +21,7 @@ import {
   type ProviderMapping,
   type Scope,
   type TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 const READ_CAPABILITY = 'capability.read' as Scope;
 /** Note: the capability/provider API contract writes this scope as

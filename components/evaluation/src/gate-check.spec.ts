@@ -7,7 +7,7 @@ import type {
   IsoTimestamp,
   SemVer,
   TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {DefaultRegressionGate} from './runner.js';
 import {runBehavioralRegression, combineGateResults} from './gate-check.js';
 

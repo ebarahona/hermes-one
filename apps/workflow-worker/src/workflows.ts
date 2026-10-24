@@ -9,7 +9,7 @@ import {proxyActivities, workflowInfo} from '@temporalio/workflow';
 import {
   executeCompiledWorkflow,
   type WorkflowEffects,
-} from '@platform/workflow-dsl/interpreter';
+} from '@hermes-one/workflow-dsl/interpreter';
 import type {
   CompiledRulePlan,
   CompiledWorkflowPlan,
@@ -19,13 +19,13 @@ import type {
   TraceHeader,
   TurnRequest,
   TurnResult,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {
   PassThroughWorkflowTrace,
   RETRY_POLICY_REGISTRY,
   retryPolicyClassForCapability,
   toTemporalActivityOptions,
-} from '@platform-internal/temporal-client';
+} from '@hermes-one/temporal-client';
 import type {WorkflowRunRef} from './bundle.js';
 import {buildAgentTurnRequest} from './turn-request.js';
 import {ACTIVITY_QUEUE, AGENT_QUEUE} from './queues.js';

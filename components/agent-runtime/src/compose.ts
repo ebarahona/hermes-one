@@ -2,7 +2,7 @@
 // never facts the model invented. Grounded evidence statements become the reply; when there is no
 // evidence (a purely conversational turn with no tool calls) it falls back to the model's final text,
 // which by construction asserts no un-grounded facts. Retrieved/provider evidence is untrusted input.
-import type {TurnContext} from '@platform/contracts';
+import type {TurnContext} from '@hermes-one/contracts';
 
 /**
  * `repairInstruction` is passed on a bounded post-gate repair (ADR-019): re-compose the reply to

@@ -30,11 +30,11 @@
     // `exports` still point at dist/ — these paths only affect in-repo tooling.
     "baseUrl": ".",
     "paths": {
-      "@platform/workflow-dsl/interpreter": [
+      "@hermes-one/workflow-dsl/interpreter": [
         "packages/workflow-dsl/src/interpreter.ts"
       ],
-      "@platform/*": ["packages/*/src/index.ts"],
-      "@platform-internal/*": [
+      "@hermes-one/*": [
+        "packages/*/src/index.ts",
         "apps/*/src/index.ts",
         "components/*/src/index.ts",
         "infrastructure/*/src/index.ts"

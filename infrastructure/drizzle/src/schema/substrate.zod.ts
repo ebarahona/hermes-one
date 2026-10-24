@@ -1,10 +1,10 @@
-// drizzle-zod row schemas + compile-time alignment guards against @platform/contracts (ADR-020/022).
+// drizzle-zod row schemas + compile-time alignment guards against @hermes-one/contracts (ADR-020/022).
 import {createSelectSchema} from 'drizzle-zod';
 import {
   CompiledPlanBase,
   ValidatedContractBase,
   DeploymentMember,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {
   compiledPlans,
   validatedContracts,

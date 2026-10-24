@@ -6,19 +6,19 @@ import {Binding, BindingScope, type Component} from '@loopback/core';
 import {
   DrizzleDefinitionRepository,
   DrizzleDeploymentRepository,
-} from '@platform-internal/drizzle';
+} from '@hermes-one/drizzle';
 import {
   type CompileFn,
   DefinitionRegistry,
   type DefinitionRegistryDeps,
   DeploymentService,
   type DeploymentServiceDeps,
-} from '@platform/definition-substrate';
-import {builtinRegistry} from '@platform/expression-core';
-import {compileRule} from '@platform/rule-dsl';
-import {compileWorkflow} from '@platform/workflow-dsl';
-import {compilePolicy} from '@platform/policy-dsl';
-import type {SemVer} from '@platform/contracts';
+} from '@hermes-one/definition-substrate';
+import {builtinRegistry} from '@hermes-one/expression-core';
+import {compileRule} from '@hermes-one/rule-dsl';
+import {compileWorkflow} from '@hermes-one/workflow-dsl';
+import {compilePolicy} from '@hermes-one/policy-dsl';
+import type {SemVer} from '@hermes-one/contracts';
 import {PlatformBindings} from '../bindings.js';
 import type {PlatformComponentBoundary} from '../boundary.js';
 

@@ -7,8 +7,8 @@ import type {
   ToolCall,
   ToolResult,
   TurnId,
-} from '@platform/contracts';
-import type {TurnLedger} from '@platform-internal/agent-runtime';
+} from '@hermes-one/contracts';
+import type {TurnLedger} from '@hermes-one/agent-runtime';
 import {deriveAuditEvents} from './audit-events.js';
 
 const NOW = '2026-07-13T00:00:00.000Z' as IsoTimestamp;
@@ -71,7 +71,7 @@ const ledger: TurnLedger = {
     },
   ],
   handoff: {
-    handoffId: 'hof_1' as import('@platform/contracts').HandoffId,
+    handoffId: 'hof_1' as import('@hermes-one/contracts').HandoffId,
     reason: 'policy-required',
     summary: 'needs a human',
     evidenceSnapshot: [],

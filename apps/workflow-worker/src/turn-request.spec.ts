@@ -1,9 +1,9 @@
 // Turn-scoped durable identity: two agent-node visits in one workflow run must get DISTINCT turnIds
 // (the second visit's tool executions were silently dropped by the unique (tenant_id, idempotency_key)
 // index when both visits shared `trn_<correlationId>`), and every derived turnId must still satisfy
-// the TurnId brand in @platform/contracts.
+// the TurnId brand in @hermes-one/contracts.
 import {describe, expect, it} from 'vitest';
-import {TurnId, type PinnedRef, type Principal} from '@platform/contracts';
+import {TurnId, type PinnedRef, type Principal} from '@hermes-one/contracts';
 import {buildAgentTurnRequest} from './turn-request.js';
 
 const PIN = {deploymentId: 'dpl_spec', version: '1.0.0'};

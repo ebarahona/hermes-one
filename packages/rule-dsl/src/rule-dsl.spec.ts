@@ -7,12 +7,12 @@ import type {
   RuleEvaluationContext,
   RuleOperator,
   SemVer,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {
   BUILTIN_OPERATORS,
   builtinRegistry,
   InMemoryOperatorRegistry,
-} from '@platform/expression-core';
+} from '@hermes-one/expression-core';
 import {compileRule, RuleCompileError} from './compile.js';
 import {createRuleRuntime, RuleEvaluationError} from './runtime.js';
 

@@ -1,5 +1,5 @@
 {
-  "name": "@platform-internal/agentback-bridge",
+  "name": "@hermes-one/agentback-bridge",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -15,7 +15,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "hermes": {
-    "name": "@platform-internal/agentback-bridge",
+    "name": "@hermes-one/agentback-bridge",
     "role": "component",
     "plane": "agent",
     "published": false,

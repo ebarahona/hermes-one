@@ -4,8 +4,8 @@
 // tenant's rows (strict isolation — the same posture as every other tenant table).
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {Pool} from 'pg';
-import {loadConfig} from '@platform-internal/config';
-import type {CapabilityName, TenantId} from '@platform/contracts';
+import {loadConfig} from '@hermes-one/config';
+import type {CapabilityName, TenantId} from '@hermes-one/contracts';
 import {
   EnvelopeCredentialStore,
   FallbackCredentialStore,
@@ -13,7 +13,7 @@ import {
   MissingCredentialsError,
   RevokedCredentialsError,
   StaticProviderCredentialStore,
-} from '@platform-internal/secrets';
+} from '@hermes-one/secrets';
 import {runMigrations} from './migrate.js';
 import {
   createCredentialRowStore,

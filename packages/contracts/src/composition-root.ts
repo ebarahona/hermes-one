@@ -1,4 +1,4 @@
-// @platform/contracts — src/composition-root.ts
+// @hermes-one/contracts — src/composition-root.ts
 // The per-process composition-root contract (this repo keeps contracts flat). Pure TS: no @loopback dependency;
 // the TApp type parameter is the plane's container (edge @loopback Application OR agent @agentback Application), so the contract
 // itself stays plane-neutral (ADR-017).

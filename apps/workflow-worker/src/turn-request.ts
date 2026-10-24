@@ -4,7 +4,7 @@
 // scopes from roles per request (RoleRegistry) — no demo identity literals remain on the live path.
 // Demo scaffolding remains ONLY for the tenant profile/quota/budgets (tenant-configuration store, not
 // auth — flagged).
-import type {PinnedRef, Principal, TurnRequest} from '@platform/contracts';
+import type {PinnedRef, Principal, TurnRequest} from '@hermes-one/contracts';
 import type {DeploymentPin} from './bundle.js';
 
 export function buildAgentTurnRequest(

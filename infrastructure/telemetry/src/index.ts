@@ -1,7 +1,7 @@
-// @platform-internal/telemetry — infrastructure (none plane).
+// @hermes-one/telemetry — infrastructure (none plane).
 // Structured logging + PII redaction + metrics catalogue + OTel distributed tracing.
 // `initTracing`/`OtelTracer` export real spans over an
-// OTLP/Console exporter; the Temporal trace interceptors live in @platform-internal/temporal-client. The
+// OTLP/Console exporter; the Temporal trace interceptors live in @hermes-one/temporal-client. The
 // OTel-backed Meter (histogram aggregation) remains the prod swap — see docs/DEFERRED-AND-FLAGGED.md (OB5).
 export {JsonLogger, RedactingLogger} from './logger.js';
 export {FieldRedactor} from './redactor.js';
@@ -26,7 +26,7 @@ export {
 } from './tracer.js';
 
 export const descriptor = {
-  name: '@platform-internal/telemetry',
+  name: '@hermes-one/telemetry',
   role: 'infrastructure',
   plane: 'none',
   published: false,

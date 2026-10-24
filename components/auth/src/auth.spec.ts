@@ -8,8 +8,8 @@ import type {
   PrincipalId,
   Scope,
   TenantId,
-} from '@platform/contracts';
-import {PlatformErrorException} from '@platform/contracts';
+} from '@hermes-one/contracts';
+import {PlatformErrorException} from '@hermes-one/contracts';
 import {StaticApiKeyStore} from './static-api-key-store.js';
 import {ApiKeyStrategy} from './api-key.strategy.js';
 import {DefaultPrincipalMapper} from './principal-mapper.js';

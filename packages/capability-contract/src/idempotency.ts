@@ -1,7 +1,7 @@
 // Idempotency-key derivation for a write/external/payment capability. The key material is the turnId,
 // the capability name, and the values of the contract's declared keyFields — so a replayed identical
 // call within a turn collapses, while a different turn (or different inputs) does not.
-import type {CapabilityContract} from '@platform/contracts';
+import type {CapabilityContract} from '@hermes-one/contracts';
 
 function atPath(input: Record<string, unknown>, path: string): unknown {
   return path

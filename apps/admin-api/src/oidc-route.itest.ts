@@ -6,14 +6,14 @@
 import 'reflect-metadata';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {SignJWT, exportJWK, generateKeyPair, createLocalJWKSet} from 'jose';
-import {loadConfig} from '@platform-internal/config';
-import type {PlatformRestApplication} from '@platform-internal/loopback-core';
+import {loadConfig} from '@hermes-one/config';
+import type {PlatformRestApplication} from '@hermes-one/loopback-core';
 import {
   AuthConfig,
   JoseJwtVerifier,
   OidcIssuerConfig,
   type ResolvedIssuer,
-} from '@platform-internal/auth';
+} from '@hermes-one/auth';
 import {AdminApiRoot} from './root.js';
 
 const ISSUER = 'https://login.itest/';

@@ -1,4 +1,4 @@
-// @platform-internal/scheduler — infrastructure (none plane). See internal-scheduler-provider.ts for
+// @hermes-one/scheduler — infrastructure (none plane). See internal-scheduler-provider.ts for
 // why this exists and why it is config-driven rather than table-backed.
 export {
   InternalSchedulerProvider,
@@ -7,7 +7,7 @@ export {
 } from './internal-scheduler-provider.js';
 
 export const descriptor = {
-  name: '@platform-internal/scheduler',
+  name: '@hermes-one/scheduler',
   role: 'infrastructure',
   plane: 'none',
   published: false,

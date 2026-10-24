@@ -3,8 +3,8 @@
 // Redis cache-through with mandatory hash verification, deployment reconstruction, and RLS isolation.
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {Pool} from 'pg';
-import {loadConfig} from '@platform-internal/config';
-import {createRedisClient, type RedisClient} from '@platform-internal/redis';
+import {loadConfig} from '@hermes-one/config';
+import {createRedisClient, type RedisClient} from '@hermes-one/redis';
 import type {
   CompiledPlanBase,
   ContentHash,
@@ -13,7 +13,7 @@ import type {
   SemVer,
   IsoTimestamp,
   TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {runMigrations} from './migrate.js';
 import {
   createPlatformDb,

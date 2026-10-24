@@ -10,12 +10,12 @@
 import {inject} from '@loopback/core';
 import {param, put, requestBody} from '@loopback/rest';
 import {z} from 'zod';
-import {PlatformBindings} from '@platform-internal/loopback-core';
-import {assertScope, forbiddenScopeError} from '@platform-internal/auth';
+import {PlatformBindings} from '@hermes-one/loopback-core';
+import {assertScope, forbiddenScopeError} from '@hermes-one/auth';
 import type {
   DefinitionRegistry,
   PutDefinitionResult,
-} from '@platform/definition-substrate';
+} from '@hermes-one/definition-substrate';
 import {
   type Definition,
   DefinitionKind,
@@ -25,7 +25,7 @@ import {
   type PrincipalId,
   type Scope,
   SemVer,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 const WRITE_DEF = 'definition.write' as Scope;
 

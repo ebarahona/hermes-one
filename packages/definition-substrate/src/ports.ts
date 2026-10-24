@@ -1,5 +1,5 @@
-// Structural ports the lifecycle depends on (implemented by @platform-internal/drizzle at the
-// composition root). Declared here so the published @platform/definition-substrate package stays free
+// Structural ports the lifecycle depends on (implemented by @hermes-one/drizzle at the
+// composition root). Declared here so the published @hermes-one/definition-substrate package stays free
 // of any infrastructure dependency — the concrete Drizzle repositories match these shapes structurally.
 import type {
   AuditEvent,
@@ -10,7 +10,7 @@ import type {
   TenantId,
   TenantScope,
   ValidatedContractBase,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 export interface PlanStorePort {
   putCompiledPlan(

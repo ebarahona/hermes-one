@@ -29,7 +29,7 @@ pnpm -r build
 pnpm verify                                              # typecheck + plane-lint + unit tests
 pnpm lint                                                # eslint + prettier
 pnpm test:itest                                          # integration suite (needs the compose stack)
-pnpm -F @platform-internal/workflow-worker replay-gate   # if you touched workflow code
+pnpm -F @hermes-one/workflow-worker replay-gate   # if you touched workflow code
 ```
 
 CI runs the same checks on every push and pull request.
@@ -40,7 +40,7 @@ CI runs the same checks on every push and pull request.
   live context; they meet only at serializable boundaries (ADR-017). `pnpm plane-lint` enforces this.
 - **Ports and adapters.** Components depend on ports; I/O lives only in `infrastructure/`, and adapters
   are wired at composition roots (ADR-024).
-- **Contracts are Zod-first** and live in `@platform/contracts` (ADR-020).
+- **Contracts are Zod-first** and live in `@hermes-one/contracts` (ADR-020).
 - **Verticals are data, not code** (ADR-013). A new vertical is a pack under `verticals/`; code is added
   only for a genuinely new platform capability.
 - **Every read and write is tenant-scoped.** New tenant tables need row-level security policies.

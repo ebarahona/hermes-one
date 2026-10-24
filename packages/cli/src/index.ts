@@ -1,7 +1,7 @@
-// @platform/cli — package (none plane). Placeholder module — reserves the workspace slot; scope tracked in docs/DEFERRED-AND-FLAGGED.md.
+// @hermes-one/cli — package (none plane). Placeholder module — reserves the workspace slot; scope tracked in docs/DEFERRED-AND-FLAGGED.md.
 
 export const descriptor = {
-  name: '@platform/cli',
+  name: '@hermes-one/cli',
   role: 'package',
   plane: 'none',
   published: true,

@@ -22,7 +22,7 @@ call runs on **its own Temporal task queue** — it never blocks the orchestrati
 thinks.
 
 _Enforced:_ one workflow interpreter over compiled plan data (ADR-014); rules and policies compile
-through `@platform/workflow-dsl` with purity, arity, return-type and depth checks at compile time.
+through `@hermes-one/workflow-dsl` with purity, arity, return-type and depth checks at compile time.
 _Proven:_ the deterministic hit rate — the share of turns resolved without a model call — is computed
 per tenant and surfaced on the scalability dashboard; the electrician vertical's emergency intent
 resolves live with `toolCalls=0`, and its triage routing is decided entirely by the compiled rule.

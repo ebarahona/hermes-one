@@ -1,10 +1,7 @@
 // Shared test fixtures for the agent-runtime specs: a valid serializable TurnRequest and a fake
 // single-step model. Not a spec file (won't be collected as tests).
-import type {
-  ModelResult,
-  SingleStepModel,
-} from '@platform-internal/model-client';
-import type {IsoTimestamp, TurnRequest} from '@platform/contracts';
+import type {ModelResult, SingleStepModel} from '@hermes-one/model-client';
+import type {IsoTimestamp, TurnRequest} from '@hermes-one/contracts';
 
 export const FIXED_NOW = '2026-07-11T15:04:00.000Z' as IsoTimestamp;
 

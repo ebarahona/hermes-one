@@ -5,7 +5,7 @@ import {
   type PrincipalId,
   type SemVer,
   type ValidatedContractBase,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {DefinitionRegistry} from './registry.js';
 import type {DefinitionWritePort, PlanStorePort} from './ports.js';
 

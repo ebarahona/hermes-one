@@ -18,7 +18,7 @@ import {
   type ScalabilityRegressionGate,
   type ScalabilityThresholds,
   type TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 export interface ScalabilityDataSources {
   /** Per-meter totals for the period (UsageMeter.summarize). */

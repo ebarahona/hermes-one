@@ -1,5 +1,5 @@
 {
-  "name": "@platform/contracts",
+  "name": "@hermes-one/contracts",
   "version": "0.1.0",
   "license": "MIT",
   "type": "module",
@@ -24,7 +24,7 @@
     "access": "public"
   },
   "hermes": {
-    "name": "@platform/contracts",
+    "name": "@hermes-one/contracts",
     "role": "package",
     "plane": "none",
     "published": true,

@@ -12,8 +12,8 @@ import {
   type PrincipalMapper,
   type Scope,
   type TenantId,
-} from '@platform/contracts';
-import {PlatformBindings} from '@platform-internal/loopback-core';
+} from '@hermes-one/contracts';
+import {PlatformBindings} from '@hermes-one/loopback-core';
 
 @injectable({scope: BindingScope.REQUEST})
 export class DefaultPrincipalMapper implements PrincipalMapper {

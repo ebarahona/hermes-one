@@ -1,4 +1,4 @@
-// @platform-internal/channels — component (edge plane).
+// @hermes-one/channels — component (edge plane).
 // Channel/provider adapters for customer messaging. The messaging.reply.send provider persists the
 // outbound message to runtime.messages (the real side effect behind the capability plane).
 
@@ -24,7 +24,7 @@ export {
 } from './vendor-sms-provider.js';
 
 export const descriptor = {
-  name: '@platform-internal/channels',
+  name: '@hermes-one/channels',
   role: 'component',
   plane: 'edge',
   published: false,

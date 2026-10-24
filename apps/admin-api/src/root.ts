@@ -10,22 +10,22 @@
 // controller (Slice 3). AUTH-3 (Slice 2): the AuthComponent binds the strategy registry + principal
 // mapper + api-key strategy; the root supplies the request-shaped bits (the AuthConfig + the
 // config/seed-backed ApiKeyStore) — the same split as the ChannelComponent + credential store.
-import type {HermesConfig} from '@platform-internal/config';
+import type {HermesConfig} from '@hermes-one/config';
 import {
   PersistenceComponent,
   PlatformBindings,
   PlatformRestApplication,
   registerPlatformRestSequence,
   SubstrateComponent,
-} from '@platform-internal/loopback-core';
+} from '@hermes-one/loopback-core';
 import {
   AuthBindings,
   AuthComponent,
   AuthConfig,
   StaticApiKeyStore,
   type ApiKeySeed,
-} from '@platform-internal/auth';
-import type {CompositionRoot, JwtVerifier} from '@platform/contracts';
+} from '@hermes-one/auth';
+import type {CompositionRoot, JwtVerifier} from '@hermes-one/contracts';
 import {PingController} from './ping.controller.js';
 import {WhoamiController} from './whoami.controller.js';
 import {RoleController} from './role.controller.js';

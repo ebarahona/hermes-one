@@ -10,7 +10,7 @@ import type {
   TenantId,
   UsageEvent,
   UsageMeter,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {
   TenantAwareRepository,
   type PlatformTx,

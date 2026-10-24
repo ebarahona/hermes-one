@@ -1,4 +1,4 @@
-// @platform-internal/agentback-runtime — component (agent plane).
+// @hermes-one/agentback-runtime — component (agent plane).
 // The agent-plane @agentback Application + tool projection (ADR-017/021).
 
 export {createAgentPlaneApp} from './app.js';
@@ -23,7 +23,7 @@ export {
 export {jsonSchemaToZod, UnsupportedSchemaError} from './json-schema-to-zod.js';
 
 export const descriptor = {
-  name: '@platform-internal/agentback-runtime',
+  name: '@hermes-one/agentback-runtime',
   role: 'component',
   plane: 'agent',
   published: false,

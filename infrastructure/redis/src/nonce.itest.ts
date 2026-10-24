@@ -1,6 +1,6 @@
 // Live-Redis itest for the replay guard (AUTH-1): a nonce reserves exactly once within its TTL.
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
-import {loadConfig} from '@platform-internal/config';
+import {loadConfig} from '@hermes-one/config';
 import {RedisNonceStore, createRedisClient, type RedisClient} from './index.js';
 
 const cfg = loadConfig();

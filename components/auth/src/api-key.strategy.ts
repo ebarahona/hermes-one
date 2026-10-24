@@ -12,7 +12,7 @@ import {
   AuthenticatedIdentity as AuthenticatedIdentitySchema,
   Principal,
   type Scope,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import type {AuthStrategy, AuthConfig} from './contracts.js';
 import {unauthorizedError} from './contracts.js';
 import {AuthBindings} from './auth.bindings.js';

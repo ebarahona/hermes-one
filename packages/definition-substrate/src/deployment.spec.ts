@@ -5,7 +5,7 @@ import type {
   PrincipalId,
   SemVer,
   TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {DeploymentService, type PublishDeploymentInput} from './deployment.js';
 import type {DeploymentWritePort, PlanStorePort} from './ports.js';
 

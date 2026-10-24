@@ -2,8 +2,8 @@
 // `hermes-agent` task queue. Runs no workflows. Connects to local Temporal.
 import {fileURLToPath} from 'node:url';
 import {NativeConnection, Worker} from '@temporalio/worker';
-import {loadConfig} from '@platform-internal/config';
-import {withPlatformFailures} from '@platform-internal/temporal-client';
+import {loadConfig} from '@hermes-one/config';
+import {withPlatformFailures} from '@hermes-one/temporal-client';
 import {agentTurn, shutdownAgentWorker} from './agent-activity.js';
 
 export const AGENT_QUEUE = 'hermes-agent';

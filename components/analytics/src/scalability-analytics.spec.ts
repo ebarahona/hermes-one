@@ -5,7 +5,7 @@ import type {
   ScalabilityMetrics,
   ScalabilityThresholds,
   TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {
   ThresholdScalabilityRegressionGate,
   UsageScalabilityAnalyticsService,

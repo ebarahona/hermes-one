@@ -1,8 +1,8 @@
-// @platform/contracts — src/auth.ts
+// @hermes-one/contracts — src/auth.ts
 // The container-free authentication facts + verifier ports.
 // SPLIT per the edge-authn design (docs/design/001-edge-authn-design.md): the zod facts + the ports
 // that do NOT reference `@loopback/rest`'s `Request` live here (contracts stay container-free, ADR-017); `AuthStrategy` + `toUserProfile`
-// (which reference `Request`/`UserProfile`) live in `@platform-internal/auth`.
+// (which reference `Request`/`UserProfile`) live in `@hermes-one/auth`.
 import {z} from 'zod';
 import {Principal, PrincipalKind, Scope} from './tenant.js';
 import {TenantId, PrincipalId, IsoTimestamp} from './substrate.js'; // substrate

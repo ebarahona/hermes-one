@@ -1,5 +1,5 @@
 {
-  "name": "@platform-internal/api-gateway",
+  "name": "@hermes-one/api-gateway",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -15,7 +15,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "hermes": {
-    "name": "@platform-internal/api-gateway",
+    "name": "@hermes-one/api-gateway",
     "role": "app",
     "plane": "edge",
     "published": false,
@@ -23,15 +23,15 @@
   },
   "dependencies": {
     "@loopback/context": "^8.0.13",
-    "@platform-internal/activity-worker": "workspace:*",
-    "@platform-internal/channels": "workspace:*",
-    "@platform-internal/config": "workspace:*",
-    "@platform-internal/drizzle": "workspace:*",
-    "@platform-internal/loopback-core": "workspace:*",
-    "@platform-internal/redis": "workspace:*",
-    "@platform-internal/telemetry": "workspace:*",
-    "@platform-internal/workflow-worker": "workspace:*",
-    "@platform/contracts": "workspace:*",
+    "@hermes-one/activity-worker": "workspace:*",
+    "@hermes-one/channels": "workspace:*",
+    "@hermes-one/config": "workspace:*",
+    "@hermes-one/drizzle": "workspace:*",
+    "@hermes-one/loopback-core": "workspace:*",
+    "@hermes-one/redis": "workspace:*",
+    "@hermes-one/telemetry": "workspace:*",
+    "@hermes-one/workflow-worker": "workspace:*",
+    "@hermes-one/contracts": "workspace:*",
     "@temporalio/client": "^1.20.2",
     "reflect-metadata": "^0.2.2"
   }

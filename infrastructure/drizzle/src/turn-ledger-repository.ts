@@ -3,7 +3,7 @@
 // are written in ONE transaction under the pinned tenant GUC, idempotently (ON CONFLICT DO NOTHING on
 // each PK) so a Temporal activity retry that replays the turn collapses to the same rows. All access
 // goes through withTenant → set_config('app.tenant_id').
-import type {TenantId, TenantScope} from '@platform/contracts';
+import type {TenantId, TenantScope} from '@hermes-one/contracts';
 import {
   TenantAwareRepository,
   type PlatformTx,

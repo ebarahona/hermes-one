@@ -1,11 +1,11 @@
-// @platform-internal/auth — src/contracts.ts
+// @hermes-one/auth — src/contracts.ts
 // The container-COUPLED half of the auth contracts: AuthStrategy
 // (references @loopback/rest's Request) + the component's AuthConfig. The container-free facts/ports
-// (AuthenticatedIdentity, ApiKeyStore, PrincipalMapper, …) live in @platform/contracts/src/auth.ts
+// (AuthenticatedIdentity, ApiKeyStore, PrincipalMapper, …) live in @hermes-one/contracts/src/auth.ts
 // and are re-exported here for one import site (design 001).
 //
 // Design note (flagged): an AuthStrategy could `extends PlatformExtension` (from
-// `@platform/agent-runtime`) — but that package/type does NOT exist in
+// `@hermes-one/agent-runtime`) — but that package/type does NOT exist in
 // this repo; the real extension idiom here is LB4's `CoreTags.EXTENSION_FOR` tag (as the capability
 // registry uses). So AuthStrategy stands alone (name/applies/authenticate) and is discovered via the
 // EXTENSION_FOR tag. Recorded in the deferral ledger.
@@ -15,7 +15,7 @@ import {
   type AuthenticatedIdentity,
   type AuthMethod,
   PlatformErrorException,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 /**
  * Every authentication method is a DI provider implementing this contract, discovered at the

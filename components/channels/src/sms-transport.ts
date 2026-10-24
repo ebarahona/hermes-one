@@ -21,8 +21,8 @@ import {
   type SecretProvider,
   type SecretRef,
   type TenantId,
-} from '@platform/contracts';
-import type {NonceStore} from '@platform-internal/redis';
+} from '@hermes-one/contracts';
+import type {NonceStore} from '@hermes-one/redis';
 
 /** Minimal fetch seam (Node 22 global fetch by default; injected in tests). */
 export type FetchLike = (

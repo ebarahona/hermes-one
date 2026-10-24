@@ -3,7 +3,7 @@
 // the installer in the same breath as the publish, so "what packs does this tenant run?" is a
 // tenant-scoped query instead of archaeology over definitions. RLS strict like every tenant table.
 import {eq, and} from 'drizzle-orm';
-import type {PrincipalId, TenantId} from '@platform/contracts';
+import type {PrincipalId, TenantId} from '@hermes-one/contracts';
 import {TenantAwareRepository} from './tenant-aware.repository.js';
 import {verticalPackInstallations} from './schema/tenant.schema.js';
 

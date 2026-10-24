@@ -117,23 +117,23 @@ what gate the agent's tools. The pre-design demo literals conflated the two into
 
 Verbatim transcriptions when built (no new invention):
 
-- `@platform/contracts/src/role.ts` — `RoleId`, `RoleDefinition` (mirrors `tenant.roles`
+- `@hermes-one/contracts/src/role.ts` — `RoleId`, `RoleDefinition` (mirrors `tenant.roles`
   column-for-column), `RoleCreateInput`/`RoleUpdateInput`, `RoleRegistry` port
   (role matrix; new in this design).
-- `@platform/contracts/src/auth.ts` — `AuthMethod`, `AuthStrength`, `SessionMeta`,
+- `@hermes-one/contracts/src/auth.ts` — `AuthMethod`, `AuthStrength`, `SessionMeta`,
   `AuthenticatedIdentity`, `VerifiedClaims`, `ApiKeyRecord`, `WorkloadClaims`, `StoredSession`
   (authentication strategies). The `AuthStrategy` interface itself lives in the auth
   component (it references `@loopback/rest`'s `Request` — contracts stay container-free, same split
   as `PlatformBindings`).
-- `@platform/contracts/src/secret.ts` — `SecretRef` grammar
+- `@hermes-one/contracts/src/secret.ts` — `SecretRef` grammar
   (`^secret:\/\/[a-z0-9][a-z0-9._-]*(\/[a-z0-9][a-z0-9._-]*)+$`) + `SecretProvider` port
   (secrets and key management).
-- `@platform-internal/auth` (NEW edge component, `components/auth`) — `AuthStrategyRegistry`
+- `@hermes-one/auth` (NEW edge component, `components/auth`) — `AuthStrategyRegistry`
   (`@extensionPoint('platform.extensions.authStrategies')`, extension type `auth.strategy`,
   first-match-by-`applies()`, fail-closed when none), `PrincipalMapper` (the single writer of
   `platform.request.principal`), the strategy providers, `toUserProfile` LB4 adapter.
 - Verifier ports (`platform.auth.*` keys): `WebhookSignatureVerifier`, `NonceStore`, `JwtVerifier`,
-  `ApiKeyStore`, `SessionStore` — Redis-backed impls extend `@platform-internal/redis`
+  `ApiKeyStore`, `SessionStore` — Redis-backed impls extend `@hermes-one/redis`
   (`NonceStore.reserve` = `SET NX EX`; the `RedisClient` port gains `setnx`).
 
 # Key design decisions

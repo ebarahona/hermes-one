@@ -1,4 +1,4 @@
-// @platform/contracts — src/event.ts
+// @hermes-one/contracts — src/event.ts
 // The event envelope + transactional-outbox contracts, defined here.
 // Zod-v4 delta (flagged, same as analytics.ts): `z.record` requires an explicit key schema.
 import {z} from 'zod';

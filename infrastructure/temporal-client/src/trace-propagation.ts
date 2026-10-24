@@ -19,7 +19,7 @@ import type {
   ActivityTraceInterceptor,
   TraceHeader,
   WorkflowTraceInterceptor,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 /** The W3C header name the traceparent is carried under */
 export const TRACEPARENT_HEADER = 'traceparent';

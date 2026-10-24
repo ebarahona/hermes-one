@@ -4,11 +4,11 @@
 // covered by roles-route.itest.ts (live PG); the `node dist/e2e.js` smoke asserts both.
 import 'reflect-metadata';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
-import {loadConfig} from '@platform-internal/config';
-import type {ApiKeySeed} from '@platform-internal/auth';
-import type {PrincipalId, Scope, TenantId} from '@platform/contracts';
+import {loadConfig} from '@hermes-one/config';
+import type {ApiKeySeed} from '@hermes-one/auth';
+import type {PrincipalId, Scope, TenantId} from '@hermes-one/contracts';
 import {AdminApiRoot} from './root.js';
-import type {PlatformRestApplication} from '@platform-internal/loopback-core';
+import type {PlatformRestApplication} from '@hermes-one/loopback-core';
 
 const API_KEY = 'dev-key-abc123';
 const SEEDS: ApiKeySeed[] = [

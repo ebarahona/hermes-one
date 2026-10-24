@@ -9,8 +9,8 @@ import type {
   IsoTimestamp,
   PrincipalId,
   TenantId,
-} from '@platform/contracts';
-import type {DrizzleAuditSink} from '@platform-internal/drizzle';
+} from '@hermes-one/contracts';
+import type {DrizzleAuditSink} from '@hermes-one/drizzle';
 
 const sha256hex = (s: string) => createHash('sha256').update(s).digest('hex');
 

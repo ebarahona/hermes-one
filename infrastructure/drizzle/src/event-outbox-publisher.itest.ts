@@ -5,13 +5,13 @@
 // tenant-B subscriber never sees tenant-A envelopes.
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {Pool} from 'pg';
-import {loadConfig} from '@platform-internal/config';
+import {loadConfig} from '@hermes-one/config';
 import {
   createRedisClient,
   RedisPubSubEventPublisher,
   type RedisClient,
-} from '@platform-internal/redis';
-import {EventEnvelope, type TenantId} from '@platform/contracts';
+} from '@hermes-one/redis';
+import {EventEnvelope, type TenantId} from '@hermes-one/contracts';
 import {runMigrations} from './migrate.js';
 import {
   createEventOutboxRepository,

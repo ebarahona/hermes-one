@@ -6,19 +6,16 @@
 // Flagged (JIT): rule parameters (serviceZips) come from a demo config here — in production they are
 // tenant configuration; and the demo maps the webhook to the missed-call workflow input.
 import type {Client} from '@temporalio/client';
-import type {CompiledPlanStore} from '@platform-internal/drizzle';
-import type {DrizzleMessageRepository} from '@platform-internal/drizzle';
+import type {CompiledPlanStore} from '@hermes-one/drizzle';
+import type {DrizzleMessageRepository} from '@hermes-one/drizzle';
 import type {
   InboundMessage,
   PlanId,
   Principal,
   RoleRegistry,
   TenantId,
-} from '@platform/contracts';
-import {
-  WORKFLOW_QUEUE,
-  type WorkflowRunRef,
-} from '@platform-internal/workflow-worker';
+} from '@hermes-one/contracts';
+import {WORKFLOW_QUEUE, type WorkflowRunRef} from '@hermes-one/workflow-worker';
 
 export interface IngestDeps {
   store: CompiledPlanStore;

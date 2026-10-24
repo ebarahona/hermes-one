@@ -7,8 +7,8 @@ import {describe, expect, it} from 'vitest';
 import type {
   CapabilityInvoker,
   CapabilityLookup,
-} from '@platform/capability-contract';
-import type {CapabilityContract, ToolCall} from '@platform/contracts';
+} from '@hermes-one/capability-contract';
+import type {CapabilityContract, ToolCall} from '@hermes-one/contracts';
 import {
   createCapabilityActivities,
   type InvokeCapabilityArgs,

@@ -10,9 +10,9 @@ import 'reflect-metadata';
 import {fileURLToPath} from 'node:url';
 import {Context} from '@loopback/context';
 import {NativeConnection, Worker} from '@temporalio/worker';
-import {loadConfig, type HermesConfig} from '@platform-internal/config';
-import type {CompositionRoot} from '@platform/contracts';
-import {PlatformBindings} from '@platform-internal/loopback-core';
+import {loadConfig, type HermesConfig} from '@hermes-one/config';
+import type {CompositionRoot} from '@hermes-one/contracts';
+import {PlatformBindings} from '@hermes-one/loopback-core';
 import {WORKFLOW_QUEUE} from './queues.js';
 
 export {WORKFLOW_QUEUE} from './queues.js';

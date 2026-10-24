@@ -3,8 +3,8 @@
 // dedupeKey (exactly-once billing, T7), and summarizes per meter kind for a billing period.
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {Pool} from 'pg';
-import {loadConfig} from '@platform-internal/config';
-import type {MeterKind, TenantId, UsageEvent} from '@platform/contracts';
+import {loadConfig} from '@hermes-one/config';
+import type {MeterKind, TenantId, UsageEvent} from '@hermes-one/contracts';
 import {runMigrations} from './migrate.js';
 import {createUsageMeter, type UsageMeterHandle} from './client.js';
 

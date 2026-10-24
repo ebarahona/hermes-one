@@ -1,4 +1,4 @@
-// @platform/contracts — src/policy.ts
+// @hermes-one/contracts — src/policy.ts
 import {z} from 'zod';
 import {
   DefinitionId,

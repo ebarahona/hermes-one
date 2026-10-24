@@ -13,7 +13,7 @@
 // intent). The registry's deploy-time tooling lands with the deployment pipeline; what ships NOW is
 // the classification table, the buildId derivation, the worker options, and the REPLAY GATE (hard
 // CI blocker, generation-independent).
-import type {IsoTimestamp} from '@platform/contracts';
+import type {IsoTimestamp} from '@hermes-one/contracts';
 
 /* ------------------------- Change classification (verbatim) ------------------------- */
 

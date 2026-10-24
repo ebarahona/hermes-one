@@ -1,5 +1,5 @@
 {
-  "name": "@platform/rule-dsl",
+  "name": "@hermes-one/rule-dsl",
   "version": "0.1.0",
   "license": "MIT",
   "type": "module",
@@ -18,15 +18,15 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@platform/contracts": "workspace:*",
-    "@platform/expression-core": "workspace:*",
-    "@platform/definition-substrate": "workspace:*"
+    "@hermes-one/contracts": "workspace:*",
+    "@hermes-one/expression-core": "workspace:*",
+    "@hermes-one/definition-substrate": "workspace:*"
   },
   "publishConfig": {
     "access": "public"
   },
   "hermes": {
-    "name": "@platform/rule-dsl",
+    "name": "@hermes-one/rule-dsl",
     "role": "package",
     "plane": "none",
     "published": true,

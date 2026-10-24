@@ -1,5 +1,5 @@
 // Table DDL for the six-table content-addressed compiled-plan store (ADR-014/016/022).
-// No new value types are declared here — rows are mapped to/from @platform/contracts by the
+// No new value types are declared here — rows are mapped to/from @hermes-one/contracts by the
 // repository adapter, never returned as raw Drizzle rows.
 import {
   pgSchema,

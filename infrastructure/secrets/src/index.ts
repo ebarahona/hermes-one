@@ -1,6 +1,6 @@
-// @platform-internal/secrets — infrastructure (none plane). The secrets member:
+// @hermes-one/secrets — infrastructure (none plane). The secrets member:
 // ProviderCredentialStore implementations live here so
-// BOTH planes can wire them (the port itself is in @platform/contracts, ADR-026/ledger S7). The
+// BOTH planes can wire them (the port itself is in @hermes-one/contracts, ADR-026/ledger S7). The
 // envelope-encrypted per-tenant store (ADR-026) is the next adapter behind the same port.
 export {
   StaticProviderCredentialStore,
@@ -16,7 +16,7 @@ export {
 } from './envelope-credential-store.js';
 
 export const descriptor = {
-  name: '@platform-internal/secrets',
+  name: '@hermes-one/secrets',
   role: 'infrastructure',
   plane: 'none',
   published: false,

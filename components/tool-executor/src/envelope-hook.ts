@@ -11,7 +11,7 @@ import type {
   ToolCallId,
   ToolMetrics,
   TurnId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 /** Binding key for the per-call collector the executor seeds and the hook fills. */
 export const COLLECTOR_KEY = 'platform.turn.collector';

@@ -8,8 +8,8 @@
 // authenticated surface to exercise AUTH-3.
 import {inject} from '@loopback/core';
 import {get} from '@loopback/rest';
-import {PlatformBindings} from '@platform-internal/loopback-core';
-import type {Principal} from '@platform/contracts';
+import {PlatformBindings} from '@hermes-one/loopback-core';
+import type {Principal} from '@hermes-one/contracts';
 
 export class WhoamiController {
   constructor(

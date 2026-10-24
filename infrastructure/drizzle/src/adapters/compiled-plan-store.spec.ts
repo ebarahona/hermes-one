@@ -9,9 +9,9 @@ import type {
   SemVer,
   IsoTimestamp,
   TenantId,
-} from '@platform/contracts';
-import {PlatformErrorException} from '@platform/contracts';
-import type {RedisClient} from '@platform-internal/redis';
+} from '@hermes-one/contracts';
+import {PlatformErrorException} from '@hermes-one/contracts';
+import type {RedisClient} from '@hermes-one/redis';
 import type {PlatformDb} from '../tenant-aware.repository.js';
 import {
   DrizzleCompiledPlanStore,

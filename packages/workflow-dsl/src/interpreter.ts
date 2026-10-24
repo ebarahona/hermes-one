@@ -10,7 +10,7 @@ import type {
   NodeId,
   PinnedRef,
   RuleFacts,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 export class WorkflowError extends Error {}
 

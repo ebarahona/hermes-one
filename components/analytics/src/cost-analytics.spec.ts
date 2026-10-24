@@ -4,7 +4,7 @@ import type {
   TenantId,
   UsageEvent,
   UsageMeter,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {UsageCostAnalyticsService} from './cost-analytics.js';
 
 const T = 'tnt_a' as TenantId;

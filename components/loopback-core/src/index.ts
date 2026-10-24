@@ -1,4 +1,4 @@
-// @platform-internal/loopback-core — the edge-plane LB4 composition layer (decided
+// @hermes-one/loopback-core — the edge-plane LB4 composition layer (decided
 // 2026-07-14: the hand-rolled composition roots migrate onto this). Phase 1: PlatformBindings +
 // the boundary contract + PlatformApplication + bootstrap() +
 // the first five edge components (Persistence, Observability, CapabilityRegistry, RuleRuntime,
@@ -6,7 +6,7 @@
 // Channel/Memory/Bridge, the REST surface (RestApplication + sequence), interceptors, tags.
 
 export const descriptor = {
-  name: '@platform-internal/loopback-core',
+  name: '@hermes-one/loopback-core',
   role: 'component',
   plane: 'edge',
   published: false,

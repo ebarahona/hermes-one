@@ -13,11 +13,11 @@ import {
   PlatformBindings,
   PlatformExtensionPoints,
   type PlatformComponentBoundary,
-} from '@platform-internal/loopback-core';
-import type {HermesConfig} from '@platform-internal/config';
+} from '@hermes-one/loopback-core';
+import type {HermesConfig} from '@hermes-one/config';
 import {PersistingMessageProvider} from './messaging.js';
 import {SmsChannelTransport} from './sms-transport.js';
-import {StaticProviderCredentialStore} from '@platform-internal/secrets';
+import {StaticProviderCredentialStore} from '@hermes-one/secrets';
 import {
   VendorSmsProvider,
   TWILIO_SMS_PROVIDER_ID,

@@ -7,12 +7,12 @@
 //      refusal mid-write leaves no published version without its audit trail.
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {Pool} from 'pg';
-import {loadConfig} from '@platform-internal/config';
-import type {IsoTimestamp, PrincipalId, TenantId} from '@platform/contracts';
+import {loadConfig} from '@hermes-one/config';
+import type {IsoTimestamp, PrincipalId, TenantId} from '@hermes-one/contracts';
 import {
   definitionPublishedEvent,
   deploymentPublishedEvent,
-} from '@platform/definition-substrate';
+} from '@hermes-one/definition-substrate';
 import {runMigrations} from './migrate.js';
 import {createSubstrateWrite, type SubstrateWriteHandle} from './client.js';
 

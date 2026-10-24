@@ -22,15 +22,15 @@ import {
   createPlatformDb,
   tenantGucPreflight,
   type PlatformDbHandle,
-} from '@platform-internal/drizzle';
+} from '@hermes-one/drizzle';
 import {
   DrizzleRoleRegistry,
   DrizzleTenantRepository,
   DrizzleUsageMeter,
   DrizzleUserRepository,
-} from '@platform-internal/drizzle';
-import {createRedisClient, type RedisClient} from '@platform-internal/redis';
-import type {HermesConfig} from '@platform-internal/config';
+} from '@hermes-one/drizzle';
+import {createRedisClient, type RedisClient} from '@hermes-one/redis';
+import type {HermesConfig} from '@hermes-one/config';
 import {PlatformBindings} from '../bindings.js';
 import type {PlatformComponentBoundary} from '../boundary.js';
 

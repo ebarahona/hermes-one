@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import type {TraceHeader} from '@platform/contracts';
+import type {TraceHeader} from '@hermes-one/contracts';
 import {
   EMPTY_TRACE,
   HeaderActivityTrace,

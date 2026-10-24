@@ -1,4 +1,4 @@
-// @platform/definition-substrate — package (none plane).
+// @hermes-one/definition-substrate — package (none plane).
 // Shared substrate lifecycle pieces (ADR-016): content-hashing today; the
 // versioned-schema registry + deployment manifest to follow.
 
@@ -28,7 +28,7 @@ export type {
 } from './ports.js';
 
 export const descriptor = {
-  name: '@platform/definition-substrate',
+  name: '@hermes-one/definition-substrate',
   role: 'package',
   plane: 'none',
   published: true,

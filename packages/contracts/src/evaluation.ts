@@ -1,4 +1,4 @@
-// @platform/contracts — src/evaluation.ts
+// @hermes-one/contracts — src/evaluation.ts
 // Golden-conversation evaluation framework (evaluation and cost analytics): cases are
 // DATA (author-time, versioned), played through the SAME single-step turn loop real turns use, scored
 // against assertions; a RegressionGate blocks deployment publish on any 'required'-severity failure.

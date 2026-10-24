@@ -10,13 +10,13 @@ import type {
   CapabilityName,
   ProviderAdapter,
   ProviderMapping,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {
   CapabilityInvoker,
   InMemoryCapabilityRegistry,
   ProviderRegistry,
   ProviderResolver,
-} from '@platform/capability-contract';
+} from '@hermes-one/capability-contract';
 import {PlatformBindings, PlatformExtensionPoints} from '../bindings.js';
 import type {PlatformComponentBoundary} from '../boundary.js';
 

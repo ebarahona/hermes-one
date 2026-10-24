@@ -1,6 +1,6 @@
 // Unit tests for the event fan-out channel discipline.
 import {describe, expect, it} from 'vitest';
-import type {EventEnvelope, SemVer, TenantId} from '@platform/contracts';
+import type {EventEnvelope, SemVer, TenantId} from '@hermes-one/contracts';
 import {
   DEFAULT_EVENT_CHANNEL_PATTERN,
   RedisPubSubEventPublisher,

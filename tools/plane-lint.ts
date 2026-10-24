@@ -5,7 +5,7 @@
 //   - an `edge`-plane member must NOT runtime-import `@agentback/*`
 //   - an `agent`-plane member must NOT runtime-import `@loopback/*`
 // `import type` is allowed (erased at runtime). The sole sanctioned cross-plane
-// value-mapper is `@platform-internal/agentback-bridge`.
+// value-mapper is `@hermes-one/agentback-bridge`.
 //
 // Reads each workspace member's `hermes` descriptor from its package.json, scans
 // its src/**/*.ts for offending runtime imports, and exits non-zero on violation.
@@ -15,7 +15,7 @@ import {fileURLToPath} from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const AREAS = ['apps', 'packages', 'components', 'infrastructure'];
-const BRIDGE = '@platform-internal/agentback-bridge';
+const BRIDGE = '@hermes-one/agentback-bridge';
 
 type Plane = 'edge' | 'agent' | 'none';
 interface Member {

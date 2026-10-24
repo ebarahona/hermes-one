@@ -13,23 +13,23 @@ import {
   createSubstrateWrite,
   createVerticalPackInstallations,
   runMigrations,
-} from '@platform-internal/drizzle';
-import {builtinRegistry} from '@platform/expression-core';
-import {compileRule} from '@platform/rule-dsl';
-import {compileWorkflow} from '@platform/workflow-dsl';
-import {compilePolicy} from '@platform/policy-dsl';
+} from '@hermes-one/drizzle';
+import {builtinRegistry} from '@hermes-one/expression-core';
+import {compileRule} from '@hermes-one/rule-dsl';
+import {compileWorkflow} from '@hermes-one/workflow-dsl';
+import {compilePolicy} from '@hermes-one/policy-dsl';
 import {
   DefinitionRegistry,
   DeploymentService,
   type CompileFn,
-} from '@platform/definition-substrate';
+} from '@hermes-one/definition-substrate';
 import type {
   Definition,
   DeploymentMember,
   PrincipalId,
   SemVer,
   TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 const V1 = '1.0.0' as SemVer;
 const ACTOR = 'prn_pack_e' as PrincipalId;

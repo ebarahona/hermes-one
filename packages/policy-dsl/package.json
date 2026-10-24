@@ -1,5 +1,5 @@
 {
-  "name": "@platform/policy-dsl",
+  "name": "@hermes-one/policy-dsl",
   "version": "0.1.0",
   "license": "MIT",
   "type": "module",
@@ -21,7 +21,7 @@
     "access": "public"
   },
   "hermes": {
-    "name": "@platform/policy-dsl",
+    "name": "@hermes-one/policy-dsl",
     "role": "package",
     "plane": "none",
     "published": true,
@@ -30,8 +30,8 @@
     ]
   },
   "dependencies": {
-    "@platform/contracts": "workspace:*",
-    "@platform/definition-substrate": "workspace:*",
-    "@platform/expression-core": "workspace:*"
+    "@hermes-one/contracts": "workspace:*",
+    "@hermes-one/definition-substrate": "workspace:*",
+    "@hermes-one/expression-core": "workspace:*"
   }
 }

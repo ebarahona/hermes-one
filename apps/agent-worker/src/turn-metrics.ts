@@ -2,8 +2,8 @@
 // wall latency — an edge concern (the agent plane produces the data; the edge records the metrics).
 // TURN_COUNT/latency, per-tool invocation count + latency, per-gate decision count — the SLO signals
 // (turn p95, tool p99, error rates) that audit/usage rows don't carry.
-import {MetricName, type Meter} from '@platform/contracts';
-import type {TurnLedger} from '@platform-internal/agent-runtime';
+import {MetricName, type Meter} from '@hermes-one/contracts';
+import type {TurnLedger} from '@hermes-one/agent-runtime';
 
 export function emitTurnMetrics(
   meter: Meter,

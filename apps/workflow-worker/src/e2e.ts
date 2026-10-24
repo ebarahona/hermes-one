@@ -7,8 +7,8 @@
 //   docker compose -f infra/docker-compose.yml up -d
 //   pnpm -r build && node apps/workflow-worker/dist/e2e.js
 import {Client, Connection} from '@temporalio/client';
-import {loadConfig} from '@platform-internal/config';
-import {createActivityWorker} from '@platform-internal/activity-worker';
+import {loadConfig} from '@hermes-one/config';
+import {createActivityWorker} from '@hermes-one/activity-worker';
 import {createWorkflowWorker} from './worker.js';
 import {WORKFLOW_QUEUE} from './queues.js';
 import {buildBundle, bundleToRef} from './bundle.js';

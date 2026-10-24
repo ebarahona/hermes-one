@@ -4,7 +4,7 @@
 import {describe, expect, it} from 'vitest';
 import {SignJWT, exportJWK, generateKeyPair, createLocalJWKSet} from 'jose';
 import type {Request} from '@loopback/rest';
-import type {RoleRegistry, Scope, TenantId} from '@platform/contracts';
+import type {RoleRegistry, Scope, TenantId} from '@hermes-one/contracts';
 import {JoseJwtVerifier, type ResolvedIssuer} from './jwt-verifier.js';
 import {OidcStrategy} from './oidc.strategy.js';
 import {AuthConfig, OidcIssuerConfig} from './contracts.js';

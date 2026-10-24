@@ -1,5 +1,5 @@
 {
-  "name": "@platform-internal/scheduler",
+  "name": "@hermes-one/scheduler",
   "version": "0.0.0",
   "license": "MIT",
   "private": true,
@@ -15,7 +15,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "hermes": {
-    "name": "@platform-internal/scheduler",
+    "name": "@hermes-one/scheduler",
     "role": "infrastructure",
     "plane": "none",
     "published": false,
@@ -24,6 +24,6 @@
     ]
   },
   "dependencies": {
-    "@platform/contracts": "workspace:*"
+    "@hermes-one/contracts": "workspace:*"
   }
 }

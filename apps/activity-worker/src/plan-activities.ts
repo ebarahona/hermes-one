@@ -2,14 +2,14 @@
 // CompiledPlanStore port. The store's cache-through + mandatory hash check happen inside
 // resolvePlanCached; the returned plan_body IS the full compiled plan. The worker (composition root)
 // wires the concrete Drizzle store; activities depend on the port.
-import type {CompiledPlanStore} from '@platform-internal/drizzle';
+import type {CompiledPlanStore} from '@hermes-one/drizzle';
 import type {
   CompiledRulePlan,
   CompiledWorkflowPlan,
   ContentHash,
   PlanId,
   TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 
 export interface PlanLoadArgs {
   tenantId: string;

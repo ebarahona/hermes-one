@@ -6,10 +6,10 @@
 // as the happy path. Content-addressed, so re-runs are idempotent (no cleanup needed). Needs the PG stack.
 import 'reflect-metadata';
 import {afterAll, beforeAll, describe, expect, it} from 'vitest';
-import {loadConfig} from '@platform-internal/config';
-import type {PlatformRestApplication} from '@platform-internal/loopback-core';
-import type {ApiKeySeed} from '@platform-internal/auth';
-import type {PrincipalId, Scope, TenantId} from '@platform/contracts';
+import {loadConfig} from '@hermes-one/config';
+import type {PlatformRestApplication} from '@hermes-one/loopback-core';
+import type {ApiKeySeed} from '@hermes-one/auth';
+import type {PrincipalId, Scope, TenantId} from '@hermes-one/contracts';
 import {AdminApiRoot} from './root.js';
 
 const TENANT = 'tnt_def_itest' as TenantId;

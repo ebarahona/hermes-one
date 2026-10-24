@@ -5,7 +5,7 @@
 // The JWKS RESOLVER is injected per issuer (`ResolvedIssuer.jwks`): `createRemoteJWKSet(new URL(uri))`
 // in prod (cached by jose), or `createLocalJWKSet(jwks)` in tests — so no network is needed to test.
 import {jwtVerify, type JWTVerifyGetKey} from 'jose';
-import {type JwtVerifier, VerifiedClaims} from '@platform/contracts';
+import {type JwtVerifier, VerifiedClaims} from '@hermes-one/contracts';
 import type {OidcIssuerConfig} from './contracts.js';
 
 /** An issuer's verification config paired with its resolved JWKS getter. */

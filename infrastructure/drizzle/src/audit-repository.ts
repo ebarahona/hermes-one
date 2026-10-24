@@ -17,7 +17,7 @@ import {
   type AuditEvent,
   type AuditSink,
   type TenantId,
-} from '@platform/contracts';
+} from '@hermes-one/contracts';
 import {
   TenantAwareRepository,
   type PlatformTx,

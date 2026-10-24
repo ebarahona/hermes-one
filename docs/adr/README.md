@@ -137,3 +137,14 @@ capability)` returns the credential RECORD (decrypt happens behind the port;
   versioned dispatch itself is config-gated off in dev until the compose
   server's support is verified live (never enable an unverified primitive).
   Resolves ledger T6's design half.
+
+- **ADR-030 — `ChangedDomain` is an open, pack-declared identifier.** Refines
+  ADR-018. A capability's `changedDomains` names the business-state domains it
+  changes; the value drives selective refresh and the `ToolResult` envelope. The
+  core keeps the domains it names (`appointment`, `contact`, `conversation`,
+  `payment`, `knowledge`, `messaging`, `none`) as the documented constant
+  `KNOWN_CHANGED_DOMAINS`, and `ChangedDomain` accepts any lowercase identifier
+  (`^[a-z][a-z0-9_-]*$`) so a vertical pack declares its own domains without a
+  core contract edit (ADR-013). `none` keeps its meaning — no business state
+  changed — and is the only value selective refresh skips; every other domain,
+  known or pack-declared, is passed through and marks that domain dirty.

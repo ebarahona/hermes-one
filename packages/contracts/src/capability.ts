@@ -29,8 +29,11 @@ export const SideEffectClass = z.enum([
 ]);
 export type SideEffectClass = z.infer<typeof SideEffectClass>;
 
-/** Business-state domains a capability may change — drives selective refresh + ToolResult (ADR-018). */
-export const ChangedDomain = z.enum([
+/**
+ * Domains the platform core names. `'none'` means the capability changes no business state. A pack
+ * may declare any other domain (ADR-013, ADR-030); these constants document the core vocabulary.
+ */
+export const KNOWN_CHANGED_DOMAINS = [
   'appointment',
   'contact',
   'conversation',
@@ -38,7 +41,15 @@ export const ChangedDomain = z.enum([
   'knowledge',
   'messaging',
   'none',
-]);
+] as const;
+
+/**
+ * Business-state domain a capability may change — drives selective refresh + ToolResult (ADR-018).
+ * Open string (ADR-030): a known value or any pack-declared lowercase identifier.
+ */
+export const ChangedDomain = z
+  .string()
+  .regex(/^[a-z][a-z0-9_-]*$/, 'expected a lowercase domain identifier');
 export type ChangedDomain = z.infer<typeof ChangedDomain>;
 
 /* --------------------------- Idempotency spec -------------------------- */

@@ -139,8 +139,6 @@ importers:
         specifier: ^8.22.0
         version: 8.22.0
 
-  apps/admin-web: {}
-
   apps/agent-worker:
     dependencies:
       '@agentback/context':
@@ -354,8 +352,6 @@ importers:
         specifier: workspace:*
         version: link:../../packages/workflow-dsl
 
-  components/agentback-bridge: {}
-
   components/agentback-runtime:
     dependencies:
       '@agentback/core':
@@ -429,8 +425,6 @@ importers:
       zod:
         specifier: ^4.4.3
         version: 4.4.3
-
-  components/capability-registry: {}
 
   components/channels:
     dependencies:
@@ -529,12 +523,6 @@ importers:
         specifier: ^0.2.2
         version: 0.2.2
 
-  components/policy-runtime: {}
-
-  components/rule-runtime: {}
-
-  components/tenant-context: {}
-
   components/tool-executor:
     dependencies:
       '@agentback/context':
@@ -606,8 +594,6 @@ importers:
         specifier: ^4.77.0
         version: 4.104.0
 
-  infrastructure/qdrant: {}
-
   infrastructure/redis:
     dependencies:
       '@hermes-one/contracts':
@@ -672,8 +658,6 @@ importers:
         specifier: ^4.4.3
         version: 4.4.3
 
-  packages/agent-engine-contract: {}
-
   packages/capability-contract:
     dependencies:
       '@hermes-one/contracts':
@@ -682,8 +666,6 @@ importers:
       '@hermes-one/expression-core':
         specifier: workspace:*
         version: link:../expression-core
-
-  packages/cli: {}
 
   packages/contracts:
     dependencies:
@@ -726,10 +708,6 @@ importers:
       '@hermes-one/expression-core':
         specifier: workspace:*
         version: link:../expression-core
-
-  packages/sdk: {}
-
-  packages/testkit: {}
 
   packages/workflow-dsl:
     dependencies:

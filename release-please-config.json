@@ -3,6 +3,7 @@
   "packages": {
     ".": {
       "release-type": "node",
+      "initial-version": "0.1.0",
       "package-name": "hermes-one",
       "changelog-path": "CHANGELOG.md",
       "draft": false,

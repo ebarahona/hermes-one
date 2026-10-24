@@ -1,13 +1,14 @@
 # Contributing to hermes-one
 
-Thanks for your interest in contributing. This guide covers the local setup, the checks every change
-must pass, and the conventions the codebase follows.
+Thanks for helping out. This guide covers local setup, the checks every change has to pass, and the
+conventions the code follows.
 
 ## Prerequisites
 
 - Node.js ≥ 22.13 and pnpm 11 (`corepack enable` picks up the pinned version)
 - Docker, for the local stack (Temporal, PostgreSQL, Redis, Qdrant, OpenTelemetry collector)
-- Any OpenAI-compatible LLM endpoint, for the live agent end-to-end runs (see the README)
+- Optional: an OpenAI-compatible LLM endpoint, to run the agent end-to-end tests against a real model.
+  Without one, use `pnpm mock-llm` (see the README)
 
 ## Setup
 
@@ -21,9 +22,9 @@ pnpm -r build
 ### Git hooks
 
 `pnpm install` runs `scripts/install-hooks.sh`, which installs [lefthook](https://lefthook.dev) hooks
-into this clone: eslint and prettier on staged files before each commit, and commitlint on each commit
-message. The script never changes your git config. If `core.hooksPath` is already set (for example by
-a global configuration), it skips the install and prints how to opt in for this clone only:
+in this clone. Before each commit they run eslint and prettier on staged files, and commitlint checks
+each commit message. The script never changes your git config. If `core.hooksPath` is already set
+(by a global config, for example), it skips the install and prints how to opt in for this clone only:
 
 ```bash
 # lefthook (parallel, staged files only)
@@ -34,13 +35,13 @@ pnpm exec lefthook install --force
 git config --local core.hooksPath .githooks
 ```
 
-The install is skipped on CI; CI runs eslint and prettier on every pull request (it does not run
-commitlint).
+The install is skipped on CI. CI runs eslint and prettier on every pull request. It does not run
+commitlint.
 
 ## Before you open a pull request
 
-**Build first.** Tests resolve cross-package imports to each package's `dist/`, so a stale build
-produces misleading test results.
+Build first. Tests resolve cross-package imports to each package's `dist/`, so a stale build gives
+you misleading test results.
 
 ```bash
 pnpm -r build
@@ -54,35 +55,36 @@ CI runs the same checks on pull requests and on pushes to `main`.
 
 ## Conventions
 
-- **Planes stay separate.** The edge plane (LoopBack 4) and the agent plane (agentback) never share a
-  live context; they meet only at serializable boundaries (ADR-017). `pnpm plane-lint` enforces this.
-- **Ports and adapters.** Components depend on ports; I/O lives only in `infrastructure/`, and adapters
-  are wired at composition roots (ADR-024).
-- **Contracts are Zod-first** and live in `@hermes-one/contracts` (ADR-020).
-- **Verticals are data, not code** (ADR-013). A new vertical is a pack under `verticals/`; code is added
-  only for a genuinely new platform capability.
-- **Every read and write is tenant-scoped.** New tenant tables need row-level security policies.
-- **Workflow changes must stay deterministic.** If you change interpreter control flow, run the replay
-  gate and follow the versioning discipline in ADR-029. Capturing new replay-gate fixtures uses
-  `apps/workflow-worker/scripts/capture-replay-fixtures.sh` against the compose stack (it runs the
-  Temporal CLI inside the compose container; no local CLI install is needed).
-- **Deliberate gaps are recorded.** If a change intentionally leaves something unfinished, add a row to
-  `docs/DEFERRED-AND-FLAGGED.md` rather than leaving it implicit.
-- **Architecture decisions** that change a governing rule are recorded as ADRs in `docs/adr/README.md`.
-- **American English** in code, comments, and docs.
+- Keep the planes separate. The edge plane (LoopBack 4) and the agent plane (agentback) never share a
+  live context. They meet only at serializable boundaries (ADR-017), and `pnpm plane-lint` enforces
+  this.
+- Use ports and adapters. Components depend on ports. I/O lives only in `infrastructure/`, and
+  adapters are wired at composition roots (ADR-024).
+- Contracts are Zod-first and live in `@hermes-one/contracts` (ADR-020).
+- Verticals are data (ADR-013). A new vertical is a pack under `verticals/`. Add code only for a
+  genuinely new platform capability.
+- Every read and write is tenant-scoped. New tenant tables need row-level security policies.
+- Workflow changes must stay deterministic. If you change interpreter control flow, run the replay
+  gate and follow the versioning rules in ADR-029. To capture new replay-gate fixtures, run
+  `apps/workflow-worker/scripts/capture-replay-fixtures.sh` against the compose stack. It runs the
+  Temporal CLI inside the compose container, so you don't need to install the CLI locally.
+- Write down deliberate gaps. If a change leaves something unfinished on purpose, add a row to
+  `docs/DEFERRED-AND-FLAGGED.md` so it isn't left implicit.
+- A change to a governing rule gets an ADR in `docs/adr/README.md`.
+- Use American English in code, comments, and docs.
 
 ## Commits
 
-Use [Conventional Commits](https://www.conventionalcommits.org/) with an optional scope, e.g.
+Use [Conventional Commits](https://www.conventionalcommits.org/) with an optional scope, for example
 `fix(channels): ...`. Allowed types: `build`, `chore`, `ci`, `deps`, `docs`, `feat`, `fix`, `perf`,
-`refactor`, `revert`, `style`, `test`. commitlint checks every message (`commitlint.config.js`); to
-check a branch before pushing, run `pnpm exec commitlint --from origin/main`.
+`refactor`, `revert`, `style`, `test`. commitlint checks every message (`commitlint.config.js`). To
+check a branch before you push, run `pnpm exec commitlint --from origin/main`.
 
 ### Developer Certificate of Origin
 
-Every commit must carry a [DCO](https://developercertificate.org/) sign-off, which certifies that you
-wrote the change or otherwise have the right to submit it under the project's license. Sign off with
-`git commit -s`, which appends a trailer using your configured name and email:
+Every commit needs a [DCO](https://developercertificate.org/) sign-off. It certifies that you wrote
+the change or otherwise have the right to submit it under the project's license. Sign off with
+`git commit -s`, which adds a trailer with your configured name and email:
 
 ```
 feat(rule-dsl): support range conditions
@@ -90,24 +92,24 @@ feat(rule-dsl): support range conditions
 Signed-off-by: Your Name <you@example.com>
 ```
 
-A pull request check verifies the sign-off on every commit. To add a missing sign-off to the commits
-on your branch, run `git rebase --signoff origin/main` and force-push the branch.
+A pull request check verifies the sign-off on every commit. If commits on your branch are missing
+it, run `git rebase --signoff origin/main` and force-push the branch.
 
 ## Releases
 
-Releases are cut by [release-please](https://github.com/googleapis/release-please) from the commit
-history on `main`. The repository carries a single version, recorded in the root `package.json`. When a
-release pull request is merged, release-please tags the release and updates `CHANGELOG.md`. Do not tag
-releases or edit `CHANGELOG.md` by hand.
+[release-please](https://github.com/googleapis/release-please) cuts releases from the commit history
+on `main`. The repo has a single version, kept in the root `package.json`. When a release pull
+request is merged, release-please tags the release and updates `CHANGELOG.md`. Don't tag releases or
+edit `CHANGELOG.md` by hand.
 
 ## Coding agents
 
-Conventions for coding agents are in [AGENTS.md](AGENTS.md). Agents follow the same expectations as
-human contributors: the checks above, Conventional Commits, and DCO sign-off.
+Rules for coding agents are in [AGENTS.md](AGENTS.md). Agents meet the same bar as human
+contributors: the checks above, Conventional Commits, and DCO sign-off.
 
 ## Reporting security issues
 
-Do not open a public issue. See [SECURITY.md](SECURITY.md).
+Don't open a public issue. See [SECURITY.md](SECURITY.md).
 
 ## License
 

@@ -29,3 +29,7 @@ extend-ignore-re = [
 # patterns above mask the full URL.
 ba = "ba"
 ede = "ede"
+# Mermaid node id for ApiKeyStore (docs/design/001-edge-authn-design.md).
+AKS = "AKS"
+# Local variable for an authentication strategy in the auth specs.
+strat = "strat"

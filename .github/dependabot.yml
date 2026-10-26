@@ -10,6 +10,10 @@ updates:
       timezone: 'Etc/UTC'
     open-pull-requests-limit: 10
     versioning-strategy: increase-if-necessary
+    ignore:
+      # Node types should match the oldest supported Node (engines >=22.13), not the newest.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
     labels:
       - dependencies
     commit-message:

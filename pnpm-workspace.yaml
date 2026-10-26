@@ -9,3 +9,16 @@ allowBuilds:
   esbuild: true
   lefthook: false
   protobufjs: true
+# Security floors for transitive dependencies that Dependabot cannot update in the pnpm lockfile
+# (its security job reports security_update_not_possible). Each selector only matches the vulnerable
+# range and lifts it to the first patched release; drop an entry once every parent ships the fix.
+# Auto-installed peers ignore overrides, so hono (peer of @agentback/rest) and vite (peer of vitest)
+# are floored as root devDependencies instead (peers resolve from the workspace root).
+overrides:
+  'body-parser@<1.20.9': ^1.20.9
+  'body-parser@>=2.0.0 <2.4.0': ^2.4.0
+  'brace-expansion@<1.1.21': ^1.1.21
+  'msgpack5@<6.1.0': ^6.1.0
+  'postcss@<8.5.23': ^8.5.23
+  'undici@<6.29.1': ^6.29.1
+  'uuid@<11.1.1': ^11.1.1

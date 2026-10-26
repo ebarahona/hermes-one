@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@hermes-one/contracts": "workspace:*",
-    "ioredis": "^5.11.1"
+    "ioredis": "^6.0.0"
   },
   "devDependencies": {
     "@hermes-one/config": "workspace:*"

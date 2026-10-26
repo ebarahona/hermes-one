@@ -67,7 +67,42 @@ export const HermesConfig = z.object({
   // LB4 RestApplication root binds this into `rest: {port}`. Version prefix + pagination live with the
   // api layer — this only carries where the process listens.
   api: z.object({
+    host: z.string().min(1), // admin-api HTTP listen host (0.0.0.0 inside a container)
     port: z.coerce.number().int().min(1).max(65535), // admin-api HTTP listen port
+    // Admin API keys (StaticApiKeyStore seeds) until the DB-backed key store lands. Each key
+    // authenticates as one principal of one tenant with the listed scopes. Empty → every request 401s.
+    apiKeys: z.array(
+      z.object({
+        key: z.string().min(16),
+        keyId: z.string().min(1),
+        tenantId: z.string().min(1),
+        principalId: z.string().min(1),
+        scopes: z.array(z.string().min(1)),
+      }),
+    ),
+    // OIDC issuers for bearer JWTs. Empty → the oidc strategy stays inert (api-key only).
+    oidcIssuers: z.array(
+      z.object({
+        issuer: z.string().min(1),
+        audience: z.string().min(1),
+        jwksUri: z.string().url(),
+        tenantClaim: z.string().min(1).optional(),
+        rolesClaim: z.string().min(1).optional(),
+      }),
+    ),
+  }),
+  // Inbound channel webhook ingress (api-gateway). The signing secret is not here: it resolves through
+  // the SecretRef seam (secret://env/sms-webhook-signing → SMS_WEBHOOK_SIGNING).
+  gateway: z.object({
+    host: z.string().min(1),
+    port: z.coerce.number().int().min(1).max(65535),
+    // Destination number → owning tenant. A signed webhook to an unknown number is dropped (204).
+    numbers: z.record(z.string().min(1), z.string().min(1)),
+    // Rule parameters per tenant (until tenant configuration lands). Missing tenant → {}.
+    ruleParameters: z.record(
+      z.string().min(1),
+      z.record(z.string(), z.unknown()),
+    ),
   }),
   // OpenTelemetry distributed tracing (OB5). `mode` selects the
   // span exporter: off → NoopTracer (unit/dev quiet); console → stdout (dev); otlp → ship to a collector
@@ -94,7 +129,14 @@ const DEFAULTS = {
   HERMES_OUTBOX_MAX_ATTEMPTS: '10', // EventEnvelopeConfig.outboxMaxAttempts default
   HERMES_OUTBOX_CHANNEL_PATTERN: 'events:{tenantId}:{aggregateType}',
   HERMES_OUTBOX_TENANTS: '', // csv; empty → publisher loop disabled
+  HERMES_ADMIN_API_HOST: '127.0.0.1',
   HERMES_ADMIN_API_PORT: '3001', // edge REST listen port (admin-api)
+  HERMES_ADMIN_API_KEYS: '[]', // JSON array of {key, keyId, tenantId, principalId, scopes}
+  HERMES_OIDC_ISSUERS: '[]', // JSON array of {issuer, audience, jwksUri, tenantClaim?, rolesClaim?}
+  HERMES_GATEWAY_HOST: '127.0.0.1',
+  HERMES_GATEWAY_PORT: '3002', // inbound webhook listen port (api-gateway)
+  HERMES_GATEWAY_NUMBERS: '{}', // JSON {"+15125550100": "tnt_..."}
+  HERMES_RULE_PARAMETERS: '{}', // JSON {"tnt_...": {"serviceZips": ["75001"]}}
   HERMES_OTEL_TRACES: 'off', // off | console | otlp
   HERMES_OTEL_ENDPOINT: 'http://127.0.0.1:4318/v1/traces', // OTLP/HTTP traces (matches infra collector)
 } as const;
@@ -107,6 +149,15 @@ export function loadConfig(
   env: Record<string, string | undefined> = process.env,
 ): HermesConfig {
   const g = (k: keyof typeof DEFAULTS): string => env[k] ?? DEFAULTS[k];
+  // JSON-valued vars (empty → default, as a copied .env.example leaves them): a parse failure names
+  // the variable, and the schema then validates the shape.
+  const json = (k: keyof typeof DEFAULTS): unknown => {
+    try {
+      return JSON.parse(env[k] || DEFAULTS[k]);
+    } catch {
+      throw new Error(`${k} is not valid JSON`);
+    }
+  };
   // Vendor SMS is opt-in: only assembled when a vendor is named (all creds then required by the schema).
   const credentials = env.HERMES_CREDENTIALS_MASTER_KEY
     ? {masterKey: env.HERMES_CREDENTIALS_MASTER_KEY}
@@ -148,7 +199,16 @@ export function loadConfig(
         .filter(Boolean),
     },
     api: {
+      host: g('HERMES_ADMIN_API_HOST'),
       port: g('HERMES_ADMIN_API_PORT'),
+      apiKeys: json('HERMES_ADMIN_API_KEYS'),
+      oidcIssuers: json('HERMES_OIDC_ISSUERS'),
+    },
+    gateway: {
+      host: g('HERMES_GATEWAY_HOST'),
+      port: g('HERMES_GATEWAY_PORT'),
+      numbers: json('HERMES_GATEWAY_NUMBERS'),
+      ruleParameters: json('HERMES_RULE_PARAMETERS'),
     },
     otel: {
       mode: g('HERMES_OTEL_TRACES'),

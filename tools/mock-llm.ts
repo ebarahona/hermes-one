@@ -1,7 +1,7 @@
 // mock-llm: a scripted, OpenAI-compatible chat server for running the agent tests without a real
 // model. Point LLM_BASE_URL at it and the agent worker talks to it through the normal model client.
 //
-//   pnpm mock-llm                          # listens on 127.0.0.1:4010 (MOCK_LLM_PORT to change)
+//   pnpm mock-llm                          # listens on 127.0.0.1:4010 (MOCK_LLM_HOST/PORT to change)
 //   LLM_BASE_URL=http://127.0.0.1:4010/v1 LLM_MODEL=mock LLM_API_KEY=mock node apps/agent-worker/dist/e2e.js
 //
 // It answers the way the platform's single-step decider expects:
@@ -151,8 +151,9 @@ function startServer(port: number): void {
       return send(400, {error: {message: `mock-llm: ${String(err)}`}});
     }
   });
-  server.listen(port, '127.0.0.1', () => {
-    console.log(`mock-llm listening on http://127.0.0.1:${port}/v1`);
+  const host = process.env.MOCK_LLM_HOST ?? '127.0.0.1'; // 0.0.0.0 inside a container
+  server.listen(port, host, () => {
+    console.log(`mock-llm listening on http://${host}:${port}/v1`);
   });
 }
 

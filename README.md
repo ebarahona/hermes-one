@@ -78,23 +78,43 @@ see `docs/SPIKE-FINDINGS.md`.
 
 ## Layout
 
-| Area              | Role                                                       |
-| ----------------- | ---------------------------------------------------------- |
-| `apps/`           | deployable processes, one composition root each            |
-| `packages/`       | pure libraries — schemas, compilers, plan types            |
-| `components/`     | DI-wired engines (depend on ports, not adapters)           |
-| `infrastructure/` | I/O adapters (the only place with I/O)                     |
-| `verticals/`      | **data** bundles (not workspace packages)                  |
-| `infra/`          | the local Docker Compose stack and collector configuration |
-| `tools/`          | repository tooling (`plane-lint`)                          |
+| Area              | Role                                                         |
+| ----------------- | ------------------------------------------------------------ |
+| `apps/`           | deployable processes, one composition root each              |
+| `packages/`       | pure libraries — schemas, compilers, plan types              |
+| `components/`     | DI-wired engines (depend on ports, not adapters)             |
+| `infrastructure/` | I/O adapters (the only place with I/O)                       |
+| `verticals/`      | **data** bundles (not workspace packages)                    |
+| `infra/`          | the local Docker Compose stack and collector configuration   |
+| `tools/`          | repository tooling (`plane-lint`, mock LLM, quickstart CLIs) |
 
 All workspace packages use the `@hermes-one/*` scope.
 
 ## Toolchain
 
-pnpm 11 workspace · ESM · Node ≥22.13 · TypeScript 5.7 · Zod (ADR-020) · Vitest · Temporal ·
+pnpm 11 workspace · ESM · Node ≥22.13 · TypeScript 6.0 · Zod (ADR-020) · Vitest · Temporal ·
 PostgreSQL (RLS) · Redis · OpenTelemetry. Qdrant runs in the local stack, reserved for the planned
 knowledge retrieval.
+
+## Quickstart
+
+Run the whole platform (Temporal, Postgres, Redis, and every Hermes process) with Docker, install a
+vertical through the admin API, and send it a message. No model or API key needed: the agent worker
+talks to the scripted mock model unless you set `LLM_BASE_URL`, `LLM_MODEL`, and `LLM_API_KEY`.
+
+```bash
+docker compose -f infra/docker-compose.yml --profile app up -d --build
+
+pnpm install
+pnpm install-pack verticals/support/pack.json      # author 5 definitions, publish the deployment
+pnpm send-sms "I forgot my password"               # a rule answers it; no model call
+pnpm send-sms "Does my plan include reporting?"    # no rule matches; the support agent takes the turn
+```
+
+Each `send-sms` prints the workflow it started; watch it in the Temporal UI at
+http://localhost:8233. The demo tenant, admin API key, inbound number, and webhook secret are in
+`infra/quickstart.env` (public values, for local evaluation only). The admin API listens on
+`127.0.0.1:3001` and the webhook ingress on `127.0.0.1:3002/webhooks/sms`.
 
 ## Commands
 

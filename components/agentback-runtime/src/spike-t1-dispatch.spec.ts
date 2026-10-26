@@ -14,7 +14,9 @@ describe('T1 — agentback @tool dispatch via callTool', () => {
     await using t = await createTestApp(() =>
       createAgentPlaneApp({fixtures: true}),
     );
-    const names = (await t.mcp.listTools()).tools.map(x => x.name).sort();
+    const names = (await t.mcp.listTools()).tools
+      .map((x: {name: string}) => x.name)
+      .sort();
     expect(names).toContain('appointment.slot.read');
     expect(names).toContain('appointment.booking.create');
   });

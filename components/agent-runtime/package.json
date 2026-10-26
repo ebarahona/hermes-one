@@ -24,18 +24,19 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
+    "@hermes-one/contracts": "workspace:*",
     "@hermes-one/model-client": "workspace:*",
-    "@hermes-one/tool-executor": "workspace:*",
-    "@hermes-one/contracts": "workspace:*"
+    "@hermes-one/tool-executor": "workspace:*"
   },
   "devDependencies": {
-    "@agentback/context": "0.7.1",
-    "@agentback/mcp": "0.7.1",
-    "@agentback/testing": "0.7.1",
+    "@agentback/context": "0.13.0",
+    "@agentback/mcp": "0.13.0",
+    "@agentback/testing": "0.13.0",
     "@hermes-one/agentback-runtime": "workspace:*",
     "@hermes-one/expression-core": "workspace:*",
     "@hermes-one/rule-dsl": "workspace:*",
-    "@hermes-one/workflow-dsl": "workspace:*"
+    "@hermes-one/workflow-dsl": "workspace:*",
+    "@modelcontextprotocol/client": "^2.4.0"
   },
   "hermes": {
     "name": "@hermes-one/agent-runtime",

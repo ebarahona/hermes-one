@@ -35,9 +35,9 @@
     ]
   },
   "dependencies": {
-    "@agentback/context": "0.7.1",
-    "@agentback/core": "0.7.1",
-    "@agentback/mcp": "0.7.1",
+    "@agentback/context": "0.13.0",
+    "@agentback/core": "0.13.0",
+    "@agentback/mcp": "0.13.0",
     "@hermes-one/agent-runtime": "workspace:*",
     "@hermes-one/agentback-runtime": "workspace:*",
     "@hermes-one/config": "workspace:*",

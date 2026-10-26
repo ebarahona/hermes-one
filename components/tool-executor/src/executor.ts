@@ -5,7 +5,7 @@
 // METADATA (derived from the CapabilityContract, never a hardcoded map); `evidence`/`metrics` come from
 // the dispatch hook. It never re-implements dispatch.
 import {Context} from '@agentback/context';
-import type {MCPServer, ToolBinding} from '@agentback/mcp';
+import {addTool, type MCPServer, type ToolBinding} from '@agentback/mcp';
 import {
   ToolResult,
   type CapabilityName,
@@ -134,6 +134,10 @@ export class PlatformToolExecutor implements ToolExecutor {
 
     try {
       const binding = this.bindingSource?.(call.capability);
+      // A per-turn projected class is registered only in this dispatch's context, so no other
+      // turn or tenant can see it.
+      if (binding)
+        addTool(dispatchCtx, binding.ctor as Parameters<typeof addTool>[1]);
       const output = await this.server.callTool(call.capability, call.input, {
         ctx: dispatchCtx,
         ...(binding ? {binding} : {}),

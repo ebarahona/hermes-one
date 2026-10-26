@@ -15,17 +15,19 @@
 //     no such API: `@tool` is a plain legacy decorator that writes ToolMetadata into reflect-metadata
 //     under 'mcp:tool', and `MCPServer.callTool` resolves by exact `===` on `meta.name`. The faithful
 //     realization is to apply the shipped decorator programmatically and hand the resulting
-//     ToolBinding to `callTool` via `CallToolOptions.binding`.
+//     ToolBinding to `callTool` via `CallToolOptions.binding`. Since agentback 0.13, dispatch resolves
+//     the tool instance from a binding, so the class is also tagged `@mcpServer()` and the executor
+//     registers it in its per-dispatch context with `addTool` (never on the shared app).
 //  2. The original plan projected the whole manifest once "at deployment activation". This worker is a
 //     multi-tenant singleton, so an app-level registry keyed by tool NAME cannot hold two tenants'
 //     different contracts for the same capability (ToolProjectionReport.conflicts
 //     anticipates the collision but not the multi-tenant case). We project PER TURN into bindings
 //     that close over that turn's contracts + provider plane — no shared mutable registration, no
-//     cross-tenant collision. `MCPServer.resolveMember` documents the unbound-ctor path this relies
-//     on: "a discovered tool always has a tagged binding, so this is only reached for a class invoked
-//     without one — instantiate with no DI". This is the "Lazy per-turn projection"
+//     cross-tenant collision. agentback 0.13 resolves a tool instance only from a binding (it no
+//     longer constructs an unbound class), so each dispatch registers the turn's class in its own
+//     child context (`addTool` in PlatformToolExecutor). This is the "Lazy per-turn projection"
 //     (Future Extensions), adopted early out of multi-tenant necessity.
-import {tool} from '@agentback/mcp';
+import {mcpServer, tool} from '@agentback/mcp';
 import type {ToolBinding} from '@agentback/mcp';
 import type {
   CapabilityContract,
@@ -191,6 +193,9 @@ export class CapabilityToolProjector {
     Object.defineProperty(ProjectedCapabilities, 'name', {
       value: 'ProjectedCapabilities',
     });
+    // Tag it as an MCP server class so a dispatch can register it in its own context (addTool):
+    // agentback resolves the tool instance from a binding, never by constructing the class itself.
+    mcpServer()(ProjectedCapabilities);
 
     contracts.forEach((contract, i) => {
       const seen = bindings.get(contract.name);

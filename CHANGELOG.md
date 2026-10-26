@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.2](https://github.com/ebarahona/hermes-one/compare/v0.1.1...v0.1.2) (2026-10-26)
+
+
+### Dependencies
+
+* **deps-dev:** bump @types/node ([#39](https://github.com/ebarahona/hermes-one/issues/39)) ([24919f5](https://github.com/ebarahona/hermes-one/commit/24919f5c3165854aeccefa10198a49176d4aad20))
+* upgrade typescript to 6.0 ([35cb434](https://github.com/ebarahona/hermes-one/commit/35cb434f78b44d38343de78cbead73e04b549d7a))
+
 ## [0.1.1](https://github.com/ebarahona/hermes-one/compare/v0.1.0...v0.1.1) (2026-10-26)
 
 

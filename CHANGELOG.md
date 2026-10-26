@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/ebarahona/hermes-one/compare/v0.1.2...v0.2.0) (2026-10-26)
+
+
+### Features
+
+* run the full platform with docker compose ([34726c8](https://github.com/ebarahona/hermes-one/commit/34726c893b7a5dd8242ad88685d3699be3cd7666))
+
 ## [0.1.2](https://github.com/ebarahona/hermes-one/compare/v0.1.1...v0.1.2) (2026-10-26)
 
 

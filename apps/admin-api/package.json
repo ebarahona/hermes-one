@@ -21,7 +21,9 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "clean": "rm -rf dist *.tsbuildinfo"
+    "clean": "rm -rf dist *.tsbuildinfo",
+    "migrate": "node dist/migrate.js",
+    "start": "node dist/main.js"
   },
   "hermes": {
     "name": "@hermes-one/admin-api",

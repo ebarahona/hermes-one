@@ -63,7 +63,7 @@ export class AdminApiRoot implements CompositionRoot<PlatformRestApplication> {
 
   createApp(): PlatformRestApplication {
     return new PlatformRestApplication({
-      rest: {host: '127.0.0.1', port: this.config.api.port},
+      rest: {host: this.config.api.host, port: this.config.api.port},
     });
   }
 

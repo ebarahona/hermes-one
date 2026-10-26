@@ -29,7 +29,9 @@
     "lint": "eslint . && prettier --check \"**/*.{ts,json,md}\"",
     "lint:fix": "eslint . --fix && prettier --write \"**/*.{ts,json,md}\"",
     "verify": "pnpm typecheck && pnpm plane-lint && pnpm test",
-    "prepare": "sh scripts/install-hooks.sh"
+    "prepare": "sh scripts/install-hooks.sh",
+    "install-pack": "tsx tools/install-pack.ts",
+    "send-sms": "tsx tools/send-sms.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.4",

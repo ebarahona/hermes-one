@@ -6,6 +6,8 @@
 #               three no-LLM e2es (missed-call workflow, signed webhook, admin API), and the three agent e2es
 #               against `pnpm mock-llm`, a scripted OpenAI-compatible model. A real model is still a
 #               manual run: point LLM_BASE_URL at it (see README "LLM configuration").
+#   quickstart  the README quickstart on the compose `app` profile: every process from the Dockerfile,
+#               a pack installed through the admin API, and two signed webhooks run to completion.
 # Service ports mirror infra/docker-compose.yml (PG 5433, Redis 6380) so the config dev defaults just work.
 
 name: ci
@@ -120,3 +122,38 @@ jobs:
           node apps/agent-worker/dist/e2e.js
           node apps/agent-worker/dist/support-pack.e2e.js
           node apps/agent-worker/dist/pack-e.e2e.js
+
+  # The README quickstart, exactly as a visitor runs it: build the image, start every process with the
+  # compose `app` profile, install the support pack through the admin API, and send two signed webhooks
+  # (one rule-answered, one agent turn on the mock model). Fails if either run does not complete.
+  quickstart:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Start the platform
+        run: |
+          docker compose -f infra/docker-compose.yml --profile app up -d --build
+          for i in $(seq 1 100); do
+            curl -s -o /dev/null http://127.0.0.1:3001/v1/ping &&
+              docker logs hermes-one-api-gateway 2>&1 | grep -q listening && exit 0
+            sleep 3
+          done
+          exit 1
+      - name: Install the support pack and send two messages
+        run: |
+          pnpm install-pack verticals/support/pack.json
+          for text in "I forgot my password" "Does my plan include reporting?"; do
+            id=$(pnpm -s send-sms "$text" | sed -n 's/^Started //p')
+            timeout 120 docker exec hermes-one-temporal temporal workflow result -w "$id" --address temporal:7233 | tee result.txt
+            grep -q COMPLETED result.txt
+          done
+      - name: Logs on failure
+        if: failure()
+        run: docker compose -f infra/docker-compose.yml --profile app logs --tail 100

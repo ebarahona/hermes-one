@@ -123,13 +123,13 @@ contract: `createApp`, `bindPorts`, `registerComponents`, `start` (fail-closed),
 `bootstrap()` (`components/loopback-core/src/bootstrap.ts`) loads config once (env, Zod-validated)
 and runs the phases, exiting on any failure.
 
-| App               | How it is composed                                                                                                                                                                                                                                              |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `admin-api`       | `AdminApiRoot` (a `CompositionRoot`, run by `bootstrap()`): binds config, auth config, the API-key store, and the JWT verifier when supplied; registers the REST sequence, `AuthComponent`, `PersistenceComponent`, `SubstrateComponent`, and eight controllers |
-| `workflow-worker` | `WorkflowWorkerRoot` (a `CompositionRoot`): a bare context that binds only config, since workflow code does no I/O                                                                                                                                              |
-| `activity-worker` | a `PlatformApplication` with observability, persistence, capability registry, rule runtime, and channels; activities are factories closed over dependencies resolved from that container                                                                        |
-| `api-gateway`     | `createInboundGateway()`: a `PlatformApplication` with observability and persistence; the Temporal client, SMS transport, secret provider, and nonce store are built inline (not yet a `CompositionRoot`)                                                       |
-| `agent-worker`    | an agentback `MCPApplication` plus a memoized `boot()` that builds the model client, stores, persistence, and tracing with factories (ledger L2)                                                                                                                |
+| App               | How it is composed                                                                                                                                                                                                                                                                                                                             |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `admin-api`       | `AdminApiRoot` (a `CompositionRoot`, run by `bootstrap()`): binds config, auth config, the API-key store, and the JWT verifier when supplied (`main.ts` builds both from `HERMES_ADMIN_API_KEYS` and `HERMES_OIDC_ISSUERS`); registers the REST sequence, `AuthComponent`, `PersistenceComponent`, `SubstrateComponent`, and eight controllers |
+| `workflow-worker` | `WorkflowWorkerRoot` (a `CompositionRoot`): a bare context that binds only config, since workflow code does no I/O                                                                                                                                                                                                                             |
+| `activity-worker` | a `PlatformApplication` with observability, persistence, capability registry, rule runtime, and channels; activities are factories closed over dependencies resolved from that container                                                                                                                                                       |
+| `api-gateway`     | `createInboundGateway()`, started by `main.ts` from config: a `PlatformApplication` with observability and persistence; the Temporal client, SMS transport, secret provider, and nonce store are built inline (not yet a `CompositionRoot`)                                                                                                    |
+| `agent-worker`    | an agentback `MCPApplication` plus a memoized `boot()` that builds the model client, stores, persistence, and tracing with factories (ledger L2)                                                                                                                                                                                               |
 
 Adapter selection is code, with three switches from configuration: the SMS vendor adapter
 (`SMS_VENDOR`), the envelope credential store (`HERMES_CREDENTIALS_MASTER_KEY`), and the trace
@@ -285,8 +285,8 @@ turn; an empty model falls back to `LLM_MODEL`.
   come from code defaults (`apps/workflow-worker/src/turn-request.ts`,
   `apps/agent-worker/src/agent-activity.ts`). `PATCH /v1/tenants/{t}` persists and emits
   `tenant.config.changed`, but turns do not read it yet.
-- **Rule parameter values** come from the gateway's `parametersFor` (`apps/api-gateway/src/index.ts`,
-  a demo default). Tenant overrides are planned to merge at compile time through rule extension
+- **Rule parameter values** come from the gateway's `parametersFor`, which the entry point
+  (`apps/api-gateway/src/main.ts`) fills from `HERMES_RULE_PARAMETERS`. Tenant overrides are planned to merge at compile time through rule extension
   definitions, not through a runtime config table (E2).
 - **Engine fields** `persona`, `objectives`, `referencedRules`, `promptTemplateIds`, and
   `model.provider` are stored but not read; there is one LLM endpoint per worker process (A11, CT6).
@@ -300,13 +300,11 @@ turn; an empty model falls back to `LLM_MODEL`.
 
 Found while writing this document.
 
-- `apps/admin-api/src/main.ts` passes no API-key seeds and no JWT verifier, so the shipped entry
-  point authenticates no caller (every non-health route returns 401). The admin API's tests and
-  end-to-end run supply credentials explicitly. The static key store itself is the interim store
-  tracked as S3; the empty entry point is not yet a ledger row.
+- Admin API keys come from `HERMES_ADMIN_API_KEYS` into the static key store, the interim store
+  tracked as S3, until the DB-backed key store lands.
 - On the edge plane, `ChannelComponent` builds the SMS vendor adapter with its own environment-backed
   credential store, and `VendorSmsProvider` resolves from it and overrides the provider config the
   activity worker passes in, so SMS sends use platform credentials, not the tenant's
   envelope-encrypted ones. Tracked in ledger S7 ("VendorSmsProvider still self-resolves").
-- `api-gateway` has no production entry point; only its end-to-end test starts it. Not yet a ledger
-  row.
+- The inbound number → tenant map comes from `HERMES_GATEWAY_NUMBERS` until the tenant registry
+  owns channel numbers.

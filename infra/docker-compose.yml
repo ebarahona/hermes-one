@@ -11,6 +11,25 @@
 #   Qdrant       http://localhost:6333  (reserved: knowledge retrieval is planned, nothing connects yet)
 name: hermes-one
 
+# Shared settings for the Hermes processes in the `app` profile (bottom of this file).
+x-hermes-app: &hermes-app
+  build:
+    context: ..
+  image: hermes-one:local
+  profiles: ['app']
+  restart: unless-stopped
+  env_file: ['quickstart.env']
+  environment:
+    TEMPORAL_ADDRESS: temporal:7233
+    HERMES_AUTHORITATIVE_URL: postgres://hermes:hermes@postgres:5432/hermes
+    HERMES_EPHEMERAL_URL: redis://redis:6379
+    HERMES_VECTOR_URL: http://qdrant:6333
+    HERMES_ADMIN_API_HOST: 0.0.0.0
+    HERMES_GATEWAY_HOST: 0.0.0.0
+    LLM_BASE_URL: ${LLM_BASE_URL:-http://mock-llm:4010/v1}
+    LLM_MODEL: ${LLM_MODEL:-mock}
+    LLM_API_KEY: ${LLM_API_KEY:-mock}
+
 services:
   # --- Temporal (durable orchestration) + its own private Postgres ----------
   temporal-db:
@@ -111,6 +130,73 @@ services:
     ports:
       - '4317:4317' # OTLP gRPC
       - '4318:4318' # OTLP HTTP
+
+  # --- Hermes itself (profile `app`) -----------------------------------------
+  # Every Hermes process from one image (the repo Dockerfile), wired to the services above:
+  #
+  #   docker compose -f infra/docker-compose.yml --profile app up -d --build
+  #
+  # Admin API http://127.0.0.1:3001 · webhook ingress http://127.0.0.1:3002/webhooks/sms. The agent
+  # worker talks to the scripted mock model unless LLM_BASE_URL/LLM_MODEL/LLM_API_KEY are set (they
+  # must be reachable from inside the container). Demo tenant, admin key, and webhook secret:
+  # infra/quickstart.env.
+  migrate:
+    <<: *hermes-app
+    container_name: hermes-one-migrate
+    command: ['node', 'apps/admin-api/dist/migrate.js']
+    restart: 'no'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  admin-api:
+    <<: *hermes-app
+    container_name: hermes-one-admin-api
+    command: ['node', 'apps/admin-api/dist/main.js']
+    ports:
+      - '127.0.0.1:3001:3001'
+    depends_on: &hermes-depends
+      migrate:
+        condition: service_completed_successfully
+      temporal:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  api-gateway:
+    <<: *hermes-app
+    container_name: hermes-one-api-gateway
+    command: ['node', 'apps/api-gateway/dist/main.js']
+    ports:
+      - '127.0.0.1:3002:3002'
+    depends_on: *hermes-depends
+
+  workflow-worker:
+    <<: *hermes-app
+    container_name: hermes-one-workflow-worker
+    command: ['node', 'apps/workflow-worker/dist/worker.js']
+    depends_on: *hermes-depends
+
+  activity-worker:
+    <<: *hermes-app
+    container_name: hermes-one-activity-worker
+    command: ['node', 'apps/activity-worker/dist/worker.js']
+    depends_on: *hermes-depends
+
+  agent-worker:
+    <<: *hermes-app
+    container_name: hermes-one-agent-worker
+    command: ['node', 'apps/agent-worker/dist/worker.js']
+    depends_on: *hermes-depends
+
+  mock-llm:
+    <<: *hermes-app
+    container_name: hermes-one-mock-llm
+    command: ['node_modules/.bin/tsx', 'tools/mock-llm.ts']
+    environment:
+      MOCK_LLM_HOST: 0.0.0.0
+    env_file: []
+    depends_on: []
 
 volumes:
   temporal-db-data:

@@ -34,6 +34,6 @@
   },
   "dependencies": {
     "@hermes-one/contracts": "workspace:*",
-    "openai": "^4.77.0"
+    "openai": "^7.43.0"
   }
 }

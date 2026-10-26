@@ -29,9 +29,9 @@
     "@hermes-one/contracts": "workspace:*"
   },
   "devDependencies": {
-    "@agentback/context": "0.7.1",
-    "@agentback/mcp": "0.7.1",
-    "@agentback/testing": "0.7.1",
+    "@agentback/context": "0.13.0",
+    "@agentback/mcp": "0.13.0",
+    "@agentback/testing": "0.13.0",
     "@hermes-one/agentback-runtime": "workspace:*",
     "@hermes-one/expression-core": "workspace:*",
     "@hermes-one/rule-dsl": "workspace:*",

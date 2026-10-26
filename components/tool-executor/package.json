@@ -24,13 +24,13 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@agentback/context": "0.7.1",
-    "@agentback/mcp": "0.7.1",
+    "@agentback/context": "0.13.0",
+    "@agentback/mcp": "0.13.0",
     "@hermes-one/contracts": "workspace:*",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@agentback/testing": "0.7.1",
+    "@agentback/testing": "0.13.0",
     "@hermes-one/agentback-runtime": "workspace:*"
   },
   "hermes": {

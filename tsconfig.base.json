@@ -25,19 +25,19 @@
 
     // Dev-on-src cross-package resolution: map workspace names to their TS
     // source so `tsc` and Vitest (via vite-tsconfig-paths) typecheck/run without
-    // a build. baseUrl anchors these globs to this file's dir (the repo root),
-    // so they resolve correctly from any package's own tsconfig. The published
-    // `exports` still point at dist/ — these paths only affect in-repo tooling.
-    "baseUrl": ".",
+    // a build. Without baseUrl, these globs resolve relative to this file's dir
+    // (the repo root), so they resolve correctly from any package's own tsconfig.
+    // The published `exports` still point at dist/ — these paths only affect
+    // in-repo tooling.
     "paths": {
       "@hermes-one/workflow-dsl/interpreter": [
-        "packages/workflow-dsl/src/interpreter.ts"
+        "./packages/workflow-dsl/src/interpreter.ts"
       ],
       "@hermes-one/*": [
-        "packages/*/src/index.ts",
-        "apps/*/src/index.ts",
-        "components/*/src/index.ts",
-        "infrastructure/*/src/index.ts"
+        "./packages/*/src/index.ts",
+        "./apps/*/src/index.ts",
+        "./components/*/src/index.ts",
+        "./infrastructure/*/src/index.ts"
       ]
     }
   }

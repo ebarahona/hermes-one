@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.1](https://github.com/ebarahona/hermes-one/compare/v0.1.0...v0.1.1) (2026-10-26)
+
+
+### Dependencies
+
+* **deps-dev:** bump prettier from 3.9.5 to 3.9.10 ([#28](https://github.com/ebarahona/hermes-one/issues/28)) ([d80752f](https://github.com/ebarahona/hermes-one/commit/d80752f8d34272c78a79a5f60b50ae957f1b389f))
+* **deps:** bump drizzle-orm from 0.45.2 to 0.45.4 ([#23](https://github.com/ebarahona/hermes-one/issues/23)) ([84b148d](https://github.com/ebarahona/hermes-one/commit/84b148d62c9d9c9053a963aafbb90178387af265))
+* **deps:** bump ioredis from 5.11.1 to 6.0.0 ([#29](https://github.com/ebarahona/hermes-one/issues/29)) ([ed3570b](https://github.com/ebarahona/hermes-one/commit/ed3570b33538dff7bfcc5dd211fc23d82c54f18f))
+* **deps:** bump openai from 4.104.0 to 7.43.0 ([#25](https://github.com/ebarahona/hermes-one/issues/25)) ([43165f8](https://github.com/ebarahona/hermes-one/commit/43165f88eccdb243bce6905781a505db7a078fc3))
+* **deps:** bump zod from 4.4.3 to 4.6.7 ([#27](https://github.com/ebarahona/hermes-one/issues/27)) ([75d23f2](https://github.com/ebarahona/hermes-one/commit/75d23f24ae6bf2a68fa51c162d21f628eb653bcd))
+* upgrade agentback to 0.13 ([9e269aa](https://github.com/ebarahona/hermes-one/commit/9e269aa73dd311f08bd2c12a7c705e67bc653b15))
+
 ## 0.1.0 (2026-10-24)
 
 

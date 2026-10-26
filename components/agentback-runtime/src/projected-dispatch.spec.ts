@@ -7,13 +7,27 @@
 // to hardcoded fixtures with canned data and never touched the provider plane at all.
 import {describe, it, expect, vi} from 'vitest';
 import {createTestApp} from '@agentback/testing';
-import {MCPBindings, type MCPServer} from '@agentback/mcp';
+import {Context} from '@agentback/core';
+import {
+  addTool,
+  MCPBindings,
+  type MCPServer,
+  type ToolBinding,
+} from '@agentback/mcp';
 import type {CapabilityContract, ProviderAdapter} from '@hermes-one/contracts';
 import {createAgentPlaneApp} from './app.js';
 import {
   CapabilityToolProjector,
   type ProjectionContext,
 } from './tool-projection.js';
+
+// What PlatformToolExecutor does per dispatch: register the turn's projected class in a child
+// context only, then call the tool through it.
+function dispatchOptions(parent: Context, binding: ToolBinding | undefined) {
+  const ctx = new Context(parent);
+  if (binding) addTool(ctx, binding.ctor as Parameters<typeof addTool>[1]);
+  return {ctx, binding};
+}
 
 const SLOT_READ = {
   name: 'appointment.slot.read',
@@ -80,7 +94,7 @@ describe('projected capability → real agentback dispatch → provider', () => 
     const output = await server.callTool(
       'appointment.slot.read',
       {date: '2026-07-20'},
-      {binding: bindings.get('appointment.slot.read')},
+      dispatchOptions(t.app, bindings.get('appointment.slot.read')),
     );
 
     expect(output).toEqual({slots: ['2026-07-20T14:00:00-05:00']});
@@ -125,7 +139,9 @@ describe('projected capability → real agentback dispatch → provider', () => 
     await using t = await createTestApp(() =>
       createAgentPlaneApp({fixtures: true}),
     );
-    const names = (await t.mcp.listTools()).tools.map(x => x.name);
+    const names = (await t.mcp.listTools()).tools.map(
+      (x: {name: string}) => x.name,
+    );
     expect(names).toContain('appointment.slot.read');
   });
 
@@ -154,9 +170,37 @@ describe('projected capability → real agentback dispatch → provider', () => 
       const out = await server.callTool(
         'appointment.slot.read',
         {date: '2026-07-20'},
-        {binding: projected.bindings.get('appointment.slot.read')},
+        dispatchOptions(t.app, projected.bindings.get('appointment.slot.read')),
       );
       expect(out).toEqual({slots: ['tenant-scoped']});
     }
+  });
+
+  it('a projected tool is reachable only through its own dispatch registration', async () => {
+    await using t = await createTestApp(() => createAgentPlaneApp());
+    const server = await t.app.get<MCPServer>(MCPBindings.SERVER);
+    const {bindings} = new CapabilityToolProjector(async () =>
+      schedulerAdapter(async () => ({slots: []})),
+    ).project([SLOT_READ], ctx());
+    const binding = bindings.get('appointment.slot.read');
+
+    // A dispatch registers the class in a child context; nothing lands on the shared app.
+    await server.callTool(
+      'appointment.slot.read',
+      {date: '2026-07-20'},
+      dispatchOptions(t.app, binding),
+    );
+    await expect(
+      server.callTool('appointment.slot.read', {date: '2026-07-20'}),
+    ).rejects.toThrow(/Unknown tool/);
+
+    // The binding alone, in a context that never registered the class, does not resolve.
+    await expect(
+      server.callTool(
+        'appointment.slot.read',
+        {date: '2026-07-20'},
+        {ctx: new Context(t.app), binding},
+      ),
+    ).rejects.toThrow(/not bound/);
   });
 });

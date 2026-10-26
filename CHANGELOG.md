@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/ebarahona/hermes-one/compare/v0.2.0...v0.2.1) (2026-10-26)
+
+
+### Bug Fixes
+
+* **deps:** patch vulnerable transitive dependencies ([d0d9796](https://github.com/ebarahona/hermes-one/commit/d0d9796fcfa856a4c9fbf44e15aad136f35e914c))
+
 ## [0.2.0](https://github.com/ebarahona/hermes-one/compare/v0.1.2...v0.2.0) (2026-10-26)
 
 

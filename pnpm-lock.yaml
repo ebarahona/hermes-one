@@ -127,7 +127,7 @@ importers:
         version: 0.2.2
       zod:
         specifier: ^4.4.3
-        version: 4.4.3
+        version: 4.6.7
     devDependencies:
       '@types/pg':
         specifier: ^8.20.0
@@ -374,11 +374,11 @@ importers:
         version: 2.8.1
       zod:
         specifier: ^4.4.3
-        version: 4.4.3
+        version: 4.6.7
     devDependencies:
       '@agentback/testing':
         specifier: 0.13.0
-        version: 0.13.0(@agentback/mcp@0.13.0)(@modelcontextprotocol/client@2.4.0)(cors@2.8.6)(express@5.2.1)(hono@4.12.28)(zod@4.4.3)
+        version: 0.13.0(@agentback/mcp@0.13.0)(@modelcontextprotocol/client@2.4.0)(cors@2.8.6)(express@5.2.1)(hono@4.12.28)(zod@4.6.7)
       '@modelcontextprotocol/client':
         specifier: ^2.4.0
         version: 2.4.0
@@ -427,7 +427,7 @@ importers:
         version: 6.2.13
       zod:
         specifier: ^4.4.3
-        version: 4.4.3
+        version: 4.6.7
 
   components/channels:
     dependencies:
@@ -539,11 +539,11 @@ importers:
         version: link:../../packages/contracts
       zod:
         specifier: ^4.4.3
-        version: 4.4.3
+        version: 4.6.7
     devDependencies:
       '@agentback/testing':
         specifier: 0.13.0
-        version: 0.13.0(@agentback/mcp@0.13.0)(@modelcontextprotocol/client@2.4.0)(cors@2.8.6)(express@5.2.1)(hono@4.12.28)(zod@4.4.3)
+        version: 0.13.0(@agentback/mcp@0.13.0)(@modelcontextprotocol/client@2.4.0)(cors@2.8.6)(express@5.2.1)(hono@4.12.28)(zod@4.6.7)
       '@hermes-one/agentback-runtime':
         specifier: workspace:*
         version: link:../agentback-runtime
@@ -558,7 +558,7 @@ importers:
         version: link:../../packages/contracts
       zod:
         specifier: ^4.4.3
-        version: 4.4.3
+        version: 4.6.7
 
   infrastructure/drizzle:
     dependencies:
@@ -576,7 +576,7 @@ importers:
         version: 0.45.4(@opentelemetry/api@1.10.0)(@types/pg@8.23.1)(pg@8.23.1)(postgres@3.4.9)
       drizzle-zod:
         specifier: ^0.8.3
-        version: 0.8.3(drizzle-orm@0.45.4(@opentelemetry/api@1.10.0)(@types/pg@8.23.1)(pg@8.23.1)(postgres@3.4.9))(zod@4.4.3)
+        version: 0.8.3(drizzle-orm@0.45.4(@opentelemetry/api@1.10.0)(@types/pg@8.23.1)(pg@8.23.1)(postgres@3.4.9))(zod@4.6.7)
       pg:
         specifier: ^8.22.0
         version: 8.23.1
@@ -598,7 +598,7 @@ importers:
         version: link:../../packages/contracts
       openai:
         specifier: ^7.43.0
-        version: 7.43.0(undici@5.29.0)(zod@4.4.3)
+        version: 7.43.0(undici@5.29.0)(zod@4.6.7)
 
   infrastructure/redis:
     dependencies:
@@ -662,7 +662,7 @@ importers:
         version: 1.24.0
       zod:
         specifier: ^4.4.3
-        version: 4.4.3
+        version: 4.6.7
 
   packages/capability-contract:
     dependencies:
@@ -677,7 +677,7 @@ importers:
     dependencies:
       zod:
         specifier: ^4.4.3
-        version: 4.4.3
+        version: 4.6.7
 
   packages/definition-substrate:
     dependencies:
@@ -4197,9 +4197,6 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  zod@4.4.3:
-    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
-
   zod@4.6.7:
     resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
 
@@ -4225,11 +4222,6 @@ snapshots:
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
-
-  '@agentback/client@0.13.0(zod@4.4.3)':
-    dependencies:
-      tslib: 2.8.1
-      zod: 4.4.3
 
   '@agentback/client@0.13.0(zod@4.6.7)':
     dependencies:
@@ -4378,25 +4370,6 @@ snapshots:
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
-
-  '@agentback/testing@0.13.0(@agentback/mcp@0.13.0)(@modelcontextprotocol/client@2.4.0)(cors@2.8.6)(express@5.2.1)(hono@4.12.28)(zod@4.4.3)':
-    dependencies:
-      '@agentback/client': 0.13.0(zod@4.4.3)
-      '@agentback/context': 0.13.0
-      '@agentback/core': 0.13.0
-      '@agentback/rest': 0.13.0(cors@2.8.6)(express@5.2.1)(hono@4.12.28)
-      '@agentback/testlab': 0.13.0
-      tslib: 2.8.1
-    optionalDependencies:
-      '@agentback/mcp': 0.13.0
-      '@modelcontextprotocol/client': 2.4.0
-    transitivePeerDependencies:
-      - cors
-      - express
-      - hono
-      - multer
-      - supports-color
-      - zod
 
   '@agentback/testing@0.13.0(@agentback/mcp@0.13.0)(@modelcontextprotocol/client@2.4.0)(cors@2.8.6)(express@5.2.1)(hono@4.12.28)(zod@4.6.7)':
     dependencies:
@@ -5056,7 +5029,7 @@ snapshots:
   '@modelcontextprotocol/server@2.4.0':
     dependencies:
       '@modelcontextprotocol/core': 2.4.0
-      zod: 4.4.3
+      zod: 4.6.7
 
   '@napi-rs/wasm-runtime@1.1.6(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)':
     dependencies:
@@ -6105,10 +6078,10 @@ snapshots:
       pg: 8.23.1
       postgres: 3.4.9
 
-  drizzle-zod@0.8.3(drizzle-orm@0.45.4(@opentelemetry/api@1.10.0)(@types/pg@8.23.1)(pg@8.23.1)(postgres@3.4.9))(zod@4.4.3):
+  drizzle-zod@0.8.3(drizzle-orm@0.45.4(@opentelemetry/api@1.10.0)(@types/pg@8.23.1)(pg@8.23.1)(postgres@3.4.9))(zod@4.6.7):
     dependencies:
       drizzle-orm: 0.45.4(@opentelemetry/api@1.10.0)(@types/pg@8.23.1)(pg@8.23.1)(postgres@3.4.9)
-      zod: 4.4.3
+      zod: 4.6.7
 
   dunder-proto@1.0.1:
     dependencies:
@@ -7030,10 +7003,10 @@ snapshots:
     dependencies:
       mimic-fn: 2.1.0
 
-  openai@7.43.0(undici@5.29.0)(zod@4.4.3):
+  openai@7.43.0(undici@5.29.0)(zod@4.6.7):
     optionalDependencies:
       undici: 5.29.0
-      zod: 4.4.3
+      zod: 4.6.7
 
   openapi-typescript@5.4.2:
     dependencies:
@@ -7852,7 +7825,5 @@ snapshots:
       yargs-parser: 22.0.0
 
   yocto-queue@0.1.0: {}
-
-  zod@4.4.3: {}
 
   zod@4.6.7: {}

@@ -8,7 +8,8 @@ updates:
       day: monday
       time: '06:00'
       timezone: 'Etc/UTC'
-    open-pull-requests-limit: 10
+    # 0 turns off routine version bumps. Security updates (vulnerable deps) still open PRs.
+    open-pull-requests-limit: 0
     versioning-strategy: increase-if-necessary
     ignore:
       # Node types should match the oldest supported Node (engines >=22.13), not the newest.
@@ -47,6 +48,11 @@ updates:
       types:
         patterns:
           - '@types/*'
+      # Roll all security fixes into a single PR.
+      security:
+        applies-to: security-updates
+        patterns:
+          - '*'
 
   - package-ecosystem: github-actions
     directory: /
@@ -55,10 +61,10 @@ updates:
       day: friday
       time: '06:00'
       timezone: 'Etc/UTC'
-    open-pull-requests-limit: 5
+    # 0 turns off routine action bumps. Security updates still open PRs.
+    open-pull-requests-limit: 0
     labels:
       - dependencies
-      - github-actions
     commit-message:
       prefix: ci
       include: scope

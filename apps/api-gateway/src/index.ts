@@ -5,8 +5,8 @@
 // composition root builds a PlatformApplication (Observability + Persistence over ONE shared pool),
 // resolves the store/messages/roles/redis from the container, and `app.start()` runs the lifecycle
 // observers — including the fail-closed RLS boot gate. The HTTP ingress itself stays a thin
-// `node:http` handler (flagged L3/E1): the LB4 REST surface (RestApplication + sequence, api/*.md)
-// is the admin-api build.
+// `node:http` handler (flagged L3/E1): the LB4 REST surface (RestApplication + sequence)
+// is apps/admin-api.
 import 'reflect-metadata';
 import {Client, Connection} from '@temporalio/client';
 import {EnvSecretProvider, loadConfig} from '@hermes-one/config';

@@ -1,6 +1,43 @@
 # hermes-one
 
+[![CI](https://github.com/ebarahona/hermes-one/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ebarahona/hermes-one/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/ebarahona/hermes-one)](https://github.com/ebarahona/hermes-one/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **Hermes ONE** (Orchestration Node Engine): a multi-tenant agent orchestration engine.
+
+Hermes runs customer conversations (support, scheduling, intake) for many tenants at once. Compiled
+rules answer every message they can, a model is called only when a message needs judgment, and each
+conversation runs as a durable Temporal workflow, so a crashed workflow worker does not lose it. A
+tenant's workflow, rules, policies, and tools are versioned data: publishing a new deployment
+changes its behavior on the next message, with no code change and no redeploy.
+
+**Who it is for:** teams building conversational automation as a product for many customers, who
+need to control model cost, audit every action, and let each tenant bring its own vendors and
+credentials.
+
+**How it compares:**
+
+- **Agent frameworks** (LangGraph, CrewAI, the OpenAI Agents SDK) are libraries for building an agent
+  loop inside your application. Hermes is the platform around the loop: the workflow owns routing,
+  rules decide before a model is consulted, and the model runs as one bounded, policy-gated step.
+- **Temporal on its own** gives durable execution, but each workflow is code you write and deploy.
+  Hermes runs one interpreter over workflows stored as data, and adds tenant isolation (row-level
+  security, per-tenant providers and credentials), policy-gated tools, and a tamper-evident audit
+  trail.
+- **Automation tools** (n8n, Zapier) connect apps with visual flows. Hermes is a typed, multi-tenant
+  runtime you operate, with its workflow interpreter replay-tested in CI.
+
+```mermaid
+flowchart LR
+  IN[Inbound message] --> GW[api-gateway<br/>verify, normalize]
+  GW --> WF[workflow-worker<br/>interprets the tenant's<br/>published workflow]
+  WF -->|rules, tools, replies| ACT[activity-worker<br/>rule engine, capabilities,<br/>ranked providers]
+  WF -->|agent node| AG[agent-worker<br/>bounded LLM turn,<br/>policy gate]
+  ACT --> OUT[Reply on the<br/>customer's channel]
+  ADMIN[admin-api<br/>author, preview, publish] --> PG[(Postgres<br/>definitions, ledgers, audit)]
+  PG -. pinned deployment .-> WF
+```
 
 Hermes is assembled by IoC (inversion of control). Every process is a DI (dependency injection)
 container ([LoopBack 4](https://loopback.io) on the edge plane,
@@ -76,6 +113,30 @@ dependency is a port with adapters wired only at composition roots (ADR-024). Th
 substrate was qualified against the architecture's contracts with executable tests before adoption —
 see `docs/SPIKE-FINDINGS.md`.
 
+## Glossary
+
+- **Tenant:** one customer of the platform; every row and run is scoped to a tenant.
+- **Definition:** a versioned, content-hashed unit of behavior: a workflow, rule, policy, capability,
+  or agent engine.
+- **Deployment:** the set of definitions a tenant runs. Publishing one makes it active; runs in
+  flight stay pinned to the deployment they started on.
+- **Vertical pack:** a `pack.json` bundle of definitions for one line of business, installed through
+  the admin API (`verticals/`).
+- **Capability:** a typed tool contract (`domain.resource.action`, for example `messaging.reply.send`)
+  with its input and output schemas, side effects, and required scope.
+- **Provider:** an adapter that fulfills a capability (an SMS vendor, the internal message log).
+  Tenants rank providers and may supply their own credentials.
+- **Agent engine:** the configuration of a bounded agent: persona, objectives, model, prompt
+  templates, and the capabilities it may call.
+- **Turn:** one bounded agent step, limited by steps, deadline, and budget.
+- **Policy gate:** the check every tool call the model proposes, and every agent reply, passes
+  before it takes effect.
+- **Handoff:** ending a turn by routing the conversation to a person.
+- **Plane:** a DI container boundary. The edge plane (LoopBack 4) and the agent plane (agentback)
+  never share live objects.
+- **Ledger codes** such as S7 or OB5 refer to rows in `docs/DEFERRED-AND-FLAGGED.md`, which explains
+  the prefixes.
+
 ## Layout
 
 | Area              | Role                                                         |
@@ -102,8 +163,11 @@ Run the whole platform (Temporal, Postgres, Redis, and every Hermes process) wit
 vertical through the admin API, and send it a message. No model or API key needed: the agent worker
 talks to the scripted mock model unless you set `LLM_BASE_URL`, `LLM_MODEL`, and `LLM_API_KEY`.
 
+You need Docker with Compose v2, Node ≥22.13, and pnpm (`corepack enable` installs the pinned
+version).
+
 ```bash
-docker compose -f infra/docker-compose.yml --profile app up -d --build
+docker compose -f infra/docker-compose.yml --profile app up -d --build --wait
 
 pnpm install
 pnpm install-pack verticals/support/pack.json      # author 5 definitions, publish the deployment
@@ -111,10 +175,21 @@ pnpm send-sms "I forgot my password"               # a rule answers it; no model
 pnpm send-sms "Does my plan include reporting?"    # no rule matches; the support agent takes the turn
 ```
 
-Each `send-sms` prints the workflow it started; watch it in the Temporal UI at
+No SMS vendor is configured, so replies are printed instead of sent. Follow them in the activity
+worker's log:
+
+```bash
+docker compose -f infra/docker-compose.yml logs -f activity-worker
+# [sms] to +15125559999: <the reply>
+```
+
+Each `send-sms` also prints the workflow it started; watch it in the Temporal UI at
 http://localhost:8233. The demo tenant, admin API key, inbound number, and webhook secret are in
 `infra/quickstart.env` (public values, for local evaluation only). The admin API listens on
 `127.0.0.1:3001` and the webhook ingress on `127.0.0.1:3002/webhooks/sms`.
+
+Stop the Hermes processes before running the e2es below, since they share task queues:
+`docker compose -f infra/docker-compose.yml stop admin-api api-gateway workflow-worker activity-worker agent-worker`.
 
 ## Commands
 
@@ -122,7 +197,7 @@ http://localhost:8233. The demo tenant, admin API key, inbound number, and webho
 pnpm install
 docker compose -f infra/docker-compose.yml up -d   # Temporal + Postgres + Redis + Qdrant + OTel
 
-pnpm -r build      # build first (tests resolve cross-package imports to dist)
+pnpm -r build      # the e2es and the replay gate run from dist
 pnpm verify        # typecheck + plane-lint + unit tests — the CI gate
 pnpm test:itest    # integration suite against the live stack (RLS, atomicity, routes)
 pnpm -F @hermes-one/workflow-worker replay-gate   # interpreter nondeterminism gate (ADR-029)

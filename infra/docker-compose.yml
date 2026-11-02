@@ -3,7 +3,7 @@
 # hermes-one-* container names, a dedicated network, and named volumes, so it
 # never collides with other projects. Host ports are deliberately non-default
 # (Postgres 5433, Redis 6380, Temporal UI 8233) to sit beside your existing
-# 5432/6379 instances.
+# 5432/6379 instances, and every port binds to 127.0.0.1 only.
 #
 #   docker compose -f infra/docker-compose.yml up -d
 #   Temporal UI  http://localhost:8233   ·  gRPC 127.0.0.1:7233
@@ -54,7 +54,7 @@ services:
       - POSTGRES_PWD=temporal
       - POSTGRES_SEEDS=temporal-db
     ports:
-      - '7233:7233'
+      - '127.0.0.1:7233:7233'
     healthcheck:
       test: ['CMD', 'tctl', '--address', 'temporal:7233', 'cluster', 'health']
       interval: 10s
@@ -70,7 +70,7 @@ services:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_CORS_ORIGINS=http://localhost:3000
     ports:
-      - '8233:8080'
+      - '127.0.0.1:8233:8080'
 
   # --- Platform authoritative store (Postgres, ADR-022) ---------------------
   postgres:
@@ -83,7 +83,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:
-      - '5433:5432'
+      - '127.0.0.1:5433:5432'
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U hermes']
       interval: 10s
@@ -98,7 +98,7 @@ services:
     volumes:
       - redis-data:/data
     ports:
-      - '6380:6379'
+      - '127.0.0.1:6380:6379'
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
@@ -114,8 +114,8 @@ services:
     volumes:
       - qdrant-data:/qdrant/storage
     ports:
-      - '6333:6333'
-      - '6334:6334'
+      - '127.0.0.1:6333:6333'
+      - '127.0.0.1:6334:6334'
 
   # --- Traces (OpenTelemetry Collector, OB5) ------
   # The OTLP/HTTP sink the workers export to when HERMES_OTEL_TRACES=otlp (endpoint
@@ -128,13 +128,13 @@ services:
     volumes:
       - ./otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
     ports:
-      - '4317:4317' # OTLP gRPC
-      - '4318:4318' # OTLP HTTP
+      - '127.0.0.1:4317:4317' # OTLP gRPC
+      - '127.0.0.1:4318:4318' # OTLP HTTP
 
   # --- Hermes itself (profile `app`) -----------------------------------------
   # Every Hermes process from one image (the repo Dockerfile), wired to the services above:
   #
-  #   docker compose -f infra/docker-compose.yml --profile app up -d --build
+  #   docker compose -f infra/docker-compose.yml --profile app up -d --build --wait
   #
   # Admin API http://127.0.0.1:3001 · webhook ingress http://127.0.0.1:3002/webhooks/sms. The agent
   # worker talks to the scripted mock model unless LLM_BASE_URL/LLM_MODEL/LLM_API_KEY are set (they
@@ -155,6 +155,17 @@ services:
     command: ['node', 'apps/admin-api/dist/main.js']
     ports:
       - '127.0.0.1:3001:3001'
+    healthcheck: &hermes-http-health
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3001/v1/ping').then(() => process.exit(0), () => process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
     depends_on: &hermes-depends
       migrate:
         condition: service_completed_successfully
@@ -169,6 +180,15 @@ services:
     command: ['node', 'apps/api-gateway/dist/main.js']
     ports:
       - '127.0.0.1:3002:3002'
+    healthcheck:
+      <<: *hermes-http-health
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3002/').then(() => process.exit(0), () => process.exit(1))",
+        ]
     depends_on: *hermes-depends
 
   workflow-worker:

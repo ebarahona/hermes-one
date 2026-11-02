@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/ebarahona/hermes-one/compare/v0.2.2...v0.2.3) (2026-11-02)
+
+
+### Documentation
+
+* drop em dashes and filler from the README ([#47](https://github.com/ebarahona/hermes-one/issues/47)) ([e67cb5e](https://github.com/ebarahona/hermes-one/commit/e67cb5e1605871d68aa76f99c755ecab60ccf40a))
+
 ## [0.2.2](https://github.com/ebarahona/hermes-one/compare/v0.2.1...v0.2.2) (2026-11-02)
 
 

@@ -57,7 +57,7 @@ The full map of bindings, components, extension points, ports, adapters, composi
 what is and isn't dynamic is in **`docs/COMPOSITION-AND-RUNTIME.md`**.
 
 A deterministic Temporal workflow rail with bounded agent nodes inside it. The workflow owns
-orchestration; the agent owns bounded reasoning; **the model proposes, the runtime disposes** —
+orchestration; the agent owns bounded reasoning; **the model proposes, the runtime disposes**:
 every tool the model calls passes a policy gate, every side effect carries an idempotency key, every table with a
 `tenant_id` column is scoped by row-level security, and every turn's tool executions, evidence, and policy decisions are
 durably recorded for audit. The reasoning behind these choices is in **`docs/WHY-THIS-ARCHITECTURE.md`**; governing
@@ -70,19 +70,19 @@ decisions live in `docs/adr/`; the build sequence in `docs/BUILD-PLAN.md`.
 
 ## Capabilities
 
-- **Verticals are data, not code (ADR-013) — proven live.** The electrician vertical is a single
+- **Verticals are data, not code (ADR-013).** The electrician vertical is a single
   `pack.json` (workflow, triage rule, policy, capability, agent engine). It installs through the
   platform's own admin API (`apps/admin-api/src/pack-e.itest.ts`), and a live LLM turn on real
   Temporal (`apps/agent-worker/src/pack-e.e2e.ts`, which installs the same definitions in-process)
-  yields a **tool-backed agent conversation** — the model calls `appointment.slot.read`, the
+  yields a **tool-backed agent conversation**: the model calls `appointment.slot.read`, the
   platform resolves a ranked provider, and the result is durably recorded. A new vertical is a new pack file, not a deploy.
   Two verticals ship in `verticals/`: a residential electrician (`electrician/`) and support-ticket
   triage (`support/`), where rules answer or escalate most messages and the model is called only
   for a message that needs judgment.
 - **Bring-your-own-vendor multi-tenancy.** A tenant can rank its **own provider** first
   (`capability.provider_mappings`, admin-managed) and supply its **own credentials**
-  (envelope-encrypted per tenant, rotated with a single `rotate()` call) — zero deploys, proven live:
-  the electrician e2e stores a tenant's own credentials with `rotate()` and the agent's tool call
+  (envelope-encrypted per tenant, rotated with a single `rotate()` call), with zero deploys. The
+  electrician e2e stores a tenant's own credentials with `rotate()` and the agent's tool call
   resolves them.
 - **An admin control-plane API.** OIDC + API-key auth on a fail-closed LoopBack 4 sequence;
   role-resolved, tenant-scoped, RLS-enforced routes for tenants, users, roles, definitions,
@@ -93,8 +93,8 @@ decisions live in `docs/adr/`; the build sequence in `docs/BUILD-PLAN.md`.
   **tamper-evident** (append-only, with a per-event integrity hash): re-writing an existing event is refused, and replay-stable clocks make
   legitimate re-execution idempotent.
 - **An interpreter replay gate in CI.** There is exactly one workflow interpreter (ADR-014);
-  every build replays committed golden histories against it and fails on any nondeterminism —
-  no waiver path (ADR-029). The committed histories cover the deterministic workflow today; agent
+  every build replays committed golden histories against it and fails on any nondeterminism,
+  with no waiver path (ADR-029). The committed histories cover the deterministic workflow today; agent
   workflow histories are on the roadmap.
 - **Observability end-to-end.** OpenTelemetry distributed tracing across the Temporal boundary
   (edge → activity → agent turn → tool), structured PII-redacting logs for agent turns, and an
@@ -105,13 +105,13 @@ decisions live in `docs/adr/`; the build sequence in `docs/BUILD-PLAN.md`.
 ## Architecture
 
 Two DI planes that never share a live context: the **edge plane** on LoopBack 4 and the **agent
-plane** on agentback — authored by the creator of LoopBack (the original framework and LoopBack 4),
-so one proven IoC idiom spans both planes. They meet only at serializable boundaries (ADR-017),
+plane** on agentback, written by the creator of LoopBack (the original framework and LoopBack 4),
+so one IoC idiom spans both planes. They meet only at serializable boundaries (ADR-017),
 enforced mechanically by `pnpm plane-lint`. Everything configurable is a content-hashed, versioned
 definition (Zod-first contracts, ADR-016/020); everything durable is Temporal (ADR-014); every
 dependency is a port with adapters wired only at composition roots (ADR-024). The agent-plane
-substrate was qualified against the architecture's contracts with executable tests before adoption —
-see `docs/SPIKE-FINDINGS.md`.
+substrate was qualified against the architecture's contracts with executable tests before adoption
+(see `docs/SPIKE-FINDINGS.md`).
 
 ## Glossary
 
@@ -142,7 +142,7 @@ see `docs/SPIKE-FINDINGS.md`.
 | Area              | Role                                                         |
 | ----------------- | ------------------------------------------------------------ |
 | `apps/`           | deployable processes, one composition root each              |
-| `packages/`       | pure libraries — schemas, compilers, plan types              |
+| `packages/`       | pure libraries: schemas, compilers, plan types               |
 | `components/`     | DI-wired engines (depend on ports, not adapters)             |
 | `infrastructure/` | I/O adapters (the only place with I/O)                       |
 | `verticals/`      | **data** bundles (not workspace packages)                    |
@@ -198,7 +198,7 @@ pnpm install
 docker compose -f infra/docker-compose.yml up -d   # Temporal + Postgres + Redis + Qdrant + OTel
 
 pnpm -r build      # the e2es and the replay gate run from dist
-pnpm verify        # typecheck + plane-lint + unit tests — the CI gate
+pnpm verify        # typecheck + plane-lint + unit tests (the CI gate)
 pnpm test:itest    # integration suite against the live stack (RLS, atomicity, routes)
 pnpm -F @hermes-one/workflow-worker replay-gate   # interpreter nondeterminism gate (ADR-029)
 
@@ -246,11 +246,11 @@ is added as a `SingleStepModel` adapter in `infrastructure/model-client`.
 
 ## Engineering discipline
 
-Every intentional deferral and design deviation is recorded in `docs/DEFERRED-AND-FLAGGED.md` — nothing
+Every intentional deferral and design deviation is recorded in `docs/DEFERRED-AND-FLAGGED.md`, so nothing
 is silently improvised. The architecture is the source of truth; where a library or a second architectural constraint genuinely
 conflicts, the conflict is ratified as an ADR (`docs/adr/`), never resolved ad hoc. CI runs the
 typecheck, the plane-isolation lint, lint, the unit suite, the interpreter replay gate, the
-integration suite (twice), and all six e2es — the agent e2es against the mock model — on every pull
+integration suite (twice), and all six e2es (the agent e2es against the mock model) on every pull
 request and every push to `main`.
 
 ## Roadmap

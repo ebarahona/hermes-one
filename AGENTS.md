@@ -14,7 +14,7 @@ workspace (TypeScript, ESM, Node ≥ 22.13, pnpm 11):
 - `infrastructure/` — adapters; the only place I/O lives.
 - `packages/` — contracts, DSLs, and the definition substrate.
 - `verticals/` — vertical packs (data bundles, not workspace packages).
-- `tools/` — repository tooling (`plane-lint`).
+- `tools/` — repository tooling (`plane-lint`, the mock LLM, and the quickstart CLIs).
 - `docs/` — architecture rationale, ADRs, build plan, and the deferral ledger.
 
 Repository: https://github.com/ebarahona/hermes-one (MIT License)
@@ -37,8 +37,9 @@ Read these before proposing a change:
    `build`, `chore`, `ci`, `deps`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`,
    `test`. `commitlint.config.js` enforces this.
 2. Every commit carries a DCO sign-off (`git commit -s`).
-3. **Build first.** Tests resolve cross-package `@hermes-one/*` imports to each package's `dist/`,
-   so run `pnpm -r build` before any test command.
+3. **Build before running anything from `dist/`.** Unit and integration tests resolve `@hermes-one/*`
+   imports to source (tsconfig paths), but the e2es, the replay gate, and `pnpm test:dist` run the
+   built output, so run `pnpm -r build` first.
 4. Before committing, run:
 
    ```bash

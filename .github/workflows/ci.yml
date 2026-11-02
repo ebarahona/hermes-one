@@ -27,7 +27,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v4 # version comes from package.json "packageManager"
+      - uses: pnpm/action-setup@v6 # version comes from package.json "packageManager"
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -70,7 +70,7 @@ jobs:
           --health-retries 10
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -131,7 +131,7 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -139,13 +139,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Start the platform
         run: |
-          docker compose -f infra/docker-compose.yml --profile app up -d --build
-          for i in $(seq 1 100); do
-            curl -s -o /dev/null http://127.0.0.1:3001/v1/ping &&
-              docker logs hermes-one-api-gateway 2>&1 | grep -q listening && exit 0
-            sleep 3
-          done
-          exit 1
+          docker compose -f infra/docker-compose.yml --profile app up -d --build --wait
       - name: Install the support pack and send two messages
         run: |
           pnpm install-pack verticals/support/pack.json
@@ -154,6 +148,9 @@ jobs:
             timeout 120 docker exec hermes-one-temporal temporal workflow result -w "$id" --address temporal:7233 | tee result.txt
             grep -q COMPLETED result.txt
           done
+          # No SMS vendor in the quickstart: the activity worker prints each reply instead.
+          docker logs hermes-one-activity-worker 2>&1 | grep '^\[sms\] to ' | tee replies.txt
+          test "$(wc -l < replies.txt)" -ge 2
       - name: Logs on failure
         if: failure()
         run: docker compose -f infra/docker-compose.yml --profile app logs --tail 100

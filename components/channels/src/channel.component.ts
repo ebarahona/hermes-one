@@ -41,6 +41,8 @@ export class ChannelComponent implements Component, PlatformComponentBoundary {
           ({context}) =>
             new PersistingMessageProvider(
               context.getSync(PlatformBindings.MESSAGE_REPOSITORY),
+              undefined,
+              line => console.log(line),
             ),
         )
         .inScope(BindingScope.SINGLETON)

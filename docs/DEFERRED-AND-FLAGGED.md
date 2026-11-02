@@ -27,6 +27,16 @@ multi-instance posture that is not yet deployed) · **55 🟡 scheduled** · **1
 Status: 🟢 delivered or ratified · ✅ resolved · 🔴 must land before the affected posture ships · 🟡 scheduled
 increment · ⚪ cosmetic.
 
+**Row codes.** Code comments and other docs cite rows by code (for example "ledger S7"). The prefix
+names the area: **S** security and secrets · **P** capability and provider plane · **A** agent runtime
+and model · **D** deployment and substrate lifecycle · **AU** audit, usage, and eventing · **CT** schema
+tables awaiting consumers · **OB** observability and analytics · **I** database and infrastructure ·
+**L** LoopBack composition layer · **T** Temporal and retry policies · **E** edge and API gateway ·
+**V** vertical fixtures · **PE** the electrician pack ("Pack E") · **SP** the support pack · **R**
+resolved items kept for one cycle. **AUTH-1** to **AUTH-4** are the phases of the authentication work
+(see the Security section). A trailing ⁿ (as in S2ⁿ) means narrowed: part closed, the remainder
+still flagged.
+
 ---
 
 ## Security / secrets

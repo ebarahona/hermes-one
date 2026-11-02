@@ -89,18 +89,17 @@ live-Temporal tests (T5). This phase is what lets you OPERATE at scale.
 ## Phase 5 — Composition-layer completion + turn quality
 
 LB4 tail (L1/L3b/L3d/L6/L7 — interceptors, sequence, agent-plane components), node:http → REST
-ingress (E1), policy `repair` re-compose (A2), `onNoProvider:'handoff'` routed to a real handoff
-(PE6), metering from agentback's stream (AU1/OB2), remaining KPIs (OB1). Nothing here blocks
-anything above.
+ingress (E1), metering from agentback's stream (AU1/OB2), remaining KPIs (OB1). Nothing here blocks
+anything above. Done since: policy `repair` re-compose (A2) and `onNoProvider:'handoff'` routed to a
+real handoff (PE6).
 
 ## Deliberately out (for now)
 
 P1 (providers/capabilities documentation pack — a documentation exercise, not a code slice) · T4 (vendor
-behavior) · OB6 replay/simulation · the 3 follow-on verticals (after Phases 1–3 make them cheap) ·
+behavior) · OB6 replay/simulation · further verticals beyond electrician and support-ticket triage ·
 S0a/AUTH-4 (blocked upstream on agentback's sync `ConfirmationStore`).
 
 ## Working discipline
 
-Build → typecheck → plane-lint → test → itest → e2es, IN THAT ORDER (vitest resolves cross-package
-imports to dist). Re-run e2es. Assert the durable ledger, not the workflow path. The architecture (ADRs) outranks a review; conflicts get FLAGGED, never silently resolved. One phase in flight at a time; check in
+Build → typecheck → plane-lint → test → itest → e2es, IN THAT ORDER (the e2es run the built `dist/`). Re-run e2es. Assert the durable ledger, not the workflow path. The architecture (ADRs) outranks a review; conflicts get FLAGGED, never silently resolved. One phase in flight at a time; check in
 at each phase boundary.

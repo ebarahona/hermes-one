@@ -45,6 +45,9 @@ async function main() {
   console.log(
     `Watch it: http://localhost:8233/namespaces/default/workflows/${workflowId}`,
   );
+  console.log(
+    'The reply prints in the activity worker log: docker compose -f infra/docker-compose.yml logs -f activity-worker',
+  );
 }
 
 main().catch((err: unknown) => {

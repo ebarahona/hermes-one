@@ -15,7 +15,7 @@ must pass, and the conventions the codebase follows.
 ```bash
 pnpm install
 docker compose -f infra/docker-compose.yml up -d
-cp .env.example .env    # dev defaults already match the compose stack
+cp .env.example .env    # matches the compose stack; set the LLM variables (see the README)
 pnpm -r build
 ```
 
@@ -40,8 +40,8 @@ commitlint).
 
 ## Before you open a pull request
 
-**Build first.** Tests resolve cross-package imports to each package's `dist/`, so a stale build
-produces misleading test results.
+Unit and integration tests run against source, but the e2es and the replay gate run the built
+`dist/`, so build first: a stale build produces misleading results.
 
 ```bash
 pnpm -r build

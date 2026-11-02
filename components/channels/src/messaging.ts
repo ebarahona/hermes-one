@@ -84,7 +84,11 @@ export interface MessageSendResult {
 const shortHash = (s: string, n: number) =>
   createHash('sha256').update(s).digest('hex').slice(0, n);
 
-/** Persists the outbound message to runtime.messages (the authoritative record); returns a receipt id. */
+/**
+ * Persists the outbound message to runtime.messages (the authoritative record); returns a receipt id.
+ * With no SMS vendor configured this is the provider that "sends", so `print` (the worker log) shows
+ * each message as it would have gone out.
+ */
 export class PersistingMessageProvider implements ProviderAdapter<
   OutboundInput,
   MessageSendResult
@@ -95,6 +99,7 @@ export class PersistingMessageProvider implements ProviderAdapter<
   constructor(
     private readonly repo: DrizzleMessageRepository,
     private readonly clock: () => Date = () => new Date(),
+    private readonly print: (line: string) => void = () => {},
   ) {}
 
   async status(): Promise<ProviderStatus> {
@@ -124,6 +129,7 @@ export class PersistingMessageProvider implements ProviderAdapter<
       },
       {tenantId: ctx.tenantId as TenantId},
     );
+    this.print(`[sms] to ${input.to}: ${input.body ?? input.template}`);
     return {providerMessageId, status: 'queued'};
   }
 }

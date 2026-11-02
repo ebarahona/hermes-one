@@ -2,7 +2,7 @@
 // normalized to an InboundMessage and handed to the ingestor, which persists it and starts the workflow.
 // NOTE (flagged): this is a thin node:http handler for the *channel webhook* ingress (channel ingestion,
 // not the admin REST surface). The admin/API surface (workflow/conversation/tenant controllers) is
-// LoopBack REST per api/*.md — a separate, later build.
+// LoopBack REST in apps/admin-api.
 import {
   createServer,
   type IncomingMessage,

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/ebarahona/hermes-one/compare/v0.2.1...v0.2.2) (2026-11-02)
+
+
+### Bug Fixes
+
+* print quickstart replies and tidy the docs ([#45](https://github.com/ebarahona/hermes-one/issues/45)) ([cc04379](https://github.com/ebarahona/hermes-one/commit/cc04379bf474f384870e6b416ef23c4d682dd69e))
+
 ## [0.2.1](https://github.com/ebarahona/hermes-one/compare/v0.2.0...v0.2.1) (2026-10-26)
 
 
